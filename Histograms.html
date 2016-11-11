@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Histogram stuff" />
+
+    <meta name="author" content="Aran Lunzer and Amelia McNamara">
+    <title>Interactive Essay on Histograms</title>
+    <link rel="stylesheet" href="dist/font-awesome/css/font-awesome.min.css">
+    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="dist/css/my.css" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="{{ site.name }}" href="{{ site.baseurl }}/blog/feed.xml">
+  </head>
+  <body>
+
+
+
+
+<div class="container">
+	<div class="row">
+	<div class="col-lg-12">
+		<h1 id="top">Histograms</h1>	
+		<p class="lead">Histograms are a way to summarize one numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
+	</div>
+</div>
+<div class="row">
+<div class="col-lg-12">
+	<h2>The number line</h2>
+</div>
+</div>
+	<div class="row">
+	<div class="col-lg-4">
+	 <p style="font-size:10px">There are lots of other resources about the numberline, including <a href="">this</a> and <a href="">this</a>.
+	</div>
+	<div class="col-lg-8">
+		  <p>Histograms are a way to summarize numeric data. Since they are about one variable but are two-dimensional, they can sometimes be hard to understand.</p>
+
+		<p>To begin, let's consider some data about calories in cereal. If we wanted to see the distribution of calories, we could plot the data on a number line.
+		</p>
+		<a class="thumbnail"><img src="img/numberline.png" class="img-responsive" alt="Numberline"/></a>
+		
+		<p>But, what if you had a second cereal with 70 calories? Where would you put it? It makes sense to stack those points on top of one another. </p>
+		<a class="thumbnail"><img src="img/numberline2.png" class="img-responsive" alt="Numberline"/></a>
+
+		<p>There's also a problem of space. What if the range of your data was larger?</p>
+		</div>
+
+		</div>
+
+<div class="row">
+	<div class="col-lg-12">
+		<a class="thumbnail"><img src="img/numberline3.png" class="img-responsive" alt="Numberline"/></a>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-lg-4">
+	</div>
+	<div class="col-lg-8">
+		<p>We might want to zoom in so it was easier to read the labels. But, how do we decide where to put the points?</p>
+		<a class="thumbnail"><img src="img/numberline4.png" class="img-responsive" alt="Numberline"/></a>
+		<p> We want to place the points where they would fall on the line, which might require binning.</p>
+	</div>
+</div>
+	
+
+<div class="row">
+	<div class="col-lg-12">	
+		<h2>Binning and boundaries</h2>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-4">
+			<p style="font-size:10px">Again, you can read more about the mathematical notation of open and closed sets <a href="">here</a></p>
+	</div>
+	<div class="col-md-8">
+		<p>What data goes in this bin?</p>
+		<a class="thumbnail"><img src="img/bin.png" class="img-responsive" alt="A bin"/></a>
+		<p>There's a problem with deciding the bin edge boundary rules. To make these decisions, we need <b>interval notation</b>.</p>
+		<p>This interval includes 60.000001 but not 60. It inclues 70 but not 70.00001.</p>
+		<a class="thumbnail"><img src="img/bin2.png" class="img-responsive" alt="A bin"/></a>
+		<p>This interval would not include either 60 or 70. This doesn't work for evenly-defined bins!</p>
+		<a class="thumbnail"><img src="img/bin3.png" class="img-responsive" alt="A bin"/></a>
+	</div>
+
+</div>
+
+<div class="row">
+	<div class="col-lg-12">	
+		<h2>Open and closed interval notation</h2>
+		<p>You can have left-open or right-open bins</p>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-4">
+		<p>Left open bins</p>
+	</div>
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/leftopen.png" class="img-responsive" alt="Left open bins"/></a>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-4">
+		<p>Right open bins</p>
+	</div>
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/rightopen.png" class="img-responsive" alt="Right open bins"/></a>
+		<p>But it doesn't really work to combine these arbitrarily. What happens to 70? what happens to 100?<p>
+		<a class="thumbnail"><img src="img/weirdintervals.png" class="img-responsive" alt="Weird bins"/></a>
+		<p>In R, histograms are by default left open</p>
+
+		<pre>
+			>hist(Cereal$Calories)</pre>
+		<p>But it's just as valid to switch to right open</p>
+		<pre>
+			>hist(Cereal$Calories, right=FALSE)</pre>
+			<p>Okay, so we've thought a lot about plotting points on the number line. But what if we have too many points to easily display?</p>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-lg-12">	
+		<h2>Abstracting dots</h2>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-4">
+		<h3>Dot plots</h3>
+	</div>
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/dots.png" class="img-responsive" alt="Dotplot"/></a>
+	</div>
+</div>
+
+
+<div class="row">
+	<div class="col-md-4">
+		<h3>Melting dots into bars</h3>
+	</div>
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/bars.png" class="img-responsive" alt="Bars"/></a>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-4">
+		<h3>Histogram</h3>
+	</div>
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/histogram.png" class="img-responsive" alt="Histogram"/></a>
+	</div>
+</div>
+
+
+<div class="row">
+	<div class="col-md-4">
+		<p>With the bars, we can also change the binwidths, imagining the balls being passed to the next bin</p>
+	</div>
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/histogram2.png" class="img-responsive" alt="Histogram"/></a>
+		<p>No matter which binwidths we choose, we're trying to answer the question "what is the distribution of this data like?" This is like trying to explain the distribution to someone over the phone. I could read the entire list of data and you could see exactly what the values were, but you're probably more interested in knowing that it is symmetric, centered around 80, and with some extreme values on the right. How consistent is this description when we vary the binwidth parameter?</p>
+	</div>
+</div>
+
+
+	<div class="row">&nbsp;</div>
+</div>
+
+
+
+   <footer>
+      <div class="container">
+        <p class="text-muted credit">Copyright &copy; 2016 Aran Lunzer and Amelia McNamara. All Rights Reserved.</p>
+      </div>
+    </footer>
+
+
+    <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="{{ site.baseurl }}/dist/js/jquery.min.js"></script>
+    <script src="{{ site.baseurl }}/dist/js/bootstrap.min.js"></script>
+     <script src="{{ site.baseurl}}/dist/js/Repo.js/repo.js"></script>
+    <script type="text/javascript">
+	$('.tooltip-test').tooltip()
+	$('#collapseOne').collapse("hide");
+	$('#repo').repo({ user: 'AmeliaMN', name: '1000tweets' });
+	$('.more').click(function(){
+    	$(this).text(function(i,old){
+        	return old=='read less' ?  'read more' : 'read less';
+    	});
+    	$(this).blur();
+	});
+	$('.code').click(function(){
+    	$(this).text(function(i,old){
+        	return old=='hide code' ?  'view code' : 'hide code';
+    	});
+    	$(this).blur();
+	});
+	</script>
+    
+  </body>
+</html>
