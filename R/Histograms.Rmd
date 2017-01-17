@@ -1,0 +1,71 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(manipulate)
+library(Stat2Data)
+library(ggplot2)
+data(Cereal)
+```
+
+```{r, eval=FALSE}
+manipulate(
+  ggplot(Cereal) + geom_histogram(aes(x=Calories),bins = binnum),
+  binnum = slider(2,100, initial=20)
+)
+```
+
+Maybe 12 is a good number of bins. 
+
+```{r}
+ggplot(Cereal) + geom_histogram(aes(x=Calories),bins = 12)
+```
+
+
+```{r}
+data(diamonds)
+```
+
+```{r, eval=FALSE}
+manipulate(
+  ggplot(diamonds) + geom_histogram(aes(x=price),bins = binnum, center=centering, closed=ifelse(side==TRUE, "right", "left")),
+  binnum = slider(100,300), # also try binnum = slider(100,300)
+  centering = slider(0, 1, 0.5),
+  side = checkbox(TRUE, "Right open")
+)
+```
+
+
+For the diamonds data, 236 bins expose what has been slightly visible before (around 136, 160, 185, and 199 bins): that Hadley missed the page of diamonds around \$1,500. 
+
+
+
+```{r}
+p1 <- ggplot(diamonds) + geom_histogram(aes(x=price),bins = 236)
+p1
+p1 + xlim(500, 2000)
+```
+
+
+What about for the dimension (x) of the diamonds?
+```{r, eval=FALSE}
+manipulate(
+  ggplot(diamonds) + geom_histogram(aes(x=x),bins = binnum, center=centering, closed=ifelse(side==TRUE, "right", "left")),
+  binnum = slider(30,100), # also try binnum = slider(100,300)
+  centering = slider(0, 1, 0.5),
+  side = checkbox(TRUE, "Right open")
+)
+
+```
+
+Getting into the ~50 bin range helps show the integer values of this variable. 
+
+```{r}
+ ggplot(diamonds) + geom_histogram(aes(x=x),bins=57, center=0.5, closed="right")
+```
