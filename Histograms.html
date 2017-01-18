@@ -20,21 +20,59 @@
 <div class="container">
 	<div class="row">
 	<div class="col-lg-12">
-		<h1 id="top">Histograms</h1>	
+		<h1 id="top">What is so hard about histograms?</h1>	
 		<p class="lead">Histograms are a way to summarize one numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
 	</div>
 </div>
 <div class="row">
 
 	<div class="row">
-	<div class="col-lg-12">
-		<p>Histograms are a common form of graphic display that have been around for more than one hundred years. They can be used in many contexts, including database systems.</p>
+		<h2>Bar charts</h2>
+	<div class="col-lg-8">
+		<p>When thinking about data, it is often useful to produce plots of variables in one- and two-dimensions (a process which is often called <a href="https://en.wikipedia.org/wiki/Exploratory_data_analysis">Exploratory Data Analysis</a>, or EDA.) In this essay, we will be focusing on plots of variables in one dimension.</p>
+
+		<p>When a variable is <a href="#" data-toggle="tooltip" title="(Meaning it only has a few possible discrete values)">categorical</a>, the way to view the distribution of one variable is a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (also known as a bar graph). Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/some-people-are-too-superstitious-to-have-a-baby-on-friday-the-13th/">how many babies are born on the 13th of the month</a>, broken down by day of the week.</p>
+
+		<p>Most common first names, <a href="https://fivethirtyeight.com/features/whats-the-most-common-name-in-america/">fivethirtyeight article</a></p>
+
+		<p>Days of the week are discrete choices, so Carl Bialik (the author of the chart) counted up how much higher or lower than average the number of births was for each category. </p>
+
+		
+	</div>
+	<div class="col-lg-4">
+		<a class="thumbnail" href="https://fivethirtyeight.com/features/some-people-are-too-superstitious-to-have-a-baby-on-friday-the-13th/"><img src="img/bialik-fridaythe13th-2.png" class="img-responsive" alt="Babies born on the 13th of the month"/></a>
+
+		
+	</div>
+</div>
+<div class="row">&nbsp;</div>
+<div class="row">
+	<div class="col-lg-8">
+		<p>Bar charts are nice because they are not parameterized. That is, there aren't many choices for the data analyst to make when creating a bar chart. As we will see, this is not the case for histograms.</p>
+
+		
+	</div>
+	<div class="col-lg-4">
+		<blockquote><p>There’s a strand of the data viz world that argues that everything could be a bar chart. That’s possibly true but also possibly a world without joy.</p>
+			<p>-<a href="https://hbr.org/2013/03/power-of-visualizations-aha-moment">Amanda Cox</a>, The Upshot. </p></blockquote>
+	</div>
+</div>
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<div class="col-lg-8">
+
+<p>Histograms are a common form of graphic display that have been around for more than one hundred years. They can be used in many contexts, including database systems.</p>
 
 		<p>Most tools for working with data provide functionality to generate histograms, but most of them abstract away the defaults baked into the system. As a result, it is easy to come away with the belief that the histogram you generated is representative of the data you used, when in fact it is only one of a great number of possible histograms. </p>
 
 		<p>Both of us (Aran Lunzer and Amelia McNamara) are interested in making it easier to see these types of choices. Lunzer's work focuses on "subjunctive interfaces," those that show you what <em>else</em> you might have seem, while McNamara is primarily interested in the effects of parameter choices on statistical visualizations.</p>
+</div>
+<div class="col-lg-4">
 	</div>
 </div>
+
+
 <div class="row">
 <div class="col-lg-12">
 	<h2>The number line</h2>
@@ -177,9 +215,11 @@
 
 		<p>"Stretchy histograms" (those allowing users to adjust the binwidth dynamically) are available in a variety of commercially-available systems. In his 1997 paper, "Software for Learning and Doing Statistics," Rolf Biehler talks about this feature in his software Statistics Workshop. Similar abilities were included in DataDesk, Fathom, and TinkerPlots. However, many professional tools eschewed stretchy histograms (or even left histograms out altogether!). Excel can be extended to create histograms by the installation of a third-party add-on. Expert R users can create stretchy histograms using Shiny or manipulate, but even these do not offer direct manipulation, instead waiting for the user to drop a slider before updating the view.  </p>
 
-		<p>There are many algorithms for automatically choosing the number of bins in a histogram or the width of histogram bins. The Sturges algorithm is a well-known method for choosing bin widths, but other algorithms include Scott's choice and the Freedman-Diaconis choice. M. P. Wand proposed a new algorithm in 1997.  </p>
+		<p>There are many algorithms for automatically choosing the number of bins in a histogram or the width of histogram bins. The Sturges algorithm is a well-known method for choosing bin widths, but other algorithms include Scott's choice and the <a href="https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule">Freedman-Diaconis choice</a>. M. P. Wand proposed a new algorithm in 1997.  </p>
 
 		<p>"The order in which graph types are introduced is likely to reflect the complexity associated understanding the basic elements as other related aspects of mathematics are developing. Conservation of number and counting are clearly prerequisites for work with graphing, although early graphs can be used for reinforcement of counting and comparison skills. Categorical attributes, such as colors or fruit types, are likely to be understood before measurement attributes, for example, measuring with rulers. The related complexity of the scales for axes suggests an ordering such as categories (e.g., red, blue, green, ...), followed by whole number markings for ``stacking dots,'' then scales with markings in fractions or decimals between whole number values. Later interval scales associated with histograms may be quite variable and hence more complex." - Jane Watson and Noleine Fitzallen </p>
+
+		<p>One context in which histograms are often seen is in <a href="https://www.nytimes.com/2015/06/20/technology/personaltech/adjusting-to-apples-new-photo-software.html"image-processing software</a>.</p>
 	</div>
 </div>
 
@@ -202,13 +242,16 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="{{ site.baseurl }}/dist/js/jquery.min.js"></script>
-    <script src="{{ site.baseurl }}/dist/js/bootstrap.min.js"></script>
-     <script src="{{ site.baseurl}}/dist/js/Repo.js/repo.js"></script>
+    <script src="dist/js/jquery.min.js"></script>
+    <script src="dist/js/bootstrap.min.js"></script>
+     <script src="dist/js/Repo.js/repo.js"></script>
     <script type="text/javascript">
 	$('.tooltip-test').tooltip()
+	$(function () {
+  		$('[data-toggle="tooltip"]').tooltip()
+	})
 	$('#collapseOne').collapse("hide");
-	$('#repo').repo({ user: 'AmeliaMN', name: '1000tweets' });
+	
 	$('.more').click(function(){
     	$(this).text(function(i,old){
         	return old=='read less' ?  'read more' : 'read less';
