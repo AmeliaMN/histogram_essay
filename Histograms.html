@@ -58,19 +58,152 @@
 	</div>
 </div>
 
-<div class="row">&nbsp;</div>
+
 <div class="row">
+	<h2>Histograms</h2>
 	<div class="col-lg-8">
 
-<p>Histograms are a common form of graphic display that have been around for more than one hundred years. They can be used in many contexts, including database systems.</p>
+		<p>Histograms are a common form of graphic display to summarize the distribution of one numeric variable. Histograms have been around for more than one hundred years. They bin data into a set of discrete bins, then count how many values fall into each of the bins to aggregate the data.</p>
 
-		<p>Most tools for working with data provide functionality to generate histograms, but most of them abstract away the defaults baked into the system. As a result, it is easy to come away with the belief that the histogram you generated is representative of the data you used, when in fact it is only one of a great number of possible histograms. </p>
-
-		<p>Both of us (Aran Lunzer and Amelia McNamara) are interested in making it easier to see these types of choices. Lunzer's work focuses on "subjunctive interfaces," those that show you what <em>else</em> you might have seem, while McNamara is primarily interested in the effects of parameter choices on statistical visualizations.</p>
+		<p>Many tools for working with data provide functionality to generate histograms, but most of them abstract away the defaults baked into the system. As a result, it is easy to come away with the belief that the histogram you generated is representative of the data you used, when in fact it is only one of a great number of possible histograms. </p>
+		
 </div>
+<div class="col-lg-4">
+	<h2>Easy, right?</h2>
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h1>Not so fast!</h1>
+	<div class="col-lg-8">
+
+
+		</div>
 <div class="col-lg-4">
 	</div>
 </div>
+
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Changing the bin width</h2>
+	<div class="col-lg-8">
+
+
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Changing the bin offset</h2>
+	<div class="col-lg-8">
+
+
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>What does it mean to be "in" an interval? (closed and open intervals)</h2>
+
+
+
+
+<div class="col-md-4">
+			<p style="font-size:10px">Again, you can read more about the mathematical notation of open and closed sets <a href="">here</a></p>
+	</div>
+	<div class="col-md-8">
+		<p>What data goes in this bin?</p>
+		<a class="thumbnail"><img src="img/bin.png" class="img-responsive" alt="A bin"/></a>
+		<p>There's a problem with deciding the bin edge boundary rules. To make these decisions, we need <b>interval notation</b>.</p>
+		<p>This interval includes 60.000001 but not 60. It inclues 70 but not 70.00001.</p>
+		<a class="thumbnail"><img src="img/bin2.png" class="img-responsive" alt="A bin"/></a>
+		<p>This interval would not include either 60 or 70. This doesn't work for evenly-defined bins!</p>
+		<a class="thumbnail"><img src="img/bin3.png" class="img-responsive" alt="A bin"/></a>
+	</div>
+
+</div>
+
+<div class="row">
+	<div class="col-lg-12">	
+		<h2>Open and closed interval notation</h2>
+		<p>You can have left-open or right-open bins</p>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-4">
+		<p>Left open bins</p>
+	</div>
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/leftopen.png" class="img-responsive" alt="Left open bins"/></a>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-4">
+		<p>Right open bins</p>
+	</div>
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/rightopen.png" class="img-responsive" alt="Right open bins"/></a>
+		<p>But it doesn't really work to combine these arbitrarily. What happens to 70? what happens to 100?<p>
+		<a class="thumbnail"><img src="img/weirdintervals.png" class="img-responsive" alt="Weird bins"/></a>
+		<p>In R, histograms are by default left open</p>
+
+		<pre>
+			>hist(Cereal$Calories)</pre>
+		<p>But it's just as valid to switch to right open</p>
+		<pre>
+			>hist(Cereal$Calories, right=FALSE)</pre>
+			<p>Okay, so we've thought a lot about plotting points on the number line. But what if we have too many points to easily display?</p>
+	</div>
+</div>
+
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Sweeps of parameter values</h2>
+	<div class="col-lg-8">
+
+
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Our recommendations</h2>
+	<div class="col-lg-8">
+		<ul>
+			<li>Designers of data visualizations should understand how parameter choices effect what they create</li>
+			<li>Tool makers should know how these parameter choices effect the visual distribution</li>
+			<li>It should be possible to play with parameter values like this</li>
+			<li>Users don't necessarily need access to the code underlying the interactive</li>
+
+		</ul>
+
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+
+
+
 
 
 <div class="row">
@@ -121,55 +254,7 @@
 </div>
 
 <div class="row">
-	<div class="col-md-4">
-			<p style="font-size:10px">Again, you can read more about the mathematical notation of open and closed sets <a href="">here</a></p>
-	</div>
-	<div class="col-md-8">
-		<p>What data goes in this bin?</p>
-		<a class="thumbnail"><img src="img/bin.png" class="img-responsive" alt="A bin"/></a>
-		<p>There's a problem with deciding the bin edge boundary rules. To make these decisions, we need <b>interval notation</b>.</p>
-		<p>This interval includes 60.000001 but not 60. It inclues 70 but not 70.00001.</p>
-		<a class="thumbnail"><img src="img/bin2.png" class="img-responsive" alt="A bin"/></a>
-		<p>This interval would not include either 60 or 70. This doesn't work for evenly-defined bins!</p>
-		<a class="thumbnail"><img src="img/bin3.png" class="img-responsive" alt="A bin"/></a>
-	</div>
-
-</div>
-
-<div class="row">
-	<div class="col-lg-12">	
-		<h2>Open and closed interval notation</h2>
-		<p>You can have left-open or right-open bins</p>
-	</div>
-</div>
-
-<div class="row">
-	<div class="col-md-4">
-		<p>Left open bins</p>
-	</div>
-	<div class="col-md-8">
-		<a class="thumbnail"><img src="img/leftopen.png" class="img-responsive" alt="Left open bins"/></a>
-	</div>
-</div>
-<div class="row">
-	<div class="col-md-4">
-		<p>Right open bins</p>
-	</div>
-	<div class="col-md-8">
-		<a class="thumbnail"><img src="img/rightopen.png" class="img-responsive" alt="Right open bins"/></a>
-		<p>But it doesn't really work to combine these arbitrarily. What happens to 70? what happens to 100?<p>
-		<a class="thumbnail"><img src="img/weirdintervals.png" class="img-responsive" alt="Weird bins"/></a>
-		<p>In R, histograms are by default left open</p>
-
-		<pre>
-			>hist(Cereal$Calories)</pre>
-		<p>But it's just as valid to switch to right open</p>
-		<pre>
-			>hist(Cereal$Calories, right=FALSE)</pre>
-			<p>Okay, so we've thought a lot about plotting points on the number line. But what if we have too many points to easily display?</p>
-	</div>
-</div>
-
+	
 <div class="row">
 	<div class="col-lg-12">	
 		<h2>Abstracting dots</h2>
@@ -220,6 +305,28 @@
 		<p>"The order in which graph types are introduced is likely to reflect the complexity associated understanding the basic elements as other related aspects of mathematics are developing. Conservation of number and counting are clearly prerequisites for work with graphing, although early graphs can be used for reinforcement of counting and comparison skills. Categorical attributes, such as colors or fruit types, are likely to be understood before measurement attributes, for example, measuring with rulers. The related complexity of the scales for axes suggests an ordering such as categories (e.g., red, blue, green, ...), followed by whole number markings for ``stacking dots,'' then scales with markings in fractions or decimals between whole number values. Later interval scales associated with histograms may be quite variable and hence more complex." - Jane Watson and Noleine Fitzallen </p>
 
 		<p>One context in which histograms are often seen is in <a href="https://www.nytimes.com/2015/06/20/technology/personaltech/adjusting-to-apples-new-photo-software.html"image-processing software</a>.</p>
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<div class="col-lg-8">
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Who we are</h2>
+	<div class="col-lg-8">
+<p>Both of us (Aran Lunzer and Amelia McNamara) are interested in making it easier to see these types of choices. Lunzer's work focuses on "subjunctive interfaces," those that show you what <em>else</em> you might have seem, while McNamara is primarily interested in the effects of parameter choices on statistical visualizations.</p>
+
+		</div>
+<div class="col-lg-4">
 	</div>
 </div>
 
