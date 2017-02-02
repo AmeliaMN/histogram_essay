@@ -20,8 +20,8 @@
 <div class="container">
 	<div class="row">
 	<div class="col-lg-12">
-		<h1 id="top">What is so hard about histograms?</h1>	
-		<p class="lead">Histograms are a way to summarize one numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
+		<h1 id="top">What's so hard about histograms?</h1>	
+		<p class="lead">Histograms are a way to summarize a numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
 	</div>
 </div>
 
@@ -30,16 +30,18 @@
 <div class="row">
 	<h2>Exploratory data analysis and summarizing data</h2>
 	<div class="col-lg-8">
-		<p>Why and how to summarise a set of measured values?</p>
 		
-
-		<p>When thinking about data, it is often useful to produce plots of variables in one- and two-dimensions (a process which is often called <a href="https://en.wikipedia.org/wiki/Exploratory_data_analysis">Exploratory Data Analysis</a>, or EDA.) In this essay, we will be focusing on plots of variables in one dimension.</p>
+		<p>When thinking about data, it is often useful to produce plots of variables in one- and two-dimensions, a process which is called <a href="https://en.wikipedia.org/wiki/Exploratory_data_analysis">Exploratory Data Analysis</a>, or EDA. EDA was the brainchild of John Tukey in the 1960s, and has become even more powerful with the rise of better computer graphics.</p>
 
 		<p>The way you plot a variable depends on whether it the variable is numeric or categorical.</p>
+
+		<p><b>Numeric</b> variables are those measured as numbers. For example, height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables can only take on certain integer values. Continuous variables can take on any value! If you think about the number <a href="https://en.wikipedia.org/wiki/Pi">pi</a>, it is a number with an infinite decimal. Continuous variables don't have to take on such extremely irrational value, they might be numbers like 2.56. </p>
+		<p><b>Categorical</b> variables are discrete in their own way-- they can only take on a few specific values. For example, gender is often reported as a categorical variable, perhaps with categories "male," "female," and "gender non-conforming." Racial categories are another common use of categorical variables.</p>
 
 
 		</div>
 <div class="col-lg-4">
+	<a class="thumbnail" href="https://smile.amazon.com/Exploratory-Data-Analysis-John-Tukey/dp/0201076160?sa-no-redirect=1"><img src="img/EDA.jpg" class="img-responsive"  alt="EDA book"/></a>
 	</div>
 </div>
 
@@ -51,10 +53,11 @@
 
 		<p>When a variable is <a href="#" data-toggle="tooltip" title="(Meaning it only has a few possible discrete values)">categorical</a>, the way to view the distribution of one variable is a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (also known as a bar graph). Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/some-people-are-too-superstitious-to-have-a-baby-on-friday-the-13th/">how many babies are born on the 13th of the month</a>, broken down by day of the week.</p>
 
-		<p>Most common first names, <a href="https://fivethirtyeight.com/features/whats-the-most-common-name-in-america/">fivethirtyeight article</a></p>
-
 		<p>Days of the week are discrete choices, so Carl Bialik (the author of the chart) counted up how much higher or lower than average the number of births was for each category. </p>
 
+		<p>Another fivethirtyeight article using bar charts is this article on <a href="https://fivethirtyeight.com/features/whats-the-most-common-name-in-america/">most common names</a>.</p>
+
+		<p>Bar charts are nice because they are not parameterized. That is, there aren't many choices for the data analyst to make when creating a bar chart. As we will see, this is not the case for histograms.</p>
 		
 	</div>
 	<div class="col-lg-4">
@@ -66,7 +69,7 @@
 <div class="row">&nbsp;</div>
 <div class="row">
 	<div class="col-lg-8">
-		<p>Bar charts are nice because they are not parameterized. That is, there aren't many choices for the data analyst to make when creating a bar chart. As we will see, this is not the case for histograms.</p>
+		
 
 		
 	</div>
@@ -132,6 +135,8 @@
 		<p>Are those histograms from R the only ones possible for those datasets?  If not, are they somehow guaranteed to be "the best"?</p>
 
 		<p>Nope, and nope.  There are several choices to be made in drawing a histogram.  If you don't tell R otherwise, it'll make default choices on your behalf.</p>
+
+		<p>No matter which parameters we choose, we're trying to answer the question "what is the distribution of this data like?" This is like trying to explain the distribution to someone over the phone. I could read the entire list of data and you could see exactly what the values were, but you're probably more interested in knowing that it is symmetric, centered around 80, and with some extreme values on the right. How consistent is this description when we vary the parameters?</p>
 
 		</div>
 <div class="col-lg-4">
@@ -213,9 +218,7 @@
 
 
 
-<div class="col-md-4">
-			<p style="font-size:10px">Again, you can read more about the mathematical notation of open and closed sets <a href="">here</a></p>
-	</div>
+
 	<div class="col-md-8">
 		<p>We've emphasised the importance of where bin boundaries fall, in terms of the impact on dividing up regions with densely clustered items.  Up to now, however, we haven't mentioned what happens to items that fall exactly on a boundary: do they get counted as part of the bin on the left, or the one on the right?  Or both?</p>
 
@@ -248,6 +251,9 @@
 		<p>This interval would not include either 60 or 70. This doesn't work for evenly-defined bins!</p>
 		<a class="thumbnail"><img src="img/bin3.png" class="img-responsive" alt="A bin"/></a>
 	</div>
+	<div class="col-md-4">
+			<p style="font-size:10px">Again, you can read more about the mathematical notation of open and closed sets <a href="">here</a></p>
+	</div>
 
 </div>
 
@@ -259,17 +265,16 @@
 </div>
 
 <div class="row">
-	<div class="col-md-4">
-		<p>Left open bins</p>
-	</div>
+	
 	<div class="col-md-8">
 		<a class="thumbnail"><img src="img/leftopen.png" class="img-responsive" alt="Left open bins"/></a>
 	</div>
+	<div class="col-md-4">
+		<p>Left open bins</p>
+	</div>
 </div>
 <div class="row">
-	<div class="col-md-4">
-		<p>Right open bins</p>
-	</div>
+	
 	<div class="col-md-8">
 		<a class="thumbnail"><img src="img/rightopen.png" class="img-responsive" alt="Right open bins"/></a>
 		<p>But it doesn't really work to combine these arbitrarily. What happens to 70? what happens to 100?<p>
@@ -282,6 +287,9 @@
 		<pre>
 			>hist(Cereal$Calories, right=FALSE)</pre>
 			<p>Okay, so we've thought a lot about plotting points on the number line. But what if we have too many points to easily display?</p>
+	</div>
+	<div class="col-md-4">
+		<p>Right open bins</p>
 	</div>
 </div>
 
@@ -419,17 +427,10 @@
 	</div>
 	<div class="col-md-8">
 		<a class="thumbnail"><img src="img/histogram2.png" class="img-responsive" alt="Histogram"/></a>
-		<p>No matter which binwidths we choose, we're trying to answer the question "what is the distribution of this data like?" This is like trying to explain the distribution to someone over the phone. I could read the entire list of data and you could see exactly what the values were, but you're probably more interested in knowing that it is symmetric, centered around 80, and with some extreme values on the right. How consistent is this description when we vary the binwidth parameter?</p>
-
-		<p>"Stretchy histograms" (those allowing users to adjust the binwidth dynamically) are available in a variety of commercially-available systems. In his 1997 paper, "Software for Learning and Doing Statistics," Rolf Biehler talks about this feature in his software Statistics Workshop. Similar abilities were included in DataDesk, Fathom, and TinkerPlots. However, many professional tools eschewed stretchy histograms (or even left histograms out altogether!). Excel can be extended to create histograms by the installation of a third-party add-on. Expert R users can create stretchy histograms using Shiny or manipulate, but even these do not offer direct manipulation, instead waiting for the user to drop a slider before updating the view.  </p>
-
-		<p>There are many algorithms for automatically choosing the number of bins in a histogram or the width of histogram bins. The Sturges algorithm is a well-known method for choosing bin widths, but other algorithms include Scott's choice and the <a href="https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule">Freedman-Diaconis choice</a>. M. P. Wand proposed a new algorithm in 1997.  </p>
-
-		<p>"The order in which graph types are introduced is likely to reflect the complexity associated understanding the basic elements as other related aspects of mathematics are developing. Conservation of number and counting are clearly prerequisites for work with graphing, although early graphs can be used for reinforcement of counting and comparison skills. Categorical attributes, such as colors or fruit types, are likely to be understood before measurement attributes, for example, measuring with rulers. The related complexity of the scales for axes suggests an ordering such as categories (e.g., red, blue, green, ...), followed by whole number markings for ``stacking dots,'' then scales with markings in fractions or decimals between whole number values. Later interval scales associated with histograms may be quite variable and hence more complex." - Jane Watson and Noleine Fitzallen </p>
-
-		<p>One context in which histograms are often seen is in <a href="https://www.nytimes.com/2015/06/20/technology/personaltech/adjusting-to-apples-new-photo-software.html">image-processing software</a>.</p>
 	</div>
 </div>
+
+
 
 
 <div class="row">&nbsp;</div>
@@ -453,6 +454,25 @@
 		</div>
 </div>
 
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Related research</h2>
+	<div class="col-lg-8">
+		
+
+		<p>"Stretchy histograms" (those allowing users to adjust the binwidth dynamically) are available in a variety of commercially-available systems. In his 1997 paper, "Software for Learning and Doing Statistics," Rolf Biehler talks about this feature in his software Statistics Workshop. Similar abilities were included in DataDesk, Fathom, and TinkerPlots. However, many professional tools eschewed stretchy histograms (or even left histograms out altogether!). Excel can be extended to create histograms by the installation of a third-party add-on. Expert R users can create stretchy histograms using Shiny or manipulate, but even these do not offer direct manipulation, instead waiting for the user to drop a slider before updating the view.  </p>
+
+		<p>There are many algorithms for automatically choosing the number of bins in a histogram or the width of histogram bins. The Sturges algorithm is a well-known method for choosing bin widths, but other algorithms include Scott's choice and the <a href="https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule">Freedman-Diaconis choice</a>. M. P. Wand proposed a new algorithm in 1997.  </p>
+
+		<p>"The order in which graph types are introduced is likely to reflect the complexity associated understanding the basic elements as other related aspects of mathematics are developing. Conservation of number and counting are clearly prerequisites for work with graphing, although early graphs can be used for reinforcement of counting and comparison skills. Categorical attributes, such as colors or fruit types, are likely to be understood before measurement attributes, for example, measuring with rulers. The related complexity of the scales for axes suggests an ordering such as categories (e.g., red, blue, green, ...), followed by whole number markings for ``stacking dots,'' then scales with markings in fractions or decimals between whole number values. Later interval scales associated with histograms may be quite variable and hence more complex." - Jane Watson and Noleine Fitzallen </p>
+
+		<p>One context in which histograms are often seen is in <a href="https://www.nytimes.com/2015/06/20/technology/personaltech/adjusting-to-apples-new-photo-software.html">image-processing software</a>.</p>
+	</div>
+
+<div class="col-lg-4">
+	</div>	
+</div>
 
 <div class="row">&nbsp;</div>
 <div class="row">
