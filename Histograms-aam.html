@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Histogram stuff" />
+
+    <meta name="author" content="Aran Lunzer and Amelia McNamara">
+    <title>Interactive Essay on Histograms</title>
+    <link rel="stylesheet" href="dist/font-awesome/css/font-awesome.min.css">
+    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="dist/css/my.css" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="{{ site.name }}" href="{{ site.baseurl }}/blog/feed.xml">
+  </head>
+  <body>
+
+
+
+
+<div class="container">
+	<div class="row">
+	<div class="col-lg-12">
+		<h1 id="top">What's so hard about histograms?</h1>	
+		<p class="lead">Histograms are a way to summarize a numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Exploratory data analysis and summarizing data</h2>
+	<div class="col-lg-8">
+		
+		<p>When thinking about data, it is often useful to produce plots of variables in one- and two-dimensions, a process which is called <a href="https://en.wikipedia.org/wiki/Exploratory_data_analysis">Exploratory Data Analysis</a>, or EDA. EDA was the brainchild of John Tukey in the 1960s, and has become even more powerful with the rise of better computer graphics.</p>
+
+		<p>The way you plot a variable depends on whether it the variable is numeric or categorical.</p>
+
+		<p><b>Numeric</b> variables are those measured as numbers. For example, height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables can only take on certain integer values. Continuous variables can take on any value! If you think about the number <a href="https://en.wikipedia.org/wiki/Pi">pi</a>, it is a number with an infinite decimal. Continuous variables don't have to take on such extremely irrational value, they might be numbers like 2.56. </p>
+		<p><b>Categorical</b> variables are discrete in their own way-- they can only take on a few specific values. For example, gender is often reported as a categorical variable, perhaps with categories "male," "female," and "gender non-conforming." Racial categories are another common use of categorical variables.</p>
+
+
+		</div>
+<div class="col-lg-4">
+	<a class="thumbnail" href="https://smile.amazon.com/Exploratory-Data-Analysis-John-Tukey/dp/0201076160?sa-no-redirect=1"><img src="img/EDA.jpg" class="img-responsive"  alt="EDA book"/></a>
+	</div>
+</div>
+
+
+	<div class="row">
+		<h2>Summarizing categorical data</h2>
+	<div class="col-lg-8">
+		
+
+		<p>When a variable is <a href="#" data-toggle="tooltip" title="(Meaning it only has a few possible discrete values)">categorical</a>, the way to view the distribution of one variable is a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (also known as a bar graph). Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/some-people-are-too-superstitious-to-have-a-baby-on-friday-the-13th/">how many babies are born on the 13th of the month</a>, broken down by day of the week.</p>
+
+		<p>Days of the week are discrete choices, so Carl Bialik (the author of the chart) counted up how much higher or lower than average the number of births was for each category. </p>
+
+		<p>Another fivethirtyeight article using bar charts is this article on <a href="https://fivethirtyeight.com/features/whats-the-most-common-name-in-america/">most common names</a>.</p>
+
+		<p>Bar charts are nice because they are not parameterized. That is, there aren't many choices for the data analyst to make when creating a bar chart. As we will see, this is not the case for histograms.</p>
+		
+	</div>
+	<div class="col-lg-4">
+		<a class="thumbnail" href="https://fivethirtyeight.com/features/some-people-are-too-superstitious-to-have-a-baby-on-friday-the-13th/"><img src="img/bialik-fridaythe13th-2.png" class="img-responsive" alt="Babies born on the 13th of the month"/></a>
+
+		
+	</div>
+</div>
+<div class="row">&nbsp;</div>
+<div class="row">
+	<div class="col-lg-8">
+		
+
+		
+	</div>
+	<div class="col-lg-4">
+		<blockquote><p>There’s a strand of the data viz world that argues that everything could be a bar chart. That’s possibly true but also possibly a world without joy.</p>
+			<p>-<a href="https://hbr.org/2013/03/power-of-visualizations-aha-moment">Amanda Cox</a>, The Upshot. </p></blockquote>
+	</div>
+</div>
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Summarizing numeric data</h2>
+	<div class="col-lg-8">
+		<p>Some traditional ways: stem-and-leaf; box plot; ...</p>
+		<p>Box plots were developed because they are easy to draw by hand, but, they reduce a complex dataset down to just a few numbers (median, Q1, etc).</p>
+		<p>To see more about a dataset, particularly its shape, a histogram or density plot can be more useful</p>
+		</div>
+<div class="col-lg-4">
+<a class="thumbnail"><img src="img/boxplot.png" class="img-responsive" alt="Old Faithful Eruptions"/></a>
+	</div>
+</div>
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<div class="col-lg-8">
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+
+
+<div class="row">
+	<h2>Histograms</h2>
+	<div class="col-lg-8">
+
+		<p>Histograms are a common form of graphic display to summarize the distribution of one numeric variable. Histograms have been around for more than one hundred years. They bin data into a set of discrete bins, then count how many values fall into each of the bins to aggregate the data.</p>
+
+		
+		<p>...but if you consider the values as being laid out along a number line, </p>like this...
+
+		<p>...you can aggregate them into a set of bins.  Each bin is then drawn as a bar occupying the corresponding region on the number line, with a height that represents how many values are in the bin.  That's a histogram.</p>
+
+		<p>For example, if you use R to draw a histogram (which can be done just by supplying your data to the hist() function), here's what the results will look like for the following datasets...</p>
+
+		<p>...which makes it easy to see, for example, that there are [a couple of observations from these datasets; preferably, observations that aren't completely obvious, or common knowledge]</p>
+		
+</div>
+<div class="col-lg-4">
+	<a class="thumbnail"><img src="img/eruptions.png" class="img-responsive" alt="Old Faithful Eruptions"/></a>
+	<h2>Easy, right?</h2>
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h1>Not so fast!</h1>
+	<div class="col-lg-8">
+		<p>Many tools for working with data provide functionality to generate histograms, but most of them abstract away the defaults baked into the system. As a result, it is easy to come away with the belief that the histogram you generated is representative of the data you used, when in fact it is only one of a great number of possible histograms. </p>
+
+		<p>Are those histograms from R the only ones possible for those datasets?  If not, are they somehow guaranteed to be "the best"?</p>
+
+		<p>Nope, and nope.  There are several choices to be made in drawing a histogram.  If you don't tell R otherwise, it'll make default choices on your behalf.</p>
+
+		<p>No matter which parameters we choose, we're trying to answer the question "what is the distribution of this data like?" This is like trying to explain the distribution to someone over the phone. I could read the entire list of data and you could see exactly what the values were, but you're probably more interested in knowing that it is symmetric, centered around 80, and with some extreme values on the right. How consistent is this description when we vary the parameters?</p>
+
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Changing the bin width</h2>
+	<div class="col-lg-8">
+		<p>Sub-choice: should the bins all have the same width?  In other words, should every bin cover an equal range of values on the number line?  Later we'll look at some datasets for which having bins of varying sizes makes sense.  In general, however, having bins of equal widths is useful.  For a start, it makes it easy to judge the relative numbers of data items [is that what we'll be calling them?] just by comparing the heights of the plotted bins.  So we're going to use equal widths for now.</p>
+
+		<p>Width-related effects to get the reader to explore:
+		<ul>
+			<li>broader bins generally capture more items, narrower bins fewer - but not necessarily; if there's a spike of data items on one otherwise isolated value, whatever bin covers that value will get the same item count regardless of its width</li>
+	<li>changing width can change the apparent location of the values' mode(s)</li>
+	<li>changing width can affect whether a dataset's modes are apparent at all, if concentrations of items end up being split among bins</li>
+	<li>bins that are too broad will mask potentially important features of the item-density variation; bins that are too narrow won't help in summarising.  There are some heuristics that can help decide an appropriate width - but R's simplistic default (based on log to base 2) is a decidedly blunt tool.</li>
+		* and maybe: some datasets aren't amenable to histogram summarisation in the first place - e.g., because of being too small, or too unevenly spread
+	<li>if your dataset is itself just a segment of a larger set, and you don't have bins that in aggregate cover exactly the range of the data, you might be artificially under-populating the bins at either end</li>
+	<li>widths that aren't an integer multiple of the data granularity can give distorted results, because the mismatch will mean that some of the inter-break gaps</li>
+	 </li> and, hence, some bins - will end up covering more possible data values than others. Depending on the item distribution, such bins could end up being exaggeratedly tall just because they scooped up more than their fair share of the items.  [something like the NBA ages dataset would make this especially easy to show.]</li>
+	 <ul>
+	 </p>
+
+
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Changing the bin offset</h2>
+	<div class="col-lg-8">
+		<p>In the previous section we pointed out that when the spacing of the bins isn't a pure multiple of the spacing of valid data values, some bins will end up covering more of the possible data values.  In such a case, it's easy to see that the relative item counts in the bins are likely to change depending on how the bin boundaries line up relative to the number line: shift all boundaries to the left, for example, and you'll also be shifting to the left the places where item counts happen to get clumped together.</p>
+
+		<p>What if there's no mismatch between value spacing and bin width?  Can the bins' offset still make a difference to the shape of the histogram?  Yes!  Another effect seen in the previous section is when a concentration of items on nearby values - nearby, but not identical - could fall into a single bin, or could instead be split across two or more.  If all bins are shifted up or down the number line, the apportioning of values to bins in densely populated regions will of course change too.</p>
+
+		<p>So... what determines the placement of bins in a default histogram built by R?  It depends on the range of values in the dataset.  By default, R will generate bins of equal width, where the width is 1, 2 or 5 times some power of 10, and with an offset such that zero would be included if the bins were extended to zero.  For example, if the data values range from 27 to 77, the bins might start with 25, 30, 35 but not 27, 32, 37.  In doing this, R is applying the same rules it has for generating "pretty" values to use as ticks and labels on a graph axis.  [background: https://stat.ethz.ch/R-manual/R-devel/library/base/html/pretty.html]</p>
+
+		<p>...but whereas labels on an axis are basically a matter of convenience and aesthetics, the boundaries in a histogram directly affect how the data will be summarised.  So unless there's some strong external convention for how values should be grouped (such as the way we often group calendar years into decades), and it happens to be relevant to the data at hand, "un-pretty" bin boundaries are just as valid as "pretty".  If the choice of the boundaries makes a dramatic difference to the histogram's shape, is any one of those shapes a more valid summary than the others?  We think not.</p>
+
+		Offset-related effects to get the reader to explore:
+			<ul>
+				<li>if the histogram starts at a point some way below the minimum data value (for example, to make the bin boundaries pretty), the number of items captured in the histogram's first bin might be a poor reflection of the density of items near that minimum </li>
+				<li> whenever a bin boundary falls in the midst of a dense region, the adjacent bins - and hence the shape of the histogram as a whole - can be influenced dramatically by its precise position</li></p>
+
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Standard algorithms for choosing binwidths</h2>
+	<div class="col-lg-8">
+		<p>exotic histograms -externally imposed bin classes - which are often of different widths, and in the case of long-tailed data often have an "X and above" final category.  Examples: dates divided by months; census data divided by income ranges, ages, family size...</p>
+		<ul>
+			<li>Sturges</li>
+			<li>Freedman–Diaconis</li>
+			<li>??</li>
+		</ul>
+
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>What does it mean to be "in" an interval? (closed and open intervals)</h2>
+
+
+
+
+
+	<div class="col-md-8">
+		<p>We've emphasised the importance of where bin boundaries fall, in terms of the impact on dividing up regions with densely clustered items.  Up to now, however, we haven't mentioned what happens to items that fall exactly on a boundary: do they get counted as part of the bin on the left, or the one on the right?  Or both?</p>
+
+		<p>It's not both - because that would mean that the boundary items were being counted twice.  In a histogram, each data item must be assigned to exactly one bin.</p>
+
+		<p>So, then: left or right?</p>
+
+		<p>[explanation of intervals in maths, and how a histogram is a concatenation of intervals of the same type]</p>
+
+		<p>How much of a difference does this choice make?  Just as the impact of boundary position depends on the density of items in the vicinity of the boundaries, the impact of left- or right-closure of a histogram's intervals depends on how many items match exactly the boundary values.</p>
+
+
+		<p>Closedness-related effects to get the reader to explore:
+			<ul>
+				<li>cases where switching between right and left makes a big difference
+		[in the datasets we have so far, probably the biggest visual effect is nba data at 3 quanta (1.5 years), offset 0.
+		the biggest effect in terms of numbers is by having a bin boundary at exactly 0.31 in the sampled-diamonds dataset (e.g., 25 quanta at offset -0.56).  Switching throws about 750 items between the first and second bins (1360, 6060 to 2120, 5450).  But as proportions, the difference doesn't look impressive.
+		]</li>
+				<li>the importance of R's default practice of ensuring that if the leftmost break corresponds to the minimum data value, or the rightmost break to the maximum value, the interval endpoint there is closed.  This is trivial to demonstrate, of course: just show that not doing so will result in the histogram failing to capture some of the data points.  But it needs us to reinforce the argument that lining the histogram up with the value range (rather than with nearby "pretty" values) is a natural thing to do.</li>
+			</ul>
+		</p>
+
+
+
+		<p>What data goes in this bin?</p>
+		<a class="thumbnail"><img src="img/bin.png" class="img-responsive" alt="A bin"/></a>
+		<p>There's a problem with deciding the bin edge boundary rules. To make these decisions, we need <b>interval notation</b>.</p>
+		<p>This interval includes 60.000001 but not 60. It inclues 70 but not 70.00001.</p>
+		<a class="thumbnail"><img src="img/bin2.png" class="img-responsive" alt="A bin"/></a>
+		<p>This interval would not include either 60 or 70. This doesn't work for evenly-defined bins!</p>
+		<a class="thumbnail"><img src="img/bin3.png" class="img-responsive" alt="A bin"/></a>
+	</div>
+	<div class="col-md-4">
+			<p style="font-size:10px">Again, you can read more about the mathematical notation of open and closed sets <a href="">here</a></p>
+	</div>
+
+</div>
+
+<div class="row">
+	<div class="col-lg-12">	
+		<h2>Open and closed interval notation</h2>
+		<p>You can have left-open or right-open bins</p>
+	</div>
+</div>
+
+<div class="row">
+	
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/leftopen.png" class="img-responsive" alt="Left open bins"/></a>
+	</div>
+	<div class="col-md-4">
+		<p>Left open bins</p>
+	</div>
+</div>
+<div class="row">
+	
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/rightopen.png" class="img-responsive" alt="Right open bins"/></a>
+		<p>But it doesn't really work to combine these arbitrarily. What happens to 70? what happens to 100?<p>
+		<a class="thumbnail"><img src="img/weirdintervals.png" class="img-responsive" alt="Weird bins"/></a>
+		<p>In R, histograms are by default left open</p>
+
+		<pre>
+			>hist(Cereal$Calories)</pre>
+		<p>But it's just as valid to switch to right open</p>
+		<pre>
+			>hist(Cereal$Calories, right=FALSE)</pre>
+			<p>Okay, so we've thought a lot about plotting points on the number line. But what if we have too many points to easily display?</p>
+	</div>
+	<div class="col-md-4">
+		<p>Right open bins</p>
+	</div>
+</div>
+
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Sweeps of parameter values</h2>
+	<div class="col-lg-8">
+
+
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Our recommendations</h2>
+	<div class="col-lg-8">
+		<ul>
+			<li>Designers of data visualizations should understand how parameter choices effect what they create</li>
+			<li>Tool makers should know how these parameter choices effect the visual distribution</li>
+			<li>It should be possible to play with parameter values like this</li>
+			<li>Users don't necessarily need access to the code underlying the interactive</li>
+
+		</ul>
+
+		<p>So... we're declaring that for any given dataset there's no single optimum way of drawing a histogram - any more than there's a single optimum way of drawing a map.  It's fine to tell a story based on a shape that appears for certain settings (alongside a histogram with those settings), but readers must be able to explore.</p>
+
+		<p>NB: there's a question of how fine-grained the adjustments need to be to enable a reader to check out a histogram's story.  I suspect we can make the case that they don't have to be fine-grained at all: for example, ten alternative bin offsets could be more than enough.  The reason is that our goal *isn't* to help the readers find the most divergent shapes that can be derived from the dataset: only to check out whether a given shape that's been presented to back up some story is easy to arrive at, or is the result of a fluke.  As long as the adjustments offer properly different settings to try (e.g., not only offering bin widths that double and quadruple), the stability or otherwise of the shape should be obvious.<p>
+
+		<p>On the other hand, we still need to make sure that histogram producers and consumers can rapidly sweep the two-dimensional space of bin widths and offsets, to get a grasp on how much variation there is.  Of course, that's the basic idea of being able to sweep the values on one variable and riffle through another.</p>	
+
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+
+
+
+
+
+<div class="row">
+<div class="col-lg-12">
+	<h2>The number line</h2>
+</div>
+</div>
+	<div class="row">
+	<div class="col-lg-4">
+	 <p style="font-size:10px">There are lots of other resources about the numberline, including <a href="">this</a> and <a href="">this</a>.
+	</div>
+	<div class="col-lg-8">
+		  <p>Histograms are a way to summarize numeric data. Since they are about one variable but are two-dimensional, they can sometimes be hard to understand.</p>
+
+		<p>To begin, let's consider some data about calories in cereal. If we wanted to see the distribution of calories, we could plot the data on a number line.
+		</p>
+		<a class="thumbnail"><img src="img/numberline.png" class="img-responsive" alt="Numberline"/></a>
+		
+		<p>But, what if you had a second cereal with 70 calories? Where would you put it? It makes sense to stack those points on top of one another. </p>
+		<a class="thumbnail"><img src="img/numberline2.png" class="img-responsive" alt="Numberline"/></a>
+
+		<p>There's also a problem of space. What if the range of your data was larger?</p>
+		</div>
+
+		</div>
+
+<div class="row">
+	<div class="col-lg-12">
+		<a class="thumbnail"><img src="img/numberline3.png" class="img-responsive" alt="Numberline"/></a>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-lg-4">
+	</div>
+	<div class="col-lg-8">
+		<p>We might want to zoom in so it was easier to read the labels. But, how do we decide where to put the points?</p>
+		<a class="thumbnail"><img src="img/numberline4.png" class="img-responsive" alt="Numberline"/></a>
+		<p> We want to place the points where they would fall on the line, which might require binning.</p>
+	</div>
+</div>
+	
+
+<div class="row">
+	<div class="col-lg-12">	
+		<h2>Binning and boundaries</h2>
+	</div>
+</div>
+
+<div class="row">
+	
+<div class="row">
+	<div class="col-lg-12">	
+		<h2>Abstracting dots</h2>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-4">
+		<h3>Dot plots</h3>
+	</div>
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/dots.png" class="img-responsive" alt="Dotplot"/></a>
+	</div>
+</div>
+
+
+<div class="row">
+	<div class="col-md-4">
+		<h3>Melting dots into bars</h3>
+	</div>
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/bars.png" class="img-responsive" alt="Bars"/></a>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-4">
+		<h3>Histogram</h3>
+	</div>
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/histogram.png" class="img-responsive" alt="Histogram"/></a>
+	</div>
+</div>
+
+
+<div class="row">
+	<div class="col-md-4">
+		<p>With the bars, we can also change the binwidths, imagining the balls being passed to the next bin</p>
+	</div>
+	<div class="col-md-8">
+		<a class="thumbnail"><img src="img/histogram2.png" class="img-responsive" alt="Histogram"/></a>
+	</div>
+</div>
+
+
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<div class="col-lg-8">
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Who we are</h2>
+	<div class="col-lg-8">
+		<p>Both of us (Aran Lunzer and Amelia McNamara) are interested in making it easier to see these types of choices. Lunzer's work focuses on "subjunctive interfaces," those that show you what <em>else</em> you might have seem, while McNamara is primarily interested in the effects of parameter choices on statistical visualizations.</p>
+
+		</div>
+		<div class="col-lg-4">
+		</div>
+</div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Related research</h2>
+	<div class="col-lg-8">
+		
+
+		<p>"Stretchy histograms" (those allowing users to adjust the binwidth dynamically) are available in a variety of commercially-available systems. In his 1997 paper, "Software for Learning and Doing Statistics," Rolf Biehler talks about this feature in his software Statistics Workshop. Similar abilities were included in DataDesk, Fathom, and TinkerPlots. However, many professional tools eschewed stretchy histograms (or even left histograms out altogether!). Excel can be extended to create histograms by the installation of a third-party add-on. Expert R users can create stretchy histograms using Shiny or manipulate, but even these do not offer direct manipulation, instead waiting for the user to drop a slider before updating the view.  </p>
+
+		<p>There are many algorithms for automatically choosing the number of bins in a histogram or the width of histogram bins. The Sturges algorithm is a well-known method for choosing bin widths, but other algorithms include Scott's choice and the <a href="https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule">Freedman-Diaconis choice</a>. M. P. Wand proposed a new algorithm in 1997.  </p>
+
+		<p>"The order in which graph types are introduced is likely to reflect the complexity associated understanding the basic elements as other related aspects of mathematics are developing. Conservation of number and counting are clearly prerequisites for work with graphing, although early graphs can be used for reinforcement of counting and comparison skills. Categorical attributes, such as colors or fruit types, are likely to be understood before measurement attributes, for example, measuring with rulers. The related complexity of the scales for axes suggests an ordering such as categories (e.g., red, blue, green, ...), followed by whole number markings for ``stacking dots,'' then scales with markings in fractions or decimals between whole number values. Later interval scales associated with histograms may be quite variable and hence more complex." - Jane Watson and Noleine Fitzallen </p>
+
+		<p>One context in which histograms are often seen is in <a href="https://www.nytimes.com/2015/06/20/technology/personaltech/adjusting-to-apples-new-photo-software.html">image-processing software</a>.</p>
+	</div>
+
+<div class="col-lg-4">
+	</div>	
+</div>
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Resources</h2>
+	<div class="col-lg-8">
+		<h3>Histograms in other tools</h3>
+		<ul>
+			<li> <a href="https://developers.google.com/chart/interactive/docs/gallery/histogram">google docs histogram</a></li>
+			<li><a href="https://developers.google.com/chart/interactive/docs/gallery/controls">controls</a> most changes seem to take effect only on mouse up - or at least a pause in interaction.  the ChartRangeFilter control is an exception. </li>
+			<li><a href="https://plot.ly/python/ipython-notebook-tutorial/">ipython tutorial</a>, not much interactivity here... but the select-to-zoom interaction (e.g., see under "Plotting with Seaborn") is perhaps a useful model to follow </li>
+		</ul>
+		<h3>specific visualisations</h3>
+			<ul>
+				<li><a href="http://www.nytimes.com/interactive/2014/upshot/buy-rent-calculator.html">rent/buy calculator</a> from NYtimes. for me, the canonical example.  there is no one answer to "is it better?"; you find your answer by setting up the criteria that define your situation (actual and expected).  as you make your way there, and even once you arrive, you're constantly being shown the surrounding context.</li>
+				<li><a href="https://ourworldindata.org/a-history-of-global-living-conditions-in-5-charts/">history of global living conditions</a>, very simple interactivity - e.g., in a straight 2-way comparison being able to select absolute or relative, and to exclude one category at a time </li>
+				<li><a href="http://rethinkingvis.com/#all">links to a pile of visns, some interactive.</a></li>
+				<li><a href="
+http://www.bostonglobe.com/metro/2017/01/18/rich-people-own-much-money-half-world-report-says/y6az3Wtasd5TIf9Q6k3I4K/story.html?p1=Article_Recommended_ReadMore_Pos13">rich people</a></li>
+			</ul>
+		</div>
+<div class="col-lg-4">
+	</div>
+</div>
+
+
+	<div class="row">&nbsp;</div>
+
+
+
+
+   <footer>
+      <div class="container">
+        <p class="text-muted credit">Copyright &copy; 2016 Aran Lunzer and Amelia McNamara. All Rights Reserved.</p>
+      </div>
+    </footer>
+
+
+    <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="dist/js/jquery.min.js"></script>
+    <script src="dist/js/bootstrap.min.js"></script>
+     <script src="dist/js/Repo.js/repo.js"></script>
+    <script type="text/javascript">
+	$('.tooltip-test').tooltip()
+	$(function () {
+  		$('[data-toggle="tooltip"]').tooltip()
+	})
+	$('#collapseOne').collapse("hide");
+	
+	$('.more').click(function(){
+    	$(this).text(function(i,old){
+        	return old=='read less' ?  'read more' : 'read less';
+    	});
+    	$(this).blur();
+	});
+	$('.code').click(function(){
+    	$(this).text(function(i,old){
+        	return old=='hide code' ?  'view code' : 'hide code';
+    	});
+    	$(this).blur();
+	});
+	</script>
+    
+  </body>
+</html>
