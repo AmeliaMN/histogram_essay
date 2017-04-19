@@ -1,0 +1,61 @@
+
+    
+    /* canvas sharpening - from http://stackoverflow.com/questions/7615009/disable-interpolation-when-scaling-a-canvas */
+    canvas {
+        image-rendering: optimizeSpeed;             /* Older versions of FF          */
+        image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
+        image-rendering: -webkit-optimize-contrast; /* Safari                        */
+        image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
+        image-rendering: pixelated;                 /* Awesome future-browsers       */
+        -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
+    }
+
+    #scrolly {
+      padding-top: 60px;
+    }
+    
+    #sections {
+      position: relative;
+      display: inline-block;
+      /* width: 50%; */
+      top: 0px;
+      z-index: 90;
+      margin-right: 10px;
+      padding-bottom: 200px;
+    }
+    
+    .step {
+      margin-bottom: 150px;
+      font-family: "TiemposTextWeb-Regular","Georgia";
+      font-size: 16px;
+      line-height: 23px;
+      color: #767678;
+    }
+    
+    #sections .title {
+      font-family: Arial,Helvetica,"san-serif";
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 2px;
+      color: #262626;
+      line-height: 1.2em;
+    }
+    
+    #extra-space {
+      height: 600px; // @@ try to ensure that last section will scroll into activity, even if window is tall.  presumably there's a better way to do this.
+    }
+    
+    #vis {
+      display: inline-block;
+      position: absolute; /* will change to fixed when scrolled into view */
+      /* top: 30px; */
+      z-index: 1;
+      margin-left: 0;
+
+      /* override the bootstrap setting (border-box), so innards don't overlap the border */
+  -webkit-box-sizing: content-box;
+     -moz-box-sizing: content-box;
+          box-sizing: content-box;
+
+    }
+
