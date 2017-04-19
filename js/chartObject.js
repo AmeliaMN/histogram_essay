@@ -3814,7 +3814,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
               sectionPositions.push(top - startPos);
             });
             containerStart = container.node().getBoundingClientRect().top + window.pageYOffset;
-            
+console.log("containerStart", containerStart)
             dispatch.call('size', this, { x: visWidth, y: visHeight });
         }
         var throttledResize = lively.lang.fun.throttle(resize, 500);
@@ -3833,9 +3833,9 @@ chartObject.initScrolliness=function initScrolliness(options) {
         */
         function position() {
             var switchPos = 200;
-            var pos = window.pageYOffset - 10 - containerStart;
+            var pos = window.pageYOffset - containerStart;
             var sectionIndex = d3.bisect(sectionPositions, pos+switchPos)-1;
-
+console.log(pos);
             // ael added
             if (sectionIndex<1) {
                 visSeln.style("position", "absolute").style("top", null);
