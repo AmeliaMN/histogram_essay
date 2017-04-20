@@ -1635,7 +1635,8 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
     
     if (thenDo) thenDo();
 
-    this.drawHandPointer({ x: listOrigin.x - 4, y: listOrigin.y + (this.lastScrolledIndex+0.5)*itemHeight+2 }
+    var handIndex = this.lastScrolledIndex || 0;
+    this.drawHandPointer({ x: listOrigin.x - 4, y: listOrigin.y + (handIndex+0.5)*itemHeight+2 }
     //,decorateList
         );
         
@@ -1664,7 +1665,7 @@ chartObject.drawColouredNumberLine=function drawColouredNumberLine(instant) {
                 drawForElapsedTime(elapsed);
                 if (step===maxStep) {
                     chart.stopTimer(false);
-                    console.log("finished");
+//console.log("finished");
                 }
                 },
             forceToEnd: ()=>drawForElapsedTime(drawTime)
@@ -2394,11 +2395,10 @@ chartObject.drawValueList=function drawValueList(options) {
     else {
         this.startTimer({
             tick: elapsed=>{
-//console.log("!");
                 flyAll(elapsed);
                 if (elapsed > moveTime+timeSpread) {
                     chart.stopTimer(false);
-                    console.log("finished");
+//console.log("finished");
                 }
                 },
             forceToEnd: ()=>flyAll(oneShot)
@@ -3064,11 +3064,10 @@ chartObject.flyBalls=function flyBalls(options) {
     } else {
         this.startTimer({
             tick: elapsed=>{
-//console.log("!");
                 chart.clearEphemeralCanvas();
                 if (settledBalls.length === numValues) {
                     chart.stopTimer(false);
-                    console.log("finished");
+//console.log("finished");
                 } else flyAll(elapsed);
                 },
             cleanup: ()=>chart.clearEphemeralCanvas(),
@@ -3398,7 +3397,7 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
                 drawForElapsedTime(elapsed);
                 if (elapsed >= totalTime) {
                     chart.stopTimer(false);
-                    console.log("finished");
+//console.log("finished");
                 }
                 },
             forceToEnd: ()=>drawForElapsedTime(totalTime)
@@ -3753,20 +3752,12 @@ chartObject.initScrolliness=function initScrolliness(options) {
               .on('scroll.scroller', throttledPosition)  // ael added throttles
               .on('resize.scroller', throttledResize);
             
-            // manually call resize
-            // initially to setup
-            // scroller.
-            resize();
-            
-            // hack to get position
+            // hack to get resize (and hence position)
             // to be called once for
             // the scroll position on
             // load.
-            // @v4 timer no longer stops if you
-            // return true at the end of the callback
-            // function - so here we stop it explicitly.
             var timer = d3.timer(function () {
-                position();
+                resize();
                 timer.stop();
             });
         }
@@ -3785,7 +3776,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             //    leaving width of at least textMinWidth
             //    fitting into the window height
             
-            var heightMargin = 50, widthMargin = 80;  // @@ somewhat arbitrary
+            var heightMargin = 50, widthMargin = 100;  // @@ somewhat arbitrary
 
             var visRatio = visMaxExtent.x / visMaxExtent.y;
             
@@ -3814,8 +3805,10 @@ chartObject.initScrolliness=function initScrolliness(options) {
               sectionPositions.push(top - startPos);
             });
             containerStart = container.node().getBoundingClientRect().top + window.pageYOffset;
-console.log("containerStart", containerStart)
+            
             dispatch.call('size', this, { x: visWidth, y: visHeight });
+            
+            position();
         }
         var throttledResize = lively.lang.fun.throttle(resize, 500);
         
@@ -3834,15 +3827,16 @@ console.log("containerStart", containerStart)
         function position() {
             var switchPos = 200;
             var pos = window.pageYOffset - containerStart;
-            var sectionIndex = d3.bisect(sectionPositions, pos+switchPos)-1;
-console.log(pos);
+
             // ael added
-            if (sectionIndex<1) {
+            var stickPoint = 20;
+            if (pos < -stickPoint) {
                 visSeln.style("position", "absolute").style("top", null);
             } else {
-                visSeln.style("position", "fixed").style("top", "20px");
+                visSeln.style("position", "fixed").style("top", stickPoint+"px");
             }
             
+            var sectionIndex = d3.bisect(sectionPositions, pos+switchPos)-1;
             if (sectionIndex<0) return
 
             if (currentIndex !== sectionIndex) {
@@ -4035,7 +4029,7 @@ console.log(pos);
             if (startIndex===index) scrolledSections = [index];
             else scrolledSections = d3.range(startIndex + 1, index + 1); // non-inclusive end
             var first = scrolledSections[0], last = scrolledSections[scrolledSections.length-1];
-console.log("from "+first+" to "+last);
+//console.log("from "+first+" to "+last);
             var prevRendered = lastIndex;
             scrolledSections.forEach(function (i) {
 //console.log("step:", prevRendered, last, i);
@@ -4102,7 +4096,6 @@ console.log("from "+first+" to "+last);
 
     // ael added    
     scroll.on('size', function(extent) {
-//console.log("size called:", extent);
         chart.resizeChartSubstrates(visSeln, extent);
         // we'll get called once at startup before the chart has any data
         if (chart.data) {

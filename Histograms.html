@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0">   take back control of responsiveness -->
 	<meta name="description" content="Histogram stuff" />
 
     <meta name="author" content="Aran Lunzer and Amelia McNamara">
@@ -10,14 +10,15 @@
     <link rel="stylesheet" href="dist/font-awesome/css/font-awesome.min.css">
     <link href="dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="dist/css/my.css" rel="stylesheet">
-    <link href="css/scrolly.css" rel="stylesheet">
+    <link href="styles/scrolly.css" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="{{ site.name }}" href="{{ site.baseurl }}/blog/feed.xml">
 
     <style>@import 'https://fonts.googleapis.com/css?family=Raleway:100,300';</style>
     
-<script type="text/javascript" src="https://cdn.rawgit.com/LivelyKernel/lively.lang/279fdedd91555bdf1a81aa554b0a2f3e3ba97e5e/dist/lively.lang.min.js"></script>
-<script type="text/javascript" src="dist/js/d3.v4.js"></script>
-<script type="text/javascript" src="js/chartObject.js"></script>
+    <script type="text/javascript" src="dist/js/lively.lang.min.279fd.js"></script>
+    <script type="text/javascript" src="dist/js/d3.v4.js"></script>
+    <script type="text/javascript" src="scripts/chartObject.js"></script>
+
 <script>
 window.Global = window;
 
@@ -56,13 +57,13 @@ function chartDefs() { return [
 		<h1 id="top">What's so hard about histograms?</h1>	
 		<p class="lead">Histograms are a way to summarize a numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
 	</div>
-</div>
+    </div>
 
 
 <div class="row">&nbsp;</div>
 <div class="row">
 	<h2>Exploratory data analysis and summarizing data</h2>
-	<div class="col-lg-8">
+	<div class="col-xs-8">
 		
 		<p>When thinking about data, it is often useful to produce plots of variables in one- and two-dimensions, a process which is called <a href="https://en.wikipedia.org/wiki/Exploratory_data_analysis">Exploratory Data Analysis</a>, or EDA. EDA was the brainchild of John Tukey in the 1960s, and has become even more powerful with the rise of better computer graphics.</p>
 
@@ -73,7 +74,7 @@ function chartDefs() { return [
 
 
 		</div>
-<div class="col-lg-4">
+<div class="col-xs-4">
 	<a class="thumbnail" href="https://smile.amazon.com/Exploratory-Data-Analysis-John-Tukey/dp/0201076160?sa-no-redirect=1"><img src="img/EDA.jpg" class="img-responsive"  alt="EDA book"/></a>
 	</div>
 </div>
@@ -81,7 +82,7 @@ function chartDefs() { return [
 
 	<div class="row">
 		<h2>Summarizing categorical data</h2>
-	<div class="col-lg-8">
+	<div class="col-xs-8">
 		
 
 		<p>When a variable is <a href="#" data-toggle="tooltip" title="(Meaning it only has a few possible discrete values)">categorical</a>, the way to view the distribution of one variable is a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (also known as a bar graph). Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/some-people-are-too-superstitious-to-have-a-baby-on-friday-the-13th/">how many babies are born on the 13th of the month</a>, broken down by day of the week.</p>
@@ -93,7 +94,7 @@ function chartDefs() { return [
 		<p>Bar charts are nice because they are not parameterized. That is, there aren't many choices for the data analyst to make when creating a bar chart. As we will see, this is not the case for histograms.</p>
 		
 	</div>
-	<div class="col-lg-4">
+	<div class="col-xs-4">
 		<a class="thumbnail" href="https://fivethirtyeight.com/features/some-people-are-too-superstitious-to-have-a-baby-on-friday-the-13th/"><img src="img/bialik-fridaythe13th-2.png" class="img-responsive" alt="Babies born on the 13th of the month"/></a>
 
 		
