@@ -1,4 +1,13 @@
 
+/* disabling Bootstrap responsiveness */
+.container {
+  width: 970px;
+  max-width: none !important;
+  margin-left: 30px;
+  margin-right: 30px;
+}
+
+body * { outline: none !important }
     
     /* canvas sharpening - from http://stackoverflow.com/questions/7615009/disable-interpolation-when-scaling-a-canvas */
     canvas {
@@ -11,7 +20,7 @@
     }
 
     #scrolly {
-      padding-top: 60px;
+/*      padding-top: 60px;  */
     }
     
     #sections {
@@ -24,12 +33,14 @@
       padding-bottom: 200px;
     }
     
-    .disabledstep {
+    .step {
       margin-bottom: 150px;
-      font-family: "TiemposTextWeb-Regular","Georgia";
-      font-size: 16px;
-      line-height: 23px;
-      color: #767678;
+/*    
+    font-family: "TiemposTextWeb-Regular","Georgia";
+    font-size: 16px;
+    line-height: 23px;
+    color: #767678;
+*/
     }
     
     #sections .title {
