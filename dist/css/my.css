@@ -2,3 +2,11 @@ img.no-resize {
   min-height: 40px;
   min-width: 50px;
 }
+
+body {
+  padding-top: 50px;
+}
+.starter-template {
+  padding: 40px 15px;
+  text-align: center;
+}
