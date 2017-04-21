@@ -1,6 +1,6 @@
 
 /* disabling Bootstrap responsiveness */
-.container {
+#scrolly {
   width: 970px;
   max-width: none !important;
   margin-left: 30px;
@@ -21,10 +21,6 @@
         -ms-interpolation-mode: nearest-neighbor;
     }
 
-    #scrolly {
-/*      padding-top: 60px;  */
-    }
-    
     #sections {
       position: relative;
       display: inline-block;
