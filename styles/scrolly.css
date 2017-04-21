@@ -1,11 +1,11 @@
 
-/* disabling Bootstrap responsiveness */
-#scrolly {
-  width: 970px;
-  max-width: none !important;
-  margin-left: 30px;
-  margin-right: 30px;
-}
+    /* disabling Bootstrap responsiveness */
+    .container {
+        width: 970px;
+        max-width: none !important;
+        margin-left: 30px;
+        margin-right: 30px;
+    }
 
     body * { outline: none !important }
     
