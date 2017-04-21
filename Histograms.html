@@ -18,6 +18,7 @@
     <script type="text/javascript" src="dist/js/lively.lang.min.279fd.js"></script>
     <script type="text/javascript" src="dist/js/d3.v4.js"></script>
     <script type="text/javascript" src="scripts/chartObject.js"></script>
+    <script type="text/javascript" src="scripts/scrollSteps.js"></script>
 
 <script>
 window.Global = window;
@@ -34,7 +35,7 @@ function chartDefs() { return [
     // for now, on a scrolly page we only expect a single vis definition.
     ch=>{
         var options = {
-            stepDefinitions: ch.sampleScrollySections(),
+            stepDefinitions: scrollStepDefs(ch),
             visExtent: { x: 900, y: 850 }, // preferred, and max
             visMinExtent: { x: 500, y: 500 },
             textMinWidth: 300,
