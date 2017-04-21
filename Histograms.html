@@ -6,7 +6,7 @@
 	<meta name="description" content="Histogram stuff" />
 
     <meta name="author" content="Aran Lunzer and Amelia McNamara">
-    <title>Interactive Essay on Histograms</title>
+    <title>Exploring Histograms</title>
     <link rel="stylesheet" href="dist/font-awesome/css/font-awesome.min.css">
     <link href="dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="dist/css/my.css" rel="stylesheet">
@@ -63,77 +63,94 @@ function chartDefs() { return [
 
 <div class="row">&nbsp;</div>
 <div class="row">
-	<h2>Exploratory data analysis and summarizing data</h2>
-	<div class="col-xs-8">
+	<h2>Exploratory data analysis</h2>
+	<div class="col-md-8">
 		
 		<p>When thinking about data, it is often useful to produce plots of variables in one- and two-dimensions, a process which is called <a href="https://en.wikipedia.org/wiki/Exploratory_data_analysis">Exploratory Data Analysis</a>, or EDA. EDA was the brainchild of John Tukey in the 1960s, and has become even more powerful with the rise of better computer graphics.</p>
 
-		<p>The way you plot a variable depends on whether it the variable is numeric or categorical.</p>
+		<p>Often, when considering one variable you are interested in the <b>distribution</b> of that variable. And the way you visualize a distribution depends on whether the variable of interest is categorical or numeric.</p>
 
-		<p><b>Numeric</b> variables are those measured as numbers. For example, height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables can only take on certain integer values. Continuous variables can take on any value! If you think about the number <a href="https://en.wikipedia.org/wiki/Pi">pi</a>, it is a number with an infinite decimal. Continuous variables don't have to take on such extremely irrational value, they might be numbers like 2.56. </p>
-		<p><b>Categorical</b> variables are discrete in their own way-- they can only take on a few specific values. For example, gender is often reported as a categorical variable, perhaps with categories "male," "female," and "gender non-conforming." Racial categories are another common use of categorical variables.</p>
+    <p><b>Categorical</b> variables take on only on a few specific values. For example, gender is often reported as a categorical variable, perhaps with categories "male," "female," and "gender non-conforming." Racial categories are another common use of categorical variables.</p>
+
+    <p><b>Numeric</b> variables are measured as numbers. For example, height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables can only take on certain integer values. Continuous variables can take on any value! If you think about the number <a href="https://en.wikipedia.org/wiki/Pi">pi</a>, it is a number with an infinite decimal. Continuous variables don't have to take on such extremely irrational values, they might be numbers like 2.56. </p>
+		
 
 
 		</div>
-<div class="col-xs-4">
-	<a class="thumbnail" href="https://smile.amazon.com/Exploratory-Data-Analysis-John-Tukey/dp/0201076160?sa-no-redirect=1"><img src="img/EDA.jpg" class="img-responsive"  alt="EDA book"/></a>
+<div class="col-md-4">
+	<a class="thumbnail" href="https://smile.amazon.com/Exploratory-Data-Analysis-John-Tukey/dp/0201076160?sa-no-redirect=1"><img  src="img/EDA.jpg" height="500" width="400" alt="EDA book"/></a>
 	</div>
 </div>
 
 
 	<div class="row">
-		<h2>Summarizing categorical data</h2>
-	<div class="col-xs-8">
+		<h2>Visualizing the distribution of a categorical variable</h2>
+	<div class="col-md-8">
+
+    <p>When a variable is <a href="#" data-toggle="tooltip" title="(Meaning it only has a few possible discrete values)">categorical</a>, the way to view the distribution of one variable is a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (also known as a bar graph). Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>.</p>
+
+    <p>The categories for painting elements are discrete choices, so Walt Hickey (the author of the chart) counted up how many paintings contained each element and displayed the <a href="#" data-toggle="tooltip" title="Technically, he really showed the percentages">counts</a>.</p>
+
+    <p>Bar charts are nice because they are not parameterized. That is, there aren't many choices for the data analyst to make when creating a bar chart. As we will see, this is not the case for histograms.</p>
+    
+    <blockquote><p>There’s a strand of the data viz world that argues that everything could be a bar chart. That’s possibly true but also possibly a world without joy.</p>
+      <p>-<a href="https://hbr.org/2013/03/power-of-visualizations-aha-moment">Amanda Cox</a>, The Upshot. </p></blockquote>
+    
 		
 
-		<p>When a variable is <a href="#" data-toggle="tooltip" title="(Meaning it only has a few possible discrete values)">categorical</a>, the way to view the distribution of one variable is a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (also known as a bar graph). Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/some-people-are-too-superstitious-to-have-a-baby-on-friday-the-13th/">how many babies are born on the 13th of the month</a>, broken down by day of the week.</p>
-
-		<p>Days of the week are discrete choices, so Carl Bialik (the author of the chart) counted up how much higher or lower than average the number of births was for each category. </p>
-
-		<p>Another fivethirtyeight article using bar charts is this article on <a href="https://fivethirtyeight.com/features/whats-the-most-common-name-in-america/">most common names</a>.</p>
-
-		<p>Bar charts are nice because they are not parameterized. That is, there aren't many choices for the data analyst to make when creating a bar chart. As we will see, this is not the case for histograms.</p>
 		
 	</div>
-	<div class="col-xs-4">
-		<a class="thumbnail" href="https://fivethirtyeight.com/features/some-people-are-too-superstitious-to-have-a-baby-on-friday-the-13th/"><img src="img/bialik-fridaythe13th-2.png" class="img-responsive" alt="Babies born on the 13th of the month"/></a>
+	<div class="col-md-4">
+		<a class="thumbnail" href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/"><img src="img/hickey-ross-tags-1.png" class="img-responsive" alt="Bob Ross paintings containing the named elements"/></a>
 
 		
 	</div>
 </div>
 <div class="row">&nbsp;</div>
 <div class="row">
+  <h2>Visualizing the distribution of a numeric variable</h2>
 	<div class="col-lg-8">
-		
+		<p>When a variable is numeric, there are a <a href="#" data-toggle="tooltip" title="Including boxplots, stem and leaf plots, and density plots">a variety of ways</a> to visualize the distribution, but the most common method is probably the histogram.</p>
+    <p>For example, Justin Wolfers of The Upshot produced a histogram to visualize the finishing times of 10 million marathon finishers.</p>
+
+    <p>At first glance, this looks simple enough. We bin data into a set of discrete bins, then count how many values fall into each of the bins to aggregate the data. But, as we look closer we realize that there are actually many choices the data analyst needs to make in order to create a histogram, and the choices have big consequences on the resulting distribution!</p>
 
 		
 	</div>
 	<div class="col-lg-4">
-		<blockquote><p>There’s a strand of the data viz world that argues that everything could be a bar chart. That’s possibly true but also possibly a world without joy.</p>
-			<p>-<a href="https://hbr.org/2013/03/power-of-visualizations-aha-moment">Amanda Cox</a>, The Upshot. </p></blockquote>
+		<a class="thumbnail" href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=0"><img src="img/0422-ups-marathon-945-1.png", class="img-responsive" alt="Marathon finishing times"/></a>
 	</div>
+</div>
+
+<div class="row">&nbsp;</div>
+
+<div class="row">
+  <h2>Building a histogram</h2>
 </div>
 
 <div id="scrolly">
 <div id="sections">
   <section class="step">
-    <div class="title">A jumble of values</div>
-    We start by considering the dataset as a pool of items, each identified with its value.
+    <div class="title">Gather your data</div>
+    The first step in building a histogram is to find some numeric data. We're going to start by considering the fuel mileage from a variety of cars sampled in 1974 (yes, this data is out of date). We can start by considering the dataset as a pool of items, each identified by its value. We can "see" all the data, but it is hard to get the gestalt of the variable. What are some common values? Is there a lot of variation? To answer these questions, we need to sort the data. 
   </section>
   <section class="step">
-    <div class="title">Into a sorted list</div>
-    Gather the items into a list, sorted by value.
+    <div class="title">Sort into an ordered list</div>
+    A first step in being able to describe the distribution of the variable is to gather the items into a list, sorted by value. Now we can see the maximum value (33.9) and the minimum value (10.4). Beyond that, it is hard to say much about the center, shape, and spread of the distribution. Part of the problem is that the list is completely filled- the space between 10.5 and 13.3 is the same as between 19.2 and 19.3. We'd like to move these values appropriately so we can tell how sparse or clumpy they are. 
   </section>
   <section class="step">
     <div class="title">Prepare a number line</div>
-    Draw a line representing all possible numbers between the minimum and maximum data values.
+    A common convention is to use a number line, where higher values move to the right and smaller (or negative) values to the left. We can draw a line representing all possible numbers between the minimum and maximum data values.
   </section>
   <section class="step">
-    <div class="title">And fly!</div>
-    Show each item as a dot at the appropriate point along the number line.  Here we draw a path connecting each item's position in the list to its position on the line, to highlight how adjacent items in the list will end up close or far apart on the number line depending on their values.
-<p>In the first sample dataset ("mpg"), there are&mdash;by chance&mdash;no two items having exactly the same value.<p>
-<p>We have some other datasets available.  At an opposite extreme from "mpg" is "nba", an R sample dataset comprising the ages of 105 NBA athletes.  Because the ages are rounded to whole years, there end up being multiple items (i.e., multiple athletes) with the same age value.  We show repeated values by stacking them on top of each other on the number line.<p>
-<p>A third example is "faithful", an R sample dataset of 272 timings (in seconds) between eruptions of the Old Faithful geyser in Yellowstone National Park.  Again, this dataset turns out to have some values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are being rounded to integers.  If the timings were measured to multiple decimal places (fanciful though that would be, for something as vague as an eruption onset), this dataset would almost certainly have no duplicates.  This is why counting items over a <i>range</i> of values&mdash;which is what histograms are all about&mdash;is useful in the first place.<p>
+    <div class="title">Add data to the number line</div>
+    Now, we want to show each item as a dot at the appropriate point along the number line.  Here we draw a path connecting each item's position in the list to its position on the line, to highlight how adjacent items in the list will end up close or far apart on the number line depending on their values.
+    
+    <p>In the first sample dataset ("mpg"), there are&mdash;by chance&mdash;no two items having exactly the same value.<p>
+    
+    <p>We have some other datasets available.  At an opposite extreme from "mpg" is "nba", an R sample dataset comprising the ages of 105 NBA athletes.  Because the ages are rounded to whole years, there end up being multiple items (i.e., multiple athletes) with the same age value.  We show repeated values by stacking them on top of each other on the number line.<p>
+    
+    <p>A third example is "faithful", an R sample dataset of 272 timings (in seconds) between eruptions of the Old Faithful geyser in Yellowstone National Park.  Again, this dataset turns out to have some values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are being rounded to integers.  If the timings were measured to multiple decimal places (fanciful though that would be, for something as vague as an eruption onset), this dataset would almost certainly have no duplicates.  This is why counting items over a <i>range</i> of values&mdash;which is what histograms are all about&mdash;is useful in the first place.<p>
 <p>The buttons at the bottom of the visualisation allow you to switch between these datasets at any stage of the essay.<p>
   </section>
   <section class="step">

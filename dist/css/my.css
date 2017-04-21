@@ -1,9 +1,4 @@
-.navbar-default .navbar-brand {
-    color: #119C58;
+img.no-resize {
+  min-height: 40px;
+  min-width: 50px;
 }
-body { 
-	padding-top: 70px; 
-}
-.vspace { height: 40px;}
-
-background: url("img/1000tweets.jpg");
