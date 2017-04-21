@@ -9,6 +9,8 @@
 
     body * { outline: none !important }
     
+    svg text { font-family: Helvetica,Arial }
+    
     /* canvas sharpening - from http://stackoverflow.com/questions/7615009/disable-interpolation-when-scaling-a-canvas */
     canvas {
         image-rendering: optimizeSpeed;
@@ -53,7 +55,7 @@
     }
     
     #extra-space {
-      height: 600px; // @@ try to ensure that last section will scroll into activity, even if window is tall.  presumably there's a better way to do this.
+      height: 600px; /* @@ try to ensure that last section will scroll into activity, even if window is tall.  presumably there's a better way to do this. */
     }
     
     #vis {

@@ -91,13 +91,13 @@ function scrollStepDefs(ch) {
             chart.stopTimer(true);
             chart.scenarioRecords = [];
             chart.iterate(
-                Array.range(-1,0,0.2).map(s=>Number(s.toFixed(1))),
+                Array.range(-100,0,20),
                 function(proportion) {
-                    chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: proportion });
+                    chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: proportion*0.01 });
                     chart.drawBreakValues(true);
                 }
                 );
-            chart.drawCyclingScenarios("bin offset");
+            chart.drawCyclingScenarios(v=>"offset = bin width * "+(-v)+"%");
             }
         },
         
@@ -107,13 +107,13 @@ function scrollStepDefs(ch) {
             chart.stopTimer();
             chart.clearScenarioZone();
             chart.iterate(
-                Array.range(1,0.5,-0.1).map(s=>Number(s.toFixed(1))),
+                Array.range(100,50,-10),
                 function(proportion) {
-                    chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: 0, widthProportion: proportion });
+                    chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: 0, widthProportion: proportion*0.01 });
                     chart.drawBreakValues(true);
                 }
                 );
-            chart.drawCyclingScenarios("bin width");
+            chart.drawCyclingScenarios(v=>"bin width = "+v+"% of default");
             }
         },
         

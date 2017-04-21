@@ -781,7 +781,7 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
                                 .attr("class", groupObject.category+"TextCell")
                                 .style("fill", cellItem=>cellItem.fill || "black")
                                 .style("font-size", (isHighlightContext ? fontHeight-4 : fontHeight)+"px")
-                                .style("alignment-baseline", "hanging")
+                                .style("dominant-baseline", "hanging")
                                 .style("text-anchor", cellItem.anchor || "start")
                                 .style("opacity", groupObject.isFishy ? 0.2 : 1)
                                 .style("pointer-events", "none")
@@ -1085,21 +1085,21 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
                                     .style("fill", d3.hcl(73,100,75).darker(0.5))
                                     .style("font-size", (fontHeight)+"px")
                                     .style("font-weight", "bold")
-                                    .style("alignment-baseline", "hanging")
+                                    .style("dominant-baseline", "hanging")
                                     .style("text-anchor", "middle")
                                     .style("pointer-events", "none")
                                     .style('-webkit-user-select','none')
                                     .text(String);
 
-                                var texts = seln.selectAll("text.label").data(labels);
+                                var texts = seln.selectAll("text.sparkLabel").data(labels);
                                 texts.exit().remove();
                                 texts.enter().append("text")
                                   .merge(texts)
-                                    .attr("class", "label")
+                                    .attr("class", "sparkLabel")
                                     .attr("x", 4-width/2)
                                     .attr("y", label=>label.y)
                                     .style("font-size", (fontHeight-4)+"px")
-                                    .style("alignment-baseline", "middle")
+                                    .style("dominant-baseline", "middle")
                                     .style("pointer-events", "none")
                                     .style('-webkit-user-select','none')
                                     .text(label=>label.text);
@@ -1306,7 +1306,7 @@ chartObject.drawBalls=function drawBalls(data) {
 		.attr("x", xScale.range()[1]+23+blobRadius)
 		.attr("y", -10*blobRadius+1)
 		.style("font-size", "11px")
-		.style("alignment-baseline", "middle")
+		.style("dominant-baseline", "middle")
         .style('-webkit-user-select','none')
         .text("= "+blobUnit)
 */
@@ -1437,12 +1437,12 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
 	    labelDefs.push({ x: legendX+tickLength+3, y: -heightScale(v), text: String(v) });
 	    tickDefs.push({ x: legendX, y: -heightScale(v), dx: tickLength, dy: 0 });
 	    });
-	var labels = histGroup.selectAll("text.label").data(labelDefs);
+	var labels = histGroup.selectAll("text.histLabel").data(labelDefs);
 	labels.exit().remove();
 	labels.enter().append("text")
-	    .attr("class", "label")
+	    .attr("class", "histLabel")
 	    .style("font-size", "10px")
-        .style("alignment-baseline", "central")
+        .style("dominant-baseline", "central")
         .style("-webkit-user-select","none")
       .merge(labels)
 	    .attr("x", d=>d.x)
@@ -1518,7 +1518,7 @@ chartObject.drawBreakValues=function drawBreakValues(instant) {
         .attr("y", binBase+5)
         .style("font-size", "12px")
         .style("text-anchor", "middle")
-        .style("alignment-baseline", "hanging")
+        .style("dominant-baseline", "hanging")
         .style("pointer-events", "none")
         .style("-webkit-user-select","none")
       .merge(labels)
@@ -1565,7 +1565,7 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
                 .style("font-size", fontSize+"px")
                 .style("fill", itemColour)
                 .style("fill-opacity", 0.4)
-                .style("alignment-baseline", "central")
+                .style("dominant-baseline", "central")
                 .style("text-anchor", "start")
                 .style("pointer-events", "none")
                 .style('-webkit-user-select','none')
@@ -1712,7 +1712,7 @@ chartObject.drawColouredNumberLine=function drawColouredNumberLine(instant) {
 
 };
 
-chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelString) {
+chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
     // @@ still too much hard-coded stuff in here
     
     var chart=this;
@@ -1724,17 +1724,17 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelString) {
     
     chart.prepareScenarioZone({ left: left, top: top, width: right-left, height: bottom-top }); // includes sending clearScenarioZone()
 
-    var switchSize = 16, labelOrigin = { x: 0, y: this.fallIntoBins+40 }, cycling = false, cycleStep, cycleDirection;
+    var switchSize = 16, labelOrigin = { x: -100, y: this.fallIntoBins+40 }, cycling = false, cycleStep, cycleDirection;
     var movingGroupSeln = null;
     
-    function updateLabelText(valString) {
-        var labels = chart.demoGroup.selectAll("text.scenarioLabel").data([labelString+" = "+valString]);
+    function updateLabelText(val) {
+        var labels = chart.demoGroup.selectAll("text.scenarioLabel").data([labelFn(val)]);
         labels.enter().append("text")
             .attr("class", "scenarioLabel")
             .attr("x", labelOrigin.x)
             .attr("y", labelOrigin.y)
-            .style("font-size", "12px")
-            .style("alignment-baseline", "hanging")
+            .style("font-size", "14px")
+            .style("dominant-baseline", "hanging")
             .style("-webkit-user-select","none")
           .merge(labels)
             .text(String);
@@ -2009,7 +2009,7 @@ chartObject.drawDataName=function drawDataName() {
         .attr("x", labelCentre)
         .attr("y", labelY)
         .style("font-size", fontSize+"px")
-        .style("alignment-baseline", "hanging")
+        .style("dominant-baseline", "hanging")
         .style("text-anchor", "middle")
         .style("pointer-events", "none")
         .style('-webkit-user-select','none')
@@ -2060,7 +2060,7 @@ chartObject.drawDataSwitch=function drawDataSwitch() {
                 .attr("x", 0)
                 .attr("y", 0)
                 .style("font-size", fontSize+"px")
-                .style("alignment-baseline", "central")
+                .style("dominant-baseline", "central")
                 .style("text-anchor", "middle")
                 .style("pointer-events", "none")
                 .style('-webkit-user-select','none')
@@ -2110,7 +2110,7 @@ chartObject.drawDensityControl=function drawDensityControl(offset, handler) {
 		.attr("x", offset.x+switchSize+8)
 		.attr("y", offset.y+switchSize/2)
 		.style("font-size", "14px")
-		.style("alignment-baseline", "middle")
+		.style("dominant-baseline", "middle")
         .style("-webkit-user-select","none")
         .style("fill", switchColour)
         .text("plot as densities")        
@@ -2503,7 +2503,7 @@ chartObject.drawValueList=function drawValueList(options) {
                 .attr("class", "focusItem")
                 .attr("x", 0)
                 .attr("y", (d, i)=>focusListTop+focusEntryHeight*i)
-                .style("alignment-baseline", "central") // numbers are tall, so not "middle"
+                .style("dominant-baseline", "central") // numbers are tall, so not "middle"
                 .style("font-size", fontSize+"px")
                 .style("-webkit-user-select","none")
               .merge(focusTexts)
@@ -2515,7 +2515,7 @@ chartObject.drawValueList=function drawValueList(options) {
                         var spans = seln.selectAll("tspan").data([d.text, d.multiplier]);
                         spans.exit().remove();  // shouldn't happen
                         spans.enter().append("tspan")
-                            .style("alignment-baseline", "central")
+                            .style("dominant-baseline", "central")
                             .style("font-size", (str, i)=>(i===0 ? fontSize : fontSize-1)+"px")
                             .style("fill", (str, i)=>i===0 ? colourScale(d.value, 1) : "grey")
                           .merge(spans)
@@ -2655,7 +2655,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         .attr("y", binBase+4)
         .style("fill", "grey")
         .style("font-size", "11px")
-        .style("alignment-baseline", "hanging")
+        .style("dominant-baseline", "hanging")
         .style("text-anchor", "middle")
         .style("pointer-events", "none")
         .style("-webkit-user-select","none");
@@ -3011,7 +3011,7 @@ chartObject.flyBalls=function flyBalls(options) {
                 textSeln = chart.chartGroup.append("text")
                     .attr("class", "valueLabel")
                     .style("font-size", fontSize+"px")
-                    .style("alignment-baseline", "central")
+                    .style("dominant-baseline", "central")
                     .attr("x", originX+10)
             }
             
