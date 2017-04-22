@@ -162,19 +162,34 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         }
         function COUNT(arr) { return arr.length }
         function SUM(arr) { var s=0; arr.forEach(v=>s+=v); return s }
-        function FILTER(arr, fn) { return arr.filter(fn) }
+        function FILTER_FN(arr, fn) { return arr.filter(fn) }
         function G(nBins) { return chart.computeG(nBins) }
         function RPrettyBreaks(dataMin, dataMax, n) { return chart.rPretty([dataMin, dataMax], n) }
         function Sturges(data) { return Math.ceil(Math.log(data.length)/Math.log(2))+1 }
         function ALL_BUT_FIRST(array) { return array.slice(1) }
         function ALL_BUT_LAST(array) { return array.slice(0, -1) }
         function PAIRS(array) { return Array.range(1,array.length-1).map(i=>[quantize(array[i-1]), quantize(array[i])]) }
+        function FILTER(data, lefts, rights, leftTests, rightTests) {
+            if (leftTests) {
+                var leftFns = { ">": (left, v)=>v>left, ">=": (left, v)=>v>=left };
+                var rightFns = { "<": (right, v)=>v<right, "<=": (right, v)=>v<=right };
+                return lefts.map((left, i)=>{
+                    var right = rights[i];
+                    return FILTER_FN(data, v=> leftFns[leftTests[i]](left, v) && rightFns[rightTests[i]](right, v))
+                    })
+            } else {
+                return lefts.map((left, i)=>{
+                    var right = rights[i];
+                    return FILTER_FN(data, v=> i===0 ? (v>=left && v<=right) : (v>left && v<=right))
+                    });
+            }
+        }
         function INTERVAL_FILTER(data, array, leftTests, rightTests) {
             if (leftTests) {
                 var leftFns = { ">": (left, v)=>v>left, ">=": (left, v)=>v>=left };
                 var rightFns = { "<": (right, v)=>v<right, "<=": (right, v)=>v<=right };
-                return array.map((pair, i)=>FILTER(data, v=> leftFns[leftTests[i]](pair[0],v) && rightFns[rightTests[i]](pair[1], v)))
-            } else return array.map((pair, i)=>FILTER(data, v=> i===0 ? (v>=pair[0] && v<=pair[1]) : (v>pair[0] && v<=pair[1]))) }
+                return array.map((pair, i)=>FILTER_FN(data, v=> leftFns[leftTests[i]](pair[0],v) && rightFns[rightTests[i]](pair[1], v)))
+            } else return array.map((pair, i)=>FILTER_FN(data, v=> i===0 ? (v>=pair[0] && v<=pair[1]) : (v>pair[0] && v<=pair[1]))) }
         function iterations(vn) { var val=eval(vn); return lively.lang.arr.isArray(val) ? val.length : 0 }
         var valStore = {};
         function lookup(vn,index) {
@@ -417,22 +432,15 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         function deriveBins(result, scenario) {
             var drawableBins = [];
 
-            // hack.  support either (left, right, bin) or (intervals, bins) derivations
-            var bins = result.bin ? result.bin : result.bins;
-            var useIntervals = !!result.intervals;
-            
+            var bins = result.bins;
+
             bins.forEach(function(bin, i) {
                 function lookup(vName) {
                     var val = result[vName];
                     return lively.lang.obj.isArray(val) ? val[i] : val
                 }
-                // HACK HACK HACK: if we find the variable "intervals", assume we also have "leftTests" and "rightTests" to determine the minOpen and maxOpen
-                if (useIntervals) {
-                    var interval = lookup("intervals"), minOpen = lookup("leftTests")===">", maxOpen = lookup("rightTests")==="<";
-                    drawableBins.push({min: interval[0], minOpen: minOpen, max: interval[1], maxOpen: maxOpen, values: bin, scenario: scenario, dataIndex: i });
-                } else {
-                    drawableBins.push({min: lookup("left"), minOpen: lookup("leftTest")==">", max: lookup("right"), maxOpen: lookup("rightTest")=="<", values: bin, scenario: scenario, dataIndex: i });
-                }
+                // NB: if leftTests and rightTests don't exist, they'll both be false.  it's up to the calling code to set noRanges in such a case.
+                drawableBins.push({min: lookup("lefts"), minOpen: lookup("leftTests")==">", max: lookup("rights"), maxOpen: lookup("rightTests")=="<", values: bin, scenario: scenario, dataIndex: i });
                 });
             return drawableBins;
         }
@@ -462,8 +470,9 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         if (!contextVar) chart.highlightBinDifferences("primary", !options.isDragging); // true to delete previous (@@ currently ignored by hBD)
 
         if (!(tableOptions.noRanges)) {
-            if (highlighting) chart.drawRanges(contextBins[highlightIndex], "grey");
-            else chart.drawRanges(mainBins, "blue");
+            var rangeSets = { primary: mainBins, context: [] };
+            if (highlighting) rangeSets.context = contextBins[highlightIndex];
+            chart.drawRanges(rangeSets);
         }
         
         function padIfNeeded(data) {
@@ -479,18 +488,19 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         var rowsAdded = 0;
         dataRows.push({ varName: "dummy", reason: "rule", rowInDisplay: rowsAdded });
         orderedVarNames.forEach(function(vn, varIndex) {
-            if (!varDefs[vn].noDisplay) {
-                var mainExpr = varDefs[vn].main;
+            var varDef = varDefs[vn];
+            if (!varDef.noDisplay) {
+                var mainExpr = varDef.main;
                 if (typeof mainExpr==="function") mainExpr = mainExpr(chosen);
-                var isInChoice = !!varDefs[vn].choiceGroup, isChosen = isInChoice && choiceGroups[varDefs[vn].choiceGroup].chosen===vn, isLastChoice = isInChoice && choiceGroups[varDefs[vn].choiceGroup].choices.last()===vn;
+                var isInChoice = !!varDef.choiceGroup, isChosen = isInChoice && choiceGroups[varDef.choiceGroup].chosen===vn, isLastChoice = isInChoice && choiceGroups[varDef.choiceGroup].choices.last()===vn;
                 
                 // new apr 2017 (expt24): include any extraDefs in the var's main row
-                var extrasHere = varDefs[vn].extra; // may be undefined
+                var extrasHere = varDef.extra; // may be undefined
                 if (extrasHere && !(isInChoice && !isChosen)) {
                     dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded++, reason: "main", hasExtras: true, expr: extrasHere, data: padIfNeeded(mainResult[vn]) });
                     if (vn===contextVar) affectedByExtra.push(vn);
                 } else {
-                    dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded++, reason: "main", expr: isInChoice && !isChosen ? "-" : mainExpr, data: padIfNeeded(mainResult[vn]) });
+                    dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded++, reason: "main", expr: isInChoice && !isChosen ? "-" : mainExpr, styledExpr: varDef.styled, data: padIfNeeded(mainResult[vn]) });
                 }
 
                 // and then any row needed for an extension coming from another var
@@ -628,7 +638,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
             if (rowItem.expr !== "") {
                 var cellGroup = [], groupObject = { category: "expr", cells: cellGroup, xOffset: edges[1] };
                 if (rowItem.reason==="extraShadow") cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 32, fill: "green"}); // jan 2017: text is empty
-                else if (!lively.lang.obj.isArray(rowItem.expr)) cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 0});
+                else if (!lively.lang.obj.isArray(rowItem.expr)) cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 0, styledText: rowItem.styledExpr});
                 else {
                     if (rowItem.hasExtras) {
                         if (options.focusVar===rowVar) groupObject.focusIndex = groupObject.indexToHighlight = options.focusIndex;
@@ -796,12 +806,25 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
                             if (!groupObject.isFishy) seln.attr("transform", transformString(cellItem.x, 0));
                             
                             var textSeln = seln.select("text");
-                            var oldText = textSeln.text();
-                            if (/*!groupObject.isFishy && */ oldText !== cellItem.text) {
-                                textSeln.call(showChange);
-                            }
                             textSeln.attr("y", isHighlightContext ? 0 : 4); // now redundant?
-                            textSeln.text(cellItem.text);
+                            
+                            if (cellItem.styledText) {
+                                var spans = textSeln.selectAll("tspan").data(cellItem.styledText);
+                                spans.exit().remove();  // shouldn't happen
+                                spans.enter().append("tspan")
+                                    //.style("dominant-baseline", "central")
+                                    //.style("font-size", (str, i)=>(i===0 ? fontSize : fontSize-1)+"px")
+                                    //.style("fill", (str, i)=>i===0 ? colourScale(d.value, 1) : "grey")
+                                  .merge(spans)
+                                    .style("font-style", d=>d.style)
+                                    .style("fill", d=>d.colour || "black")
+                                    .text(d=>d.text);
+                            } else {
+                                var oldText = textSeln.text();
+                                if (oldText !== cellItem.text) textSeln.call(showChange);
+                                
+                                textSeln.text(cellItem.text);
+                            }
                             
                             if (groupObject.isFishy) {
                                 var trapSeln = seln.select("rect");
@@ -2172,42 +2195,41 @@ chartObject.drawNumberLine=function drawNumberLine() {
         .style("stroke-width", 0.5);
 };
 
-chartObject.drawRanges=function drawRanges(ranges, colour) {
-    // these go into rangeGroup
+chartObject.drawRanges=function drawRanges(rangeSets) {
+    // rangeSets is an object with elements { primary, context } - each being a (possibly empty) bin set.
+    // the range markers are text items that go into rangeGroup
     var chart=this;
     
-    if (ranges.length===0) return;  // a dummy call, to set up the clearDataRanges fn
-    
-    // ranges should be objects { min, max, minOpen, maxOpen }
+    // bins should be objects { min, max, minOpen, maxOpen }
     var xScale = this.xScale, group = this.rangeGroup;
     
     var openMin = { char: "(", offset: -2 }, openMax = { char: ")", offset: -6.5 }, closedMin = { char: "[", offset: -3.5 }, closedMax = { char: "]", offset: -4.5 };
-    // for 'sans-serif' 32px: var openMin = { char: "(", offset: -2 }, openMax = { char: ")", offset: -7 }, closedMin = { char: "[", offset: -2 }, closedMax = { char: "]", offset: -6 };
-    var ends = [];
     
-    // hack.  support either minOpen/maxOpen or openness.
-    var useOpenness = ranges.length && !!ranges[0].openness;
-    
-    for (var ri=0; ri<ranges.length; ri++) {
-    var range = ranges[ri];
-    ends.push(lively.lang.obj.merge({ value: range.min, index: ri }, useOpenness ? (range.openness==="left" ? openMin : closedMin) : (range.minOpen ? openMin : closedMin) ));
-    ends.push(lively.lang.obj.merge({ value: range.max, index: ri }, useOpenness ? (range.openness==="right" ? openMax : closedMax ) : (range.maxOpen ? openMax : closedMax) ));
-    }
+    ["primary", "context"].forEach(category=>{
+        var ranges = rangeSets[category], ends = [];
+        for (var ri=0; ri<ranges.length; ri++) {
+            var range = ranges[ri];
+            ends.push(lively.lang.obj.merge({ value: range.min, index: ri }, range.minOpen ? openMin : closedMin) );
+            ends.push(lively.lang.obj.merge({ value: range.max, index: ri }, range.maxOpen ? openMax : closedMax) );
+        }
+        
+        var colour = category==="primary" ? "blue" : "grey", endClass = "end"+category, opacity = category==="primary" && rangeSets.context.length ? 0.2 : 1;
 
-	var endSeln = group.selectAll("text.binEnd").data(ends, (d,i)=>i);
-	endSeln.enter().append("text")
-	    .attr("class", "binEnd")
-  		.style("font-family", "Raleway") //"sans-serif")
-  		.style("font-weight", "300")
-   		.style("font-size", "32px")
-  		.style("pointer-events", "none")
-        .style("-webkit-user-select","none")
-    .merge(endSeln)
-  		.attr("x", d=>xScale(d.value)+d.offset)
-  		.attr("y", 30)
-   		.style("fill", colour)
-   		.text(d=>d.char);
-	endSeln.exit().remove();
+    	var ends = group.selectAll("text."+endClass).data(ends, (d,i)=>i);
+    	ends.exit().remove();
+    	ends.enter().append("text")
+    	    .attr("class", endClass)
+      		.style("font-family", "Raleway") //"sans-serif")
+      		.style("font-weight", "300")
+       		.style("font-size", "32px")
+      		.style("pointer-events", "none")
+            .style("-webkit-user-select","none")
+        .merge(ends)
+      		.attr("x", d=>xScale(d.value)+d.offset)
+      		.attr("y", 30)
+       		.style("fill", colour)
+       		.style("opacity", opacity)
+       		.text(d=>d.char);
 
 	// for calibrating character offsets
 if (false) {
@@ -2223,6 +2245,8 @@ if (false) {
 			.attr("y2", 150);
 	calib.exit().remove();
 }
+
+    })
 };
 
 chartObject.drawRDefaultBinning=function drawRDefaultBinning(options) {
@@ -2871,7 +2895,7 @@ chartObject.flyBalls=function flyBalls(options) {
     var instant = !!(options && options.instant);
 
     this.clearDemoBalls = function() {
-        this.dataGroup.selectAll("circle.settled,circle.dropped,line.numberline").remove();
+        this.dataGroup.selectAll("circle.settled,circle.dropped,line.numberline").interrupt().remove();
     }
     this.clearDemoBalls();
 
@@ -3602,7 +3626,7 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
         // then normalise to the region a single bin-width to the left of the data minimum
         var normalisedMinBinX = shiftedMinBinX - (draggableBinWidth*(1+Math.floor((shiftedMinBinX-chart.dataMin)/draggableBinWidth)));
 
-        var newOffset = chart.findClosestResult("left[0]", normalisedMinBinX, "offset");
+        var newOffset = chart.findClosestResult("lefts[0]", normalisedMinBinX, "offset");
 
         if (newOffset!==null) {
             var oldBinIndex = dragBinIndex;
@@ -3677,6 +3701,7 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
             .style("fill-opacity", 0)
             .style("stroke", "lightgrey")
             .style("stroke-opacity", 0.5)
+            .style("pointer-events", "none")
             .transition()
             //.delay(500)
             .duration(firstDur)
@@ -3735,6 +3760,8 @@ chartObject.initScrolliness=function initScrolliness(options) {
         // y coordinate of
         var containerStart = 0;
         
+        var navHeight = d3.select("nav").node().getBoundingClientRect().height;
+
         var visSeln = null;
         // ael - permissible vis and text extents
         var visMinExtent, visMaxExtent, textMinWidth, textMaxWidth;
@@ -3752,6 +3779,8 @@ chartObject.initScrolliness=function initScrolliness(options) {
             sections = stepElems;
             visSeln = visElem;
             
+            stepElems.style('opacity', (d,i)=>i===0? 1 : 0.1);  // first section shown fully, rest faded out
+
             // when window is scrolled call
             // position. When it is resized
             // call resize.
@@ -3783,7 +3812,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             //    leaving width of at least textMinWidth
             //    fitting into the window height
             
-            var heightMargin = 50, widthMargin = 100;  // @@ somewhat arbitrary
+            var heightMargin = navHeight+50, widthMargin = 100;  // @@ somewhat arbitrary
 
             var visRatio = visMaxExtent.x / visMaxExtent.y;
             
@@ -3832,11 +3861,11 @@ chartObject.initScrolliness=function initScrolliness(options) {
         * 
         */
         function position() {
-            var switchPos = 200;
+            var switchPos = 200+navHeight;
             var pos = window.pageYOffset - containerStart;
 
             // ael added
-            var stickPoint = 20;
+            var stickPoint = 20+navHeight;
             if (pos < -stickPoint) {
                 visSeln.style("position", "absolute").style("top", null);
             } else {
@@ -3859,8 +3888,8 @@ chartObject.initScrolliness=function initScrolliness(options) {
             dispatch.call('progress', this, currentIndex, progress);
         }
         
-        // augmented version of lively.lang.fun.throttle, for coping if the browser is too busy to service its setTimeout queue.  the events from a scroll gesture on a MacBook trackpad seem to induce such issues in Chrome.
-        // the standard throttle uses debounce to clear the throttling flag when the incoming events idle - at which point we're presumably safe assuming that the setTimeout will be scheduled as it should.
+        // augmented version of lively.lang.fun.throttle, for coping if the browser is too busy to service its setTimeout queue.  the events from a scroll gesture on a MacBook trackpad seem to induce such issues, at least in Chrome.
+        // the standard throttle uses debounce to clear the throttling flag when the incoming events idle - at which point we're presumably safe in assuming that the setTimeout will be scheduled as it should.
         function highRateThrottle (func, wait) {
             var context, args, timeout, throttling, more, result, timeoutSet, whenDone = lively.lang.fun.debounce(wait, function () {
                     more = throttling = false;
