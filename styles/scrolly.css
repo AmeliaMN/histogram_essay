@@ -49,11 +49,7 @@
       color: #262626;
       line-height: 1.2em;
     }
-    
-    #extra-space {
-      height: 600px; /* @@ try to ensure that last section will scroll into activity, even if window is tall.  presumably there's a better way to do this. */
-    }
-    
+        
     #vis {
       display: inline-block;
       position: absolute; /* will change to fixed when scrolled into view */

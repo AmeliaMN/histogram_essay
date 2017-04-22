@@ -3761,6 +3761,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
         var containerStart = 0;
         
         var navHeight = d3.select("nav").node().getBoundingClientRect().height;
+        var switchPos = 200+navHeight;  // how far from the top we switch in a new section
 
         var visSeln = null;
         // ael - permissible vis and text extents
@@ -3828,23 +3829,38 @@ chartObject.initScrolliness=function initScrolliness(options) {
             visHeight = visHeight | 0;
             visSeln.style("width", visWidth+"px").style("height", visHeight+"px");
 
-            // sectionPositions will be each sections
-            // starting position relative to the top
-            // of the first section.
-            sectionPositions = [];
-            var startPos;
-            sections.each(function (d, i) {
-              var top = this.getBoundingClientRect().top;
-              if (i === 0) {
-                startPos = top;
-              }
-              sectionPositions.push(top - startPos);
-            });
-            containerStart = container.node().getBoundingClientRect().top + window.pageYOffset;
-            
             dispatch.call('size', this, { x: visWidth, y: visHeight });
+
+            var lastSection = sections.nodes()[sections.size()-1];
+            d3.select(lastSection).style("padding-bottom", "0px");
             
-            position();
+            // HACK - wait a bit for the text to resize itself before we measure height of last section
+            setTimeout(function() {
+                // sectionPositions will be each sections
+                // starting position relative to the top
+                // of the first section.
+                sectionPositions = [];
+                var startPos;
+                sections.each(function (d, i) {
+                  var top = this.getBoundingClientRect().top;
+                  if (i === 0) {
+                    startPos = top;
+                  }
+                  sectionPositions.push(top - startPos);
+                });
+                containerStart = container.node().getBoundingClientRect().top + window.pageYOffset;
+                
+                var lastSectionHeight = lastSection.getBoundingClientRect().height;
+                var stepMarginBottom = 150; // **tied to scrolly.css**
+                var paddingNeeded = Math.max(0, visHeight - lastSectionHeight - switchPos - stepMarginBottom + 20);
+console.log("visHeight", visHeight, "lastsecht", lastSectionHeight, " => padding", paddingNeeded)
+                d3.select(lastSection).style("padding-bottom", paddingNeeded+"px");
+                    
+                var extraSpaceNeeded = Math.max(0, window.innerHeight - visHeight - navHeight - 75); // fudge
+                d3.select("#extra-space").style("height", extraSpaceNeeded+"px");
+                
+                position();
+                }, 250);
         }
         var throttledResize = lively.lang.fun.throttle(resize, 500);
         
@@ -3861,7 +3877,6 @@ chartObject.initScrolliness=function initScrolliness(options) {
         * 
         */
         function position() {
-            var switchPos = 200+navHeight;
             var pos = window.pageYOffset - containerStart;
 
             // ael added
