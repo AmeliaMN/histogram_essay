@@ -3853,7 +3853,6 @@ chartObject.initScrolliness=function initScrolliness(options) {
                 var lastSectionHeight = lastSection.getBoundingClientRect().height;
                 var stepMarginBottom = 150; // **tied to scrolly.css**
                 var paddingNeeded = Math.max(0, visHeight - lastSectionHeight - switchPos - stepMarginBottom + 20);
-console.log("visHeight", visHeight, "lastsecht", lastSectionHeight, " => padding", paddingNeeded)
                 d3.select(lastSection).style("padding-bottom", paddingNeeded+"px");
                     
                 var extraSpaceNeeded = Math.max(0, window.innerHeight - visHeight - navHeight - 75); // fudge
