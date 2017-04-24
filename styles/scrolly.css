@@ -1,19 +1,26 @@
 
+    /* disabling Bootstrap responsiveness */
+    .container {
+        width: 970px;
+        max-width: none !important;
+        margin-left: 30px;
+        margin-right: 30px;
+    }
+
+    body * { outline: none !important }
+    
+    svg text { font-family: Helvetica,Arial }
     
     /* canvas sharpening - from http://stackoverflow.com/questions/7615009/disable-interpolation-when-scaling-a-canvas */
     canvas {
-        image-rendering: optimizeSpeed;             /* Older versions of FF          */
-        image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
-        image-rendering: -webkit-optimize-contrast; /* Safari                        */
-        image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
-        image-rendering: pixelated;                 /* Awesome future-browsers       */
-        -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
+        image-rendering: optimizeSpeed;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: -o-crisp-edges;
+        image-rendering: pixelated;
+        -ms-interpolation-mode: nearest-neighbor;
     }
 
-    #scrolly {
-      padding-top: 60px;
-    }
-    
     #sections {
       position: relative;
       display: inline-block;
@@ -24,12 +31,14 @@
       padding-bottom: 200px;
     }
     
-    .disabledstep {
+    .step {
       margin-bottom: 150px;
-      font-family: "TiemposTextWeb-Regular","Georgia";
-      font-size: 16px;
-      line-height: 23px;
-      color: #767678;
+/*    
+    font-family: "TiemposTextWeb-Regular","Georgia";
+    font-size: 16px;
+    line-height: 23px;
+    color: #767678;
+*/
     }
     
     #sections .title {
@@ -40,11 +49,7 @@
       color: #262626;
       line-height: 1.2em;
     }
-    
-    #extra-space {
-      height: 600px; // @@ try to ensure that last section will scroll into activity, even if window is tall.  presumably there's a better way to do this.
-    }
-    
+        
     #vis {
       display: inline-block;
       position: absolute; /* will change to fixed when scrolled into view */

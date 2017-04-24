@@ -162,19 +162,34 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         }
         function COUNT(arr) { return arr.length }
         function SUM(arr) { var s=0; arr.forEach(v=>s+=v); return s }
-        function FILTER(arr, fn) { return arr.filter(fn) }
+        function FILTER_FN(arr, fn) { return arr.filter(fn) }
         function G(nBins) { return chart.computeG(nBins) }
         function RPrettyBreaks(dataMin, dataMax, n) { return chart.rPretty([dataMin, dataMax], n) }
         function Sturges(data) { return Math.ceil(Math.log(data.length)/Math.log(2))+1 }
         function ALL_BUT_FIRST(array) { return array.slice(1) }
         function ALL_BUT_LAST(array) { return array.slice(0, -1) }
         function PAIRS(array) { return Array.range(1,array.length-1).map(i=>[quantize(array[i-1]), quantize(array[i])]) }
+        function FILTER(data, lefts, rights, leftTests, rightTests) {
+            if (leftTests) {
+                var leftFns = { ">": (left, v)=>v>left, ">=": (left, v)=>v>=left };
+                var rightFns = { "<": (right, v)=>v<right, "<=": (right, v)=>v<=right };
+                return lefts.map((left, i)=>{
+                    var right = rights[i];
+                    return FILTER_FN(data, v=> leftFns[leftTests[i]](left, v) && rightFns[rightTests[i]](right, v))
+                    })
+            } else {
+                return lefts.map((left, i)=>{
+                    var right = rights[i];
+                    return FILTER_FN(data, v=> i===0 ? (v>=left && v<=right) : (v>left && v<=right))
+                    });
+            }
+        }
         function INTERVAL_FILTER(data, array, leftTests, rightTests) {
             if (leftTests) {
                 var leftFns = { ">": (left, v)=>v>left, ">=": (left, v)=>v>=left };
                 var rightFns = { "<": (right, v)=>v<right, "<=": (right, v)=>v<=right };
-                return array.map((pair, i)=>FILTER(data, v=> leftFns[leftTests[i]](pair[0],v) && rightFns[rightTests[i]](pair[1], v)))
-            } else return array.map((pair, i)=>FILTER(data, v=> i===0 ? (v>=pair[0] && v<=pair[1]) : (v>pair[0] && v<=pair[1]))) }
+                return array.map((pair, i)=>FILTER_FN(data, v=> leftFns[leftTests[i]](pair[0],v) && rightFns[rightTests[i]](pair[1], v)))
+            } else return array.map((pair, i)=>FILTER_FN(data, v=> i===0 ? (v>=pair[0] && v<=pair[1]) : (v>pair[0] && v<=pair[1]))) }
         function iterations(vn) { var val=eval(vn); return lively.lang.arr.isArray(val) ? val.length : 0 }
         var valStore = {};
         function lookup(vn,index) {
@@ -417,22 +432,15 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         function deriveBins(result, scenario) {
             var drawableBins = [];
 
-            // hack.  support either (left, right, bin) or (intervals, bins) derivations
-            var bins = result.bin ? result.bin : result.bins;
-            var useIntervals = !!result.intervals;
-            
+            var bins = result.bins;
+
             bins.forEach(function(bin, i) {
                 function lookup(vName) {
                     var val = result[vName];
                     return lively.lang.obj.isArray(val) ? val[i] : val
                 }
-                // HACK HACK HACK: if we find the variable "intervals", assume we also have "leftTests" and "rightTests" to determine the minOpen and maxOpen
-                if (useIntervals) {
-                    var interval = lookup("intervals"), minOpen = lookup("leftTests")===">", maxOpen = lookup("rightTests")==="<";
-                    drawableBins.push({min: interval[0], minOpen: minOpen, max: interval[1], maxOpen: maxOpen, values: bin, scenario: scenario, dataIndex: i });
-                } else {
-                    drawableBins.push({min: lookup("left"), minOpen: lookup("leftTest")==">", max: lookup("right"), maxOpen: lookup("rightTest")=="<", values: bin, scenario: scenario, dataIndex: i });
-                }
+                // NB: if leftTests and rightTests don't exist, they'll both be false.  it's up to the calling code to set noRanges in such a case.
+                drawableBins.push({min: lookup("lefts"), minOpen: lookup("leftTests")==">", max: lookup("rights"), maxOpen: lookup("rightTests")=="<", values: bin, scenario: scenario, dataIndex: i });
                 });
             return drawableBins;
         }
@@ -462,8 +470,9 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         if (!contextVar) chart.highlightBinDifferences("primary", !options.isDragging); // true to delete previous (@@ currently ignored by hBD)
 
         if (!(tableOptions.noRanges)) {
-            if (highlighting) chart.drawRanges(contextBins[highlightIndex], "grey");
-            else chart.drawRanges(mainBins, "blue");
+            var rangeSets = { primary: mainBins, context: [] };
+            if (highlighting) rangeSets.context = contextBins[highlightIndex];
+            chart.drawRanges(rangeSets);
         }
         
         function padIfNeeded(data) {
@@ -479,18 +488,19 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         var rowsAdded = 0;
         dataRows.push({ varName: "dummy", reason: "rule", rowInDisplay: rowsAdded });
         orderedVarNames.forEach(function(vn, varIndex) {
-            if (!varDefs[vn].noDisplay) {
-                var mainExpr = varDefs[vn].main;
+            var varDef = varDefs[vn];
+            if (!varDef.noDisplay) {
+                var mainExpr = varDef.main;
                 if (typeof mainExpr==="function") mainExpr = mainExpr(chosen);
-                var isInChoice = !!varDefs[vn].choiceGroup, isChosen = isInChoice && choiceGroups[varDefs[vn].choiceGroup].chosen===vn, isLastChoice = isInChoice && choiceGroups[varDefs[vn].choiceGroup].choices.last()===vn;
+                var isInChoice = !!varDef.choiceGroup, isChosen = isInChoice && choiceGroups[varDef.choiceGroup].chosen===vn, isLastChoice = isInChoice && choiceGroups[varDef.choiceGroup].choices.last()===vn;
                 
                 // new apr 2017 (expt24): include any extraDefs in the var's main row
-                var extrasHere = varDefs[vn].extra; // may be undefined
+                var extrasHere = varDef.extra; // may be undefined
                 if (extrasHere && !(isInChoice && !isChosen)) {
                     dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded++, reason: "main", hasExtras: true, expr: extrasHere, data: padIfNeeded(mainResult[vn]) });
                     if (vn===contextVar) affectedByExtra.push(vn);
                 } else {
-                    dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded++, reason: "main", expr: isInChoice && !isChosen ? "-" : mainExpr, data: padIfNeeded(mainResult[vn]) });
+                    dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded++, reason: "main", expr: isInChoice && !isChosen ? "-" : mainExpr, styledExpr: varDef.styled, data: padIfNeeded(mainResult[vn]) });
                 }
 
                 // and then any row needed for an extension coming from another var
@@ -628,7 +638,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
             if (rowItem.expr !== "") {
                 var cellGroup = [], groupObject = { category: "expr", cells: cellGroup, xOffset: edges[1] };
                 if (rowItem.reason==="extraShadow") cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 32, fill: "green"}); // jan 2017: text is empty
-                else if (!lively.lang.obj.isArray(rowItem.expr)) cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 0});
+                else if (!lively.lang.obj.isArray(rowItem.expr)) cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 0, styledText: rowItem.styledExpr});
                 else {
                     if (rowItem.hasExtras) {
                         if (options.focusVar===rowVar) groupObject.focusIndex = groupObject.indexToHighlight = options.focusIndex;
@@ -781,7 +791,7 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
                                 .attr("class", groupObject.category+"TextCell")
                                 .style("fill", cellItem=>cellItem.fill || "black")
                                 .style("font-size", (isHighlightContext ? fontHeight-4 : fontHeight)+"px")
-                                .style("alignment-baseline", "hanging")
+                                .style("dominant-baseline", "hanging")
                                 .style("text-anchor", cellItem.anchor || "start")
                                 .style("opacity", groupObject.isFishy ? 0.2 : 1)
                                 .style("pointer-events", "none")
@@ -796,12 +806,25 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
                             if (!groupObject.isFishy) seln.attr("transform", transformString(cellItem.x, 0));
                             
                             var textSeln = seln.select("text");
-                            var oldText = textSeln.text();
-                            if (/*!groupObject.isFishy && */ oldText !== cellItem.text) {
-                                textSeln.call(showChange);
-                            }
                             textSeln.attr("y", isHighlightContext ? 0 : 4); // now redundant?
-                            textSeln.text(cellItem.text);
+                            
+                            if (cellItem.styledText) {
+                                var spans = textSeln.selectAll("tspan").data(cellItem.styledText);
+                                spans.exit().remove();  // shouldn't happen
+                                spans.enter().append("tspan")
+                                    //.style("dominant-baseline", "central")
+                                    //.style("font-size", (str, i)=>(i===0 ? fontSize : fontSize-1)+"px")
+                                    //.style("fill", (str, i)=>i===0 ? colourScale(d.value, 1) : "grey")
+                                  .merge(spans)
+                                    .style("font-style", d=>d.style)
+                                    .style("fill", d=>d.colour || "black")
+                                    .text(d=>d.text);
+                            } else {
+                                var oldText = textSeln.text();
+                                if (oldText !== cellItem.text) textSeln.call(showChange);
+                                
+                                textSeln.text(cellItem.text);
+                            }
                             
                             if (groupObject.isFishy) {
                                 var trapSeln = seln.select("rect");
@@ -1085,21 +1108,21 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
                                     .style("fill", d3.hcl(73,100,75).darker(0.5))
                                     .style("font-size", (fontHeight)+"px")
                                     .style("font-weight", "bold")
-                                    .style("alignment-baseline", "hanging")
+                                    .style("dominant-baseline", "hanging")
                                     .style("text-anchor", "middle")
                                     .style("pointer-events", "none")
                                     .style('-webkit-user-select','none')
                                     .text(String);
 
-                                var texts = seln.selectAll("text.label").data(labels);
+                                var texts = seln.selectAll("text.sparkLabel").data(labels);
                                 texts.exit().remove();
                                 texts.enter().append("text")
                                   .merge(texts)
-                                    .attr("class", "label")
+                                    .attr("class", "sparkLabel")
                                     .attr("x", 4-width/2)
                                     .attr("y", label=>label.y)
                                     .style("font-size", (fontHeight-4)+"px")
-                                    .style("alignment-baseline", "middle")
+                                    .style("dominant-baseline", "middle")
                                     .style("pointer-events", "none")
                                     .style('-webkit-user-select','none')
                                     .text(label=>label.text);
@@ -1306,7 +1329,7 @@ chartObject.drawBalls=function drawBalls(data) {
 		.attr("x", xScale.range()[1]+23+blobRadius)
 		.attr("y", -10*blobRadius+1)
 		.style("font-size", "11px")
-		.style("alignment-baseline", "middle")
+		.style("dominant-baseline", "middle")
         .style('-webkit-user-select','none')
         .text("= "+blobUnit)
 */
@@ -1437,12 +1460,12 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
 	    labelDefs.push({ x: legendX+tickLength+3, y: -heightScale(v), text: String(v) });
 	    tickDefs.push({ x: legendX, y: -heightScale(v), dx: tickLength, dy: 0 });
 	    });
-	var labels = histGroup.selectAll("text.label").data(labelDefs);
+	var labels = histGroup.selectAll("text.histLabel").data(labelDefs);
 	labels.exit().remove();
 	labels.enter().append("text")
-	    .attr("class", "label")
+	    .attr("class", "histLabel")
 	    .style("font-size", "10px")
-        .style("alignment-baseline", "central")
+        .style("dominant-baseline", "central")
         .style("-webkit-user-select","none")
       .merge(labels)
 	    .attr("x", d=>d.x)
@@ -1518,7 +1541,7 @@ chartObject.drawBreakValues=function drawBreakValues(instant) {
         .attr("y", binBase+5)
         .style("font-size", "12px")
         .style("text-anchor", "middle")
-        .style("alignment-baseline", "hanging")
+        .style("dominant-baseline", "hanging")
         .style("pointer-events", "none")
         .style("-webkit-user-select","none")
       .merge(labels)
@@ -1565,7 +1588,7 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
                 .style("font-size", fontSize+"px")
                 .style("fill", itemColour)
                 .style("fill-opacity", 0.4)
-                .style("alignment-baseline", "central")
+                .style("dominant-baseline", "central")
                 .style("text-anchor", "start")
                 .style("pointer-events", "none")
                 .style('-webkit-user-select','none')
@@ -1635,7 +1658,8 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
     
     if (thenDo) thenDo();
 
-    this.drawHandPointer({ x: listOrigin.x - 4, y: listOrigin.y + (this.lastScrolledIndex+0.5)*itemHeight+2 }
+    var handIndex = this.lastScrolledIndex || 0;
+    this.drawHandPointer({ x: listOrigin.x - 4, y: listOrigin.y + (handIndex+0.5)*itemHeight+2 }
     //,decorateList
         );
         
@@ -1664,7 +1688,7 @@ chartObject.drawColouredNumberLine=function drawColouredNumberLine(instant) {
                 drawForElapsedTime(elapsed);
                 if (step===maxStep) {
                     chart.stopTimer(false);
-                    console.log("finished");
+//console.log("finished");
                 }
                 },
             forceToEnd: ()=>drawForElapsedTime(drawTime)
@@ -1711,7 +1735,7 @@ chartObject.drawColouredNumberLine=function drawColouredNumberLine(instant) {
 
 };
 
-chartObject.drawCyclingScenarios=function drawCyclingScenarios() {
+chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
     // @@ still too much hard-coded stuff in here
     
     var chart=this;
@@ -1723,8 +1747,21 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios() {
     
     chart.prepareScenarioZone({ left: left, top: top, width: right-left, height: bottom-top }); // includes sending clearScenarioZone()
 
-    var switchSize = 16, cycling = false, cycleStep, cycleDirection;
+    var switchSize = 16, labelOrigin = { x: -100, y: this.fallIntoBins+40 }, cycling = false, cycleStep, cycleDirection;
     var movingGroupSeln = null;
+    
+    function updateLabelText(val) {
+        var labels = chart.demoGroup.selectAll("text.scenarioLabel").data([labelFn(val)]);
+        labels.enter().append("text")
+            .attr("class", "scenarioLabel")
+            .attr("x", labelOrigin.x)
+            .attr("y", labelOrigin.y)
+            .style("font-size", "14px")
+            .style("dominant-baseline", "hanging")
+            .style("-webkit-user-select","none")
+          .merge(labels)
+            .text(String);
+    }
     
     function transitionToNext() {
 //console.log(cycleStep+cycleDirection);
@@ -1732,7 +1769,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios() {
 
         var changeTime = 400, pauseTime = chart.slowScenarioCycles ? 1500 : 750;
 
-        var nextGroupSeln = d3.select(chart.scenarioRecords[cycleStep+cycleDirection]);
+        var nextGroupSeln = d3.select(chart.scenarioRecords[cycleStep+cycleDirection].bins);
 //nextGroupSeln.style("opacity", 1);
         // we want to move the elements in movingGroup to the positions of the corresponding elements in nextGroup.  we do this by setting up data objects that hold the relevant attributes of the latter.
         var rectDefs = [];
@@ -1767,6 +1804,8 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios() {
 //nextGroupSeln.style("opacity", 0);
                 if (!cycling) return;
 
+                updateLabelText(chart.scenarioRecords[cycleStep+cycleDirection].value);
+    
                 var numSteps = chart.scenarioRecords.length;
                 cycleStep = cycleStep+cycleDirection;
                 if (cycleStep===0) {
@@ -1940,25 +1979,11 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios() {
     if (chart.scenarioRecords.length > 1) {
         cycling = true;
         
-        movingGroupSeln = d3.select(chart.duplicateObjects(chart.scenarioRecords[0], "rect,text,line")); // NB: not the scenarioClasses, but these with "clone" added
+        movingGroupSeln = d3.select(chart.duplicateObjects(chart.scenarioRecords[0].bins, "rect,text,line")); // NB: not the scenarioClasses, but these with "clone" added
 
         movingGroupSeln.selectAll("*")
             .attr("class", "movingclone");
-/*
-movingGroupSeln.append("linearGradient")
-      .attr("id", "bin-gradient")
-      .attr("gradientUnits", "objectBoundingBox")
-      .attr("x1", 0).attr("y1", 0)
-      .attr("x2", 0).attr("y2", 1)
-    .selectAll("stop")
-      .data([
-        {offset: "0%", color: "white"},
-        {offset: "100%", color: "lightgrey"}
-      ])
-    .enter().append("stop")
-      .attr("offset", function(d) { return d.offset; })
-      .attr("stop-color", function(d) { return d.color; });
-*/
+
         // prepare the moving group's elements.  by default (see dropBallsIntoBins) the bins' fill is lightgray at 0.25 opacity.
         movingGroupSeln.style("opacity", 1);
         movingGroupSeln.selectAll("text,line")
@@ -1974,11 +1999,14 @@ movingGroupSeln.append("linearGradient")
         cycleStep = 0;
         cycleDirection = 1;
 
+        updateLabelText(chart.scenarioRecords[cycleStep].value);
+    
         chart.setTimerInfo({
             cleanup: ()=> {
                 if (cycling) {
                     cycling = false;
                     stopTransition();
+                    chart.demoGroup.select("text.scenarioLabel").remove();
                     
                     // unhide main elements
                     chart.demoGroup.selectAll(scenarioClasses).style("opacity", 1);
@@ -2004,7 +2032,7 @@ chartObject.drawDataName=function drawDataName() {
         .attr("x", labelCentre)
         .attr("y", labelY)
         .style("font-size", fontSize+"px")
-        .style("alignment-baseline", "hanging")
+        .style("dominant-baseline", "hanging")
         .style("text-anchor", "middle")
         .style("pointer-events", "none")
         .style('-webkit-user-select','none')
@@ -2016,17 +2044,19 @@ chartObject.drawDataSwitch=function drawDataSwitch() {
     var chart=this;
 
     // draw in data group (i.e., relative to plotOrigin)
-    var stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance, switchY = binBase + 70, firstX = 50, itemWidth = 150, itemSep = itemWidth+20, fontSize = 16, buttonHeight = fontSize+4;
+    var stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance, switchY = binBase + 80, centreX = this.numberLineWidth/2, itemWidth = 150, itemSep = 20, fontSize = 16, buttonHeight = fontSize+4;
+
     function transformString(x, y) { return "translate("+x+", "+y+")" }
 
-    var datasets = ["mpg", "nba", "faithful" ];
+    var datasets = ["mpg", "nba", "faithful" ], numSwitches = datasets.length;
+    var totalWidth = numSwitches*itemWidth + (numSwitches-1)*itemSep, firstX = centreX-totalWidth/2+itemWidth/2;
     var switchDefs = datasets.map(dn=>({ dataName: dn })); // @@ anything else?
 
     var switchEntries = chart.demoGroup.selectAll("g.dataswitch").data(switchDefs);
     switchEntries.exit().remove();
     switchEntries.enter().append("g")
         .attr("class", "dataswitch")
-        .attr("transform", (def, i)=>transformString(firstX+i*itemSep, switchY))
+        .attr("transform", (def, i)=>transformString(firstX+i*(itemWidth+itemSep), switchY))
         .each(function(def, i) {
             var seln = d3.select(this);
             seln
@@ -2053,7 +2083,7 @@ chartObject.drawDataSwitch=function drawDataSwitch() {
                 .attr("x", 0)
                 .attr("y", 0)
                 .style("font-size", fontSize+"px")
-                .style("alignment-baseline", "central")
+                .style("dominant-baseline", "central")
                 .style("text-anchor", "middle")
                 .style("pointer-events", "none")
                 .style('-webkit-user-select','none')
@@ -2074,7 +2104,7 @@ chartObject.drawDensityControl=function drawDensityControl(offset, handler) {
 
     var histGroupOrigin = this.histOrigin;
     
-    var switchSize = 12, switchColour = "grey";
+    var switchSize = 12, switchColour = "#444";  // dark grey
 
     this.histGroup
         .append("rect")
@@ -2103,7 +2133,7 @@ chartObject.drawDensityControl=function drawDensityControl(offset, handler) {
 		.attr("x", offset.x+switchSize+8)
 		.attr("y", offset.y+switchSize/2)
 		.style("font-size", "14px")
-		.style("alignment-baseline", "middle")
+		.style("dominant-baseline", "middle")
         .style("-webkit-user-select","none")
         .style("fill", switchColour)
         .text("plot as densities")        
@@ -2158,49 +2188,48 @@ chartObject.drawNumberLine=function drawNumberLine() {
     this.dataGroup.append("line")
         .attr("class", "numberline")
         .attr("x1", -excess)
-        .attr("x2", this.xScale(this.dataMax)+excess)
+        .attr("x2", this.numberLineWidth+excess)
         .attr("y1", 0)
         .attr("y2", 0)
         .style("stroke", "grey")
         .style("stroke-width", 0.5);
 };
 
-chartObject.drawRanges=function drawRanges(ranges, colour) {
-    // these go into rangeGroup
+chartObject.drawRanges=function drawRanges(rangeSets) {
+    // rangeSets is an object with elements { primary, context } - each being a (possibly empty) bin set.
+    // the range markers are text items that go into rangeGroup
     var chart=this;
     
-    if (ranges.length===0) return;  // a dummy call, to set up the clearDataRanges fn
-    
-    // ranges should be objects { min, max, minOpen, maxOpen }
+    // bins should be objects { min, max, minOpen, maxOpen }
     var xScale = this.xScale, group = this.rangeGroup;
     
     var openMin = { char: "(", offset: -2 }, openMax = { char: ")", offset: -6.5 }, closedMin = { char: "[", offset: -3.5 }, closedMax = { char: "]", offset: -4.5 };
-    // for 'sans-serif' 32px: var openMin = { char: "(", offset: -2 }, openMax = { char: ")", offset: -7 }, closedMin = { char: "[", offset: -2 }, closedMax = { char: "]", offset: -6 };
-    var ends = [];
     
-    // hack.  support either minOpen/maxOpen or openness.
-    var useOpenness = ranges.length && !!ranges[0].openness;
-    
-    for (var ri=0; ri<ranges.length; ri++) {
-    var range = ranges[ri];
-    ends.push(lively.lang.obj.merge({ value: range.min, index: ri }, useOpenness ? (range.openness==="left" ? openMin : closedMin) : (range.minOpen ? openMin : closedMin) ));
-    ends.push(lively.lang.obj.merge({ value: range.max, index: ri }, useOpenness ? (range.openness==="right" ? openMax : closedMax ) : (range.maxOpen ? openMax : closedMax) ));
-    }
+    ["primary", "context"].forEach(category=>{
+        var ranges = rangeSets[category], ends = [];
+        for (var ri=0; ri<ranges.length; ri++) {
+            var range = ranges[ri];
+            ends.push(lively.lang.obj.merge({ value: range.min, index: ri }, range.minOpen ? openMin : closedMin) );
+            ends.push(lively.lang.obj.merge({ value: range.max, index: ri }, range.maxOpen ? openMax : closedMax) );
+        }
+        
+        var colour = category==="primary" ? "blue" : "grey", endClass = "end"+category, opacity = category==="primary" && rangeSets.context.length ? 0.2 : 1;
 
-	var endSeln = group.selectAll("text.binEnd").data(ends, (d,i)=>i);
-	endSeln.enter().append("text")
-	    .attr("class", "binEnd")
-  		.style("font-family", "Raleway") //"sans-serif")
-  		.style("font-weight", "300")
-   		.style("font-size", "32px")
-  		.style("pointer-events", "none")
-        .style("-webkit-user-select","none")
-    .merge(endSeln)
-  		.attr("x", d=>xScale(d.value)+d.offset)
-  		.attr("y", 30)
-   		.style("fill", colour)
-   		.text(d=>d.char);
-	endSeln.exit().remove();
+    	var ends = group.selectAll("text."+endClass).data(ends, (d,i)=>i);
+    	ends.exit().remove();
+    	ends.enter().append("text")
+    	    .attr("class", endClass)
+      		.style("font-family", "Raleway") //"sans-serif")
+      		.style("font-weight", "300")
+       		.style("font-size", "32px")
+      		.style("pointer-events", "none")
+            .style("-webkit-user-select","none")
+        .merge(ends)
+      		.attr("x", d=>xScale(d.value)+d.offset)
+      		.attr("y", 30)
+       		.style("fill", colour)
+       		.style("opacity", opacity)
+       		.text(d=>d.char);
 
 	// for calibrating character offsets
 if (false) {
@@ -2216,6 +2245,8 @@ if (false) {
 			.attr("y2", 150);
 	calib.exit().remove();
 }
+
+    })
 };
 
 chartObject.drawRDefaultBinning=function drawRDefaultBinning(options) {
@@ -2328,18 +2359,15 @@ chartObject.drawTriangleControl=function drawTriangleControl(offset, handler) {
 };
 
 chartObject.drawValueList=function drawValueList(options) {
-    // this.drawValueList(0);
-    // now draw list onto the fixed canvas, with a mousetrap that creates a callout of separated items.
+    // this.drawValueList({ stage: 0 });
+    // draw list onto the fixed canvas, with a mousetrap that creates a callout of separated items.
     // valueListHeight is the distance between the mid-levels of the first and last items.
 
     var chart=this, values = [];
     chart.data.forEach(v=>values.push(v));
     var numEntries = values.length;
-//console.log(numEntries);
 
-    var instant = !!(options && options.instant);
-    var stage = options && options.stage;
-    var trapMouse = !(options && options.noMousetrap);
+    var stage = options && options.stage; // if undefined, start timed flight
 
     var maxStringLength = d3.max(this.data.values, v=>String(v).length);
 
@@ -2351,6 +2379,10 @@ chartObject.drawValueList=function drawValueList(options) {
     var listScale = d3.scaleLinear().domain([0, numEntries-1]).range([valueListTop, valueListTop+listHeight]);
     var colourScale = this.colourScale;
     var maxOpacity = 0.8, minOpacity = 0.2, itemsFittingList = Math.floor(listHeight/listEntryHeight), baseOpacity = Math.max(minOpacity, maxOpacity - (maxOpacity-minOpacity)*numEntries/itemsFittingList/4);
+
+    var chartGroup = this.chartGroup;
+    chartGroup.selectAll(".focusGroup").remove();
+    chartGroup.selectAll(".listMousetrap").remove();
 
     var valueEntries = this.poolValueEntries;
 
@@ -2388,23 +2420,26 @@ chartObject.drawValueList=function drawValueList(options) {
 
     function transformString(x, y) { return "translate("+x+", "+y+")" }
 
-    var oneShot = moveTime+timeSpread;    
-    if (instant) flyAll(oneShot);
-    else if (stage !== undefined) flyAll(stage*oneShot);
-    else {
+    var totalTime = moveTime+timeSpread;    
+    if (stage !== undefined) {
+        flyAll(stage*totalTime);
+        if (stage===1) createListMousetrap();
+    } else {
         this.startTimer({
             tick: elapsed=>{
-//console.log("!");
                 flyAll(elapsed);
                 if (elapsed > moveTime+timeSpread) {
                     chart.stopTimer(false);
-                    console.log("finished");
+                    createListMousetrap();
+//console.log("finished");
                 }
                 },
-            forceToEnd: ()=>flyAll(oneShot)
+            forceToEnd: ()=>{
+                flyAll(totalTime);
+                createListMousetrap();
+                }
             });
     }
-
 
     function flyAll(elapsed) {
         chart.clearFixedCanvas();
@@ -2426,17 +2461,12 @@ chartObject.drawValueList=function drawValueList(options) {
             });
     }
 
-    this.chartGroup.selectAll(".focusGroup").remove();
-    var focusGroup = this.chartGroup.append("g")
-        .attr("class", "focusGroup")
-        .attr("transform", transformString(focusAreaLeft, focusAreaTop));
-//focusGroup.append("line").attr("x1", 0).attr("x2", 40).attr("y1", 0).attr("y2", 0).style("stroke-width", 1).attr("stroke", "blue");
-//focusGroup.append("line").attr("x1", 0).attr("x2", 40).attr("y1", listHeight).attr("y2", listHeight).style("stroke-width", 1).attr("stroke", "blue");
+    function createListMousetrap() {
+        var focusGroup = chartGroup.append("g")
+            .attr("class", "focusGroup")
+            .attr("transform", transformString(focusAreaLeft, focusAreaTop));
     
-
-    this.chartGroup.selectAll(".listMousetrap").remove();
-    if (trapMouse) {
-        this.chartGroup.append("rect")
+        chartGroup.append("rect")
             .attr("class", "listMousetrap")
             .attr("x", valueListX)
             .attr("y", valueListTop-listEntryHeight/2) // detector covers all of top and bottom values
@@ -2462,78 +2492,78 @@ chartObject.drawValueList=function drawValueList(options) {
                 if (chart.highlightPathIndices) chart.highlightPathIndices([]);
                 chart.highlightValueIndices([]);
                 });
-    }
-    
-    function highlightValueIndices(indexRange, gatherRepeats) {
-        var focusLineYs = [], items = [];
-        if (indexRange.length) {
-            var firstInFocus = indexRange[0], lastInFocus = indexRange[indexRange.length-1];
-            if (gatherRepeats) {
-                var lastValue = values[indexRange[0]], valCount = 0;
-                function addItem(value, count) {
-                    var str = String(value);
-                    items.push({ value: value, text: str, multiplier: count===1 ? null : " x "+count })
-                    }
-                indexRange.forEach(vi=>{
-                    var val = values[vi];
-                    if (val===lastValue) valCount++;
-                    else {
-                        addItem(lastValue, valCount);
-                        valCount = 1;
-                        lastValue = val;
-                    }
-                    });
-                addItem(lastValue, valCount);
-            } else {
-                items = indexRange.map(vi=>({ value: values[vi], text: String(values[vi]) }));
-            }
-            var numItems = items.length;
-            var focusListHeight = (numItems-1)*focusEntryHeight,
-                focusListTop = Math.max(0, Math.min(listHeight-focusListHeight, (listScale(firstInFocus)+listScale(lastInFocus))/2-focusAreaTop-focusListHeight/2));
-            focusLineYs = [listScale(firstInFocus)-focusAreaTop, listScale(lastInFocus)-focusAreaTop];
-        }
-        var focusTexts = focusGroup.selectAll("text.focusItem").data(items);
-        focusTexts.exit().remove();
-        focusTexts.enter().append("text")
-            .attr("class", "focusItem")
-            .attr("x", 0)
-            .attr("y", (d, i)=>focusListTop+focusEntryHeight*i)
-            .style("alignment-baseline", "central") // numbers are tall, so not "middle"
-            .style("font-size", fontSize+"px")
-            .style("-webkit-user-select","none")
-          .merge(focusTexts)
-            .attr("y", (d, i)=>focusListTop+focusEntryHeight*i)
-            .each(function(d) {
-                var seln = d3.select(this);
-                if (d.multiplier) {
-                    seln.text(""); // use only tspans
-                    var spans = seln.selectAll("tspan").data([d.text, d.multiplier]);
-                    spans.exit().remove();  // shouldn't happen
-                    spans.enter().append("tspan")
-                        .style("alignment-baseline", "central")
-                        .style("font-size", (str, i)=>(i===0 ? fontSize : fontSize-1)+"px")
-                        .style("fill", (str, i)=>i===0 ? colourScale(d.value, 1) : "grey")
-                      .merge(spans)
-                        .text(String)
-                } else {
-                    seln.selectAll("tspan").remove();
-                    seln
-                        .style("fill", d=>colourScale(d.value, 1))
-                        .text(d=>d.text);
-                }
-            });
 
-        var focusLines = focusGroup.selectAll("line.focusItem").data(focusLineYs);
-        focusLines.exit().remove();
-        focusLines.enter().append("line")
-            .attr("class", "focusItem")
-            .attr("x1", -listWidth).attr("x2", -10)
-          .merge(focusLines)
-            .attr("y1", d=>d).attr("y2", d=>d)
-            .style("stroke-width", 1)
-            .style("stroke", "black");
+        function highlightValueIndices(indexRange, gatherRepeats) {
+            var focusLineYs = [], items = [];
+            if (indexRange.length) {
+                var firstInFocus = indexRange[0], lastInFocus = indexRange[indexRange.length-1];
+                if (gatherRepeats) {
+                    var lastValue = values[indexRange[0]], valCount = 0;
+                    function addItem(value, count) {
+                        var str = String(value);
+                        items.push({ value: value, text: str, multiplier: count===1 ? null : " x "+count })
+                        }
+                    indexRange.forEach(vi=>{
+                        var val = values[vi];
+                        if (val===lastValue) valCount++;
+                        else {
+                            addItem(lastValue, valCount);
+                            valCount = 1;
+                            lastValue = val;
+                        }
+                        });
+                    addItem(lastValue, valCount);
+                } else {
+                    items = indexRange.map(vi=>({ value: values[vi], text: String(values[vi]) }));
+                }
+                var numItems = items.length;
+                var focusListHeight = (numItems-1)*focusEntryHeight,
+                    focusListTop = Math.max(0, Math.min(listHeight-focusListHeight, (listScale(firstInFocus)+listScale(lastInFocus))/2-focusAreaTop-focusListHeight/2));
+                focusLineYs = [listScale(firstInFocus)-focusAreaTop, listScale(lastInFocus)-focusAreaTop];
+            }
+            var focusTexts = focusGroup.selectAll("text.focusItem").data(items);
+            focusTexts.exit().remove();
+            focusTexts.enter().append("text")
+                .attr("class", "focusItem")
+                .attr("x", 0)
+                .attr("y", (d, i)=>focusListTop+focusEntryHeight*i)
+                .style("dominant-baseline", "central") // numbers are tall, so not "middle"
+                .style("font-size", fontSize+"px")
+                .style("-webkit-user-select","none")
+              .merge(focusTexts)
+                .attr("y", (d, i)=>focusListTop+focusEntryHeight*i)
+                .each(function(d) {
+                    var seln = d3.select(this);
+                    if (d.multiplier) {
+                        seln.text(""); // use only tspans
+                        var spans = seln.selectAll("tspan").data([d.text, d.multiplier]);
+                        spans.exit().remove();  // shouldn't happen
+                        spans.enter().append("tspan")
+                            .style("dominant-baseline", "central")
+                            .style("font-size", (str, i)=>(i===0 ? fontSize : fontSize-1)+"px")
+                            .style("fill", (str, i)=>i===0 ? colourScale(d.value, 1) : "grey")
+                          .merge(spans)
+                            .text(String)
+                    } else {
+                        seln.selectAll("tspan").remove();
+                        seln
+                            .style("fill", d=>colourScale(d.value, 1))
+                            .text(d=>d.text);
+                    }
+                });
+    
+            var focusLines = focusGroup.selectAll("line.focusItem").data(focusLineYs);
+            focusLines.exit().remove();
+            focusLines.enter().append("line")
+                .attr("class", "focusItem")
+                .attr("x1", -listWidth).attr("x2", -10)
+              .merge(focusLines)
+                .attr("y1", d=>d).attr("y2", d=>d)
+                .style("stroke-width", 1)
+                .style("stroke", "black");
+        }
+        chart.highlightValueIndices = highlightValueIndices;
     }
-    chart.highlightValueIndices = highlightValueIndices;
 };
 
 chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) {
@@ -2649,7 +2679,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         .attr("y", binBase+4)
         .style("fill", "grey")
         .style("font-size", "11px")
-        .style("alignment-baseline", "hanging")
+        .style("dominant-baseline", "hanging")
         .style("text-anchor", "middle")
         .style("pointer-events", "none")
         .style("-webkit-user-select","none");
@@ -2800,7 +2830,7 @@ chartObject.duplicateBins=function duplicateBins() {
     var presentGroupNode = this.demoGroup.node();
     var groupNodeClone = this.duplicateObjects(presentGroupNode, scenarioClasses);
     d3.select(groupNodeClone).style("opacity", 0)
-    chart.scenarioRecords.push(groupNodeClone);
+    return groupNodeClone;
 };
 
 chartObject.duplicateObjects=function duplicateObjects(oldGroupNode, classes) {
@@ -2865,7 +2895,7 @@ chartObject.flyBalls=function flyBalls(options) {
     var instant = !!(options && options.instant);
 
     this.clearDemoBalls = function() {
-        this.dataGroup.selectAll("circle.settled,circle.dropped,line.numberline").remove();
+        this.dataGroup.selectAll("circle.settled,circle.dropped,line.numberline").interrupt().remove();
     }
     this.clearDemoBalls();
 
@@ -3005,7 +3035,7 @@ chartObject.flyBalls=function flyBalls(options) {
                 textSeln = chart.chartGroup.append("text")
                     .attr("class", "valueLabel")
                     .style("font-size", fontSize+"px")
-                    .style("alignment-baseline", "central")
+                    .style("dominant-baseline", "central")
                     .attr("x", originX+10)
             }
             
@@ -3064,11 +3094,10 @@ chartObject.flyBalls=function flyBalls(options) {
     } else {
         this.startTimer({
             tick: elapsed=>{
-//console.log("!");
                 chart.clearEphemeralCanvas();
                 if (settledBalls.length === numValues) {
                     chart.stopTimer(false);
-                    console.log("finished");
+//console.log("finished");
                 } else flyAll(elapsed);
                 },
             cleanup: ()=>chart.clearEphemeralCanvas(),
@@ -3238,7 +3267,7 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     this.stopTimer();
     this.chartGroup.selectAll("*").remove();
 
-    var plotOrigin = this.plotOrigin = lively.pt(185, 645);
+    var plotOrigin = this.plotOrigin = lively.pt(185, 630);
     var commandListOrigin = this.commandListOrigin = lively.pt(50, 20);
     
     // once we've presented the code table
@@ -3246,12 +3275,13 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     var dataOrigin = this.dataOrigin = lively.pt(270, 210);
     var histOrigin = this.histOrigin = lively.pt(270, 360);
 
+    this.numberLineWidth = 550;  // between dataMin and dataMax
     this.fallAfterFlight = 115;  // bottom of flight arcs to number line
     this.fallIntoBins = 100;     // number line to histogram base line
 
     // definition of valueListOrigin is relative to plotOrigin
-    var valueListHeight = this.valueListHeight = 400;
-    this.valueListOrigin = lively.pt(620, -valueListHeight-90-this.fallAfterFlight);
+    var valueListHeight = this.valueListHeight = 400, valueListBottomGap = 75;
+    this.valueListOrigin = lively.pt(620, -valueListHeight-valueListBottomGap-this.fallAfterFlight);
     this.valueListFontSize = 12;
     this.valueListEntryHeight = 15;
     
@@ -3398,7 +3428,7 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
                 drawForElapsedTime(elapsed);
                 if (elapsed >= totalTime) {
                     chart.stopTimer(false);
-                    console.log("finished");
+//console.log("finished");
                 }
                 },
             forceToEnd: ()=>drawForElapsedTime(totalTime)
@@ -3596,7 +3626,7 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
         // then normalise to the region a single bin-width to the left of the data minimum
         var normalisedMinBinX = shiftedMinBinX - (draggableBinWidth*(1+Math.floor((shiftedMinBinX-chart.dataMin)/draggableBinWidth)));
 
-        var newOffset = chart.findClosestResult("left[0]", normalisedMinBinX, "offset");
+        var newOffset = chart.findClosestResult("lefts[0]", normalisedMinBinX, "offset");
 
         if (newOffset!==null) {
             var oldBinIndex = dragBinIndex;
@@ -3671,6 +3701,7 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
             .style("fill-opacity", 0)
             .style("stroke", "lightgrey")
             .style("stroke-opacity", 0.5)
+            .style("pointer-events", "none")
             .transition()
             //.delay(500)
             .duration(firstDur)
@@ -3729,6 +3760,9 @@ chartObject.initScrolliness=function initScrolliness(options) {
         // y coordinate of
         var containerStart = 0;
         
+        var navHeight = d3.select("nav").node().getBoundingClientRect().height;
+        var switchPos = 200+navHeight;  // how far from the top we switch in a new section
+
         var visSeln = null;
         // ael - permissible vis and text extents
         var visMinExtent, visMaxExtent, textMinWidth, textMaxWidth;
@@ -3746,6 +3780,8 @@ chartObject.initScrolliness=function initScrolliness(options) {
             sections = stepElems;
             visSeln = visElem;
             
+            stepElems.style('opacity', (d,i)=>i===0? 1 : 0.1);  // first section shown fully, rest faded out
+
             // when window is scrolled call
             // position. When it is resized
             // call resize.
@@ -3753,20 +3789,12 @@ chartObject.initScrolliness=function initScrolliness(options) {
               .on('scroll.scroller', throttledPosition)  // ael added throttles
               .on('resize.scroller', throttledResize);
             
-            // manually call resize
-            // initially to setup
-            // scroller.
-            resize();
-            
-            // hack to get position
+            // hack to get resize (and hence position)
             // to be called once for
             // the scroll position on
             // load.
-            // @v4 timer no longer stops if you
-            // return true at the end of the callback
-            // function - so here we stop it explicitly.
             var timer = d3.timer(function () {
-                position();
+                resize();
                 timer.stop();
             });
         }
@@ -3785,7 +3813,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             //    leaving width of at least textMinWidth
             //    fitting into the window height
             
-            var heightMargin = 50, widthMargin = 80;  // @@ somewhat arbitrary
+            var heightMargin = navHeight+50, widthMargin = 100;  // @@ somewhat arbitrary
 
             var visRatio = visMaxExtent.x / visMaxExtent.y;
             
@@ -3801,21 +3829,37 @@ chartObject.initScrolliness=function initScrolliness(options) {
             visHeight = visHeight | 0;
             visSeln.style("width", visWidth+"px").style("height", visHeight+"px");
 
-            // sectionPositions will be each sections
-            // starting position relative to the top
-            // of the first section.
-            sectionPositions = [];
-            var startPos;
-            sections.each(function (d, i) {
-              var top = this.getBoundingClientRect().top;
-              if (i === 0) {
-                startPos = top;
-              }
-              sectionPositions.push(top - startPos);
-            });
-            containerStart = container.node().getBoundingClientRect().top + window.pageYOffset;
-console.log("containerStart", containerStart)
             dispatch.call('size', this, { x: visWidth, y: visHeight });
+
+            var lastSection = sections.nodes()[sections.size()-1];
+            d3.select(lastSection).style("padding-bottom", "0px");
+            
+            // HACK - wait a bit for the text to resize itself before we measure height of last section
+            setTimeout(function() {
+                // sectionPositions will be each sections
+                // starting position relative to the top
+                // of the first section.
+                sectionPositions = [];
+                var startPos;
+                sections.each(function (d, i) {
+                  var top = this.getBoundingClientRect().top;
+                  if (i === 0) {
+                    startPos = top;
+                  }
+                  sectionPositions.push(top - startPos);
+                });
+                containerStart = container.node().getBoundingClientRect().top + window.pageYOffset;
+                
+                var lastSectionHeight = lastSection.getBoundingClientRect().height;
+                var stepMarginBottom = 150; // **tied to scrolly.css**
+                var paddingNeeded = Math.max(0, visHeight - lastSectionHeight - switchPos - stepMarginBottom + 20);
+                d3.select(lastSection).style("padding-bottom", paddingNeeded+"px");
+                    
+                var extraSpaceNeeded = Math.max(0, window.innerHeight - visHeight - navHeight - 75); // fudge
+                d3.select("#extra-space").style("height", extraSpaceNeeded+"px");
+                
+                position();
+                }, 250);
         }
         var throttledResize = lively.lang.fun.throttle(resize, 500);
         
@@ -3832,17 +3876,17 @@ console.log("containerStart", containerStart)
         * 
         */
         function position() {
-            var switchPos = 200;
             var pos = window.pageYOffset - containerStart;
-            var sectionIndex = d3.bisect(sectionPositions, pos+switchPos)-1;
-console.log(pos);
+
             // ael added
-            if (sectionIndex<1) {
+            var stickPoint = 20+navHeight;
+            if (pos < -stickPoint) {
                 visSeln.style("position", "absolute").style("top", null);
             } else {
-                visSeln.style("position", "fixed").style("top", "20px");
+                visSeln.style("position", "fixed").style("top", stickPoint+"px");
             }
             
+            var sectionIndex = d3.bisect(sectionPositions, pos+switchPos)-1;
             if (sectionIndex<0) return
 
             if (currentIndex !== sectionIndex) {
@@ -3858,8 +3902,8 @@ console.log(pos);
             dispatch.call('progress', this, currentIndex, progress);
         }
         
-        // augmented version of lively.lang.fun.throttle, for coping if the browser is too busy to service its setTimeout queue.  the events from a scroll gesture on a MacBook trackpad seem to induce such issues in Chrome.
-        // the standard throttle uses debounce to clear the throttling flag when the incoming events idle - at which point we're presumably safe assuming that the setTimeout will be scheduled as it should.
+        // augmented version of lively.lang.fun.throttle, for coping if the browser is too busy to service its setTimeout queue.  the events from a scroll gesture on a MacBook trackpad seem to induce such issues, at least in Chrome.
+        // the standard throttle uses debounce to clear the throttling flag when the incoming events idle - at which point we're presumably safe in assuming that the setTimeout will be scheduled as it should.
         function highRateThrottle (func, wait) {
             var context, args, timeout, throttling, more, result, timeoutSet, whenDone = lively.lang.fun.debounce(wait, function () {
                     more = throttling = false;
@@ -4035,7 +4079,7 @@ console.log(pos);
             if (startIndex===index) scrolledSections = [index];
             else scrolledSections = d3.range(startIndex + 1, index + 1); // non-inclusive end
             var first = scrolledSections[0], last = scrolledSections[scrolledSections.length-1];
-console.log("from "+first+" to "+last);
+//console.log("from "+first+" to "+last);
             var prevRendered = lastIndex;
             scrolledSections.forEach(function (i) {
 //console.log("step:", prevRendered, last, i);
@@ -4102,7 +4146,7 @@ console.log("from "+first+" to "+last);
 
     // ael added    
     scroll.on('size', function(extent) {
-//console.log("size called:", extent);
+        chart.stopTimer();  // abandon anything that was running
         chart.resizeChartSubstrates(visSeln, extent);
         // we'll get called once at startup before the chart has any data
         if (chart.data) {
@@ -4135,42 +4179,14 @@ console.log("from "+first+" to "+last);
     chart.loadData(options.dataset);
 };
 
-chartObject.iterate=function iterate(values, delay, fn, thenDo) {
-    var chart=this, interrupted = false;
+chartObject.iterate=function iterate(values, fn) {
+    // we used to have a delay argument, for iterating at a specified rate.  now just store the results for some other function to display.
+    var chart=this;
 
-    // if delay is zero, just do everything synchronously and return
-    if (delay===0) {
-        values.forEach(v=>fn(v));
-        if (thenDo) thenDo();
-        return
-    }
-
-    // otherwise, set up a timer bailout...
-    chart.setTimerInfo({
-        forceToEnd: ()=>{
-            interrupted=true;
-            if (thenDo) thenDo();
-            else fn(values[values.length-1]);
-        }
+    values.forEach(v=>{
+        fn(v);
+        chart.scenarioRecords.push({ value: v, bins: chart.duplicateBins() });
         });
-
-    var index = 0;
-    function oneTime() {
-        if (interrupted) return;
-
-        fn(values[index]);
-
-        if (index===values.length-1) {
-            chart.stopTimer(); // don't execute the forceToEnd
-            if (thenDo) thenDo();
-        } else {
-            index++;
-            setTimeout(oneTime, delay);
-        }
-    }    
-
-    oneTime();
-
 };
 
 chartObject.loadData=function loadData(dataset, thenDo) {
@@ -4187,8 +4203,7 @@ chartObject.loadData=function loadData(dataset, thenDo) {
         chart.dataRange = chart.dataMax - chart.dataMin;
         chart.xScale = d3.scaleLinear()
         					.domain([chart.dataMin, chart.dataMax])
-        					.range([0,550]);
-        chart.maxCounts = [];
+        					.range([0, chart.numberLineWidth]);
         // dataQuantum is the precision with which the values have been measured
         chart.dataQuantum = quantum;
         // dataBinQuantum is the precision permissible in setting bin widths (typically same as dataQuantum, but can be overridden in the data setup)
@@ -4445,288 +4460,6 @@ chartObject.rPretty=function rPretty(range, n, internal_only) {
   }
   
   return ticks;
-};
-
-chartObject.sampleScrollySections=function sampleScrollySections() {
-
-    /**
-    * ACTIVATE FUNCTIONS
-    *
-    * These will be called when their
-    * section is scrolled to.
-    *
-    * General pattern is to ensure
-    * all content for the current section
-    * is transitioned in, while hiding
-    * the content for the previous section
-    * as well as the next section (as the
-    * user may be scrolling up or down).
-    *
-    */
-
-    /**
-    * UPDATE FUNCTIONS
-    *
-    * These will be called within a section
-    * as the user scrolls through it.
-    *
-    * We use an immediate transition to
-    * update visual elements based on
-    * how far the user has scrolled
-    *
-    */
-    
-    // there are various ways for the story state to be changed:
-    // 1. by scrolling to the next or previous stage
-    // 2. by jumping to a stage (with intermediate stages being activated on the way) - either forwards (which plays animation) or backwards (which doesn't)
-    // 3. by hitting a replay button - on a stage which could be the current one, or adjacent, or remote
-    
-    // the replay buttons are wired to trigger the scroller's state-change functions.  but the hand pointer stays where it is - i.e., consistent with the document's scroll position.
-    
-    this.dataSwitchShown = false;
-    
-    var stepDefs = [
-        { // draw value pool
-        command: "gather data items",
-        activate: chart=>{
-            // things that shouldn't survive a restart
-            delete chart.highlightPathIndices;
-            delete chart.highlightValueIndices;
-            delete chart.binsAreDraggable;
-            
-            chart.drawDataName();
-            if (chart.dataSwitchShown) chart.drawDataSwitch();
-            chart.drawValueList({ stage: 0, noMousetrap: true });
-        }
-        },
-    
-        { // move values across to list
-        command: "sort items into list",
-        activate: chart=>{
-            chart.drawValueList();
-            }
-        },
-        
-        { // draw a number line
-        command: "draw a number line",
-        activate: chart=>{
-            chart.stopTimer(true);  // force completion of value list
-            chart.drawColouredNumberLine();
-            }
-        },
-        
-        { // fly the values down to stacks on the number line
-        label: "firstBalls",
-        command: "place items on number line",
-        activate: chart=>{
-            chart.stopTimer(true);  // force completion of number line
-            chart.flyBalls();
-            },
-        update: (chart, progress)=>{
-            if (progress > 0.25 && !chart.dataSwitchShown) {
-                chart.drawDataSwitch();
-                chart.dataSwitchShown = true;
-            }
-            if (progress > 0.25 && chart.maximumScrolledIndex===3) { // @@ HACK
-                var dataName = chart.dataName;
-                if (progress > 0.5) dataName="faithful";
-                else dataName = "nba";
-                if (dataName !== chart.dataName) {
-                    chart.stopTimer();
-                    chart.loadData(dataName);
-                    chart.drawDataSwitch();
-                    chart.clearDemoBalls();
-                    chart.clearEphemeralCanvas();
-                    chart.clearFixedCanvas();
-                    chart.drawDataName();
-                    // force everything through to this point
-                    chart.replaySteps();
-                }
-            }
-        } 
-        },
-
-        { // drop the balls through to build up bins
-        command: "portion items into bins",
-        activate: chart=>{
-            if (!chart.dataSwitchShown) {  // force showing of data switch if user scrolled too quickly
-                chart.drawDataSwitch();
-                chart.dataSwitchShown = true;
-            }
-            chart.stopTimer(true);  // force completion of ball stacks
-            chart.drawRDefaultBinning();
-            }
-        },
-
-        { // show the break values
-        command: "show bin-break values",
-        activate: chart=>{
-            chart.stopTimer(true);
-            chart.drawBreakValues();
-            }
-        },
-
-        { // move the bins through a sweep of offsets (relative to dataMin)
-        command: "fiddle with bin alignment",
-        activate: chart=>{
-            chart.stopTimer(true);
-            chart.scenarioRecords = [];
-            chart.iterate(
-                Array.range(-1,0,0.2).map(s=>Number(s.toFixed(1))),
-                0,
-                function(proportion) {
-                    chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: proportion });
-                    chart.drawBreakValues(true);
-                    chart.duplicateBins();
-                },
-                function() {
-                    chart.drawRDefaultBinning({ instant: true });
-                    chart.drawBreakValues(true);
-                });
-            chart.drawCyclingScenarios();
-            }
-        },
-        
-        { // move the bins through a sweep of widths (1.0 down to 0.5 of R default)
-        command: "fiddle with bin width",
-        activate: chart=>{
-            chart.stopTimer();
-            chart.clearScenarioZone();
-            chart.iterate(
-                Array.range(1,0.5,-0.1).map(s=>Number(s.toFixed(1))),
-                0,
-                function(proportion) {
-                    chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: 0, widthProportion: proportion });
-                    chart.drawBreakValues(true);
-                    chart.duplicateBins();
-                },
-                function() {
-                    chart.drawRDefaultBinning({ instant: true, shiftProportion: 0 });
-                    chart.drawBreakValues(true);
-                });
-            chart.drawCyclingScenarios();
-            }
-        },
-        
-        { // bring in the table...
-        replayPoint: true,
-        command: "show basic calculation",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
-            function definitions() {
-                var binRounding = chart.dataBinDecimals;
-                return [
-                    { name: "width", main: (chart.dataRange/10).roundTo(chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(Array.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
-                    { name: "breaks", main: "RANGE(dataMin, dataMax+width, width)", rounding: binRounding },
-                    { name: "intervals", main: "PAIRS(breaks)", reduce: true },
-{ name: "left", main: "intervals[0]", noDisplay: true },  // hack
-                    { name: "bins", main: "INTERVAL_FILTER(data, intervals)", reduce: true },
-                    { name: "counts", main: "COUNT(bins)" }
-//{ name: "check", main: "SUM(counts)==data.length", reduce: true }
-                    ];
-            }
-
-            // settings that should survive a restart
-            if (!chart.hasOwnProperty("useDensity")) chart.useDensity = false;
-            if (!chart.hasOwnProperty("triangleSetting")) chart.triangleSetting = { x: 50, y: 50 };
-
-            // if previous steps have been given a chance to draw elements, clear them away
-            if (prevRendered !== null) {
-                chart.stopTimer();
-                chart.clearScenarioZone();
-                chart.clearMousetraps(["list", "flight", "ball"]);
-                chart.highlightPathIndices([]);
-                chart.highlightValueIndices([]);
-                chart.clearDemoBins();
-                chart.clearFixedCanvas();
-                chart.clearEphemeralCanvas();
-            } else { // if not, fill in the elements that we need to be there
-                chart.drawDataName();
-                chart.drawDataSwitch();
-            }
-            
-            if (targetStep === thisStep) {
-                chart.binsAreDraggable = false;
-                chart.initHistogramArea({ instant: prevRendered===null }); // instant if no balls to shift
-                chart.buildTable(definitions(), { noRanges: true });
-            }
-            }
-        },
-        
-        { // more detail...
-        command: "add bin offset",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
-            chart.stopTimer(true);  // make sure dataGroup reaches its target location
-
-            if (targetStep !== thisStep) return;
-
-            function definitions() {
-                var binRounding = chart.dataBinDecimals;
-                return [
-                    { name: "width", main: (chart.dataRange/10).roundTo(chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(Array.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
-                    { name: "offset", main: "0.00", extra: Array.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
-                    { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding },
-                    { name: "intervals", main: "PAIRS(breaks)", reduce: true },
-{ name: "left", main: "intervals[0]", noDisplay: true },  // hack
-                    { name: "bins", main: "INTERVAL_FILTER(data, intervals)", reduce: true },
-                    { name: "counts", main: "COUNT(bins)" }
-//{ name: "check", main: "SUM(counts)==data.length", reduce: true }
-                    ];
-            }
-
-            chart.binsAreDraggable = true;
-            chart.initHistogramArea({ instant: true });
-            chart.buildTable(definitions(), { noRanges: true });
-            }
-        },
-        
-        { // and open/closed...
-        command: "add bin openness",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
-            if (targetStep !== thisStep) return;
-/*
-            function definitions() {
-                var binRounding = chart.dataBinDecimals;
-                return [
-                    { name: "width", main: (chart.dataRange/10).roundTo(chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(Array.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
-                    { name: "offset", main: "0.00", extra: Array.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
-                    { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding },
-                    { name: "intervals", main: "PAIRS(breaks)", reduce: true },
-{ name: "left", main: "intervals[0]", noDisplay: true },  // hack
-                    { name: "openRight", main: "true", extra: ["false", "true"] },
-                    { name: "leftTests", main: 'openRight || i==0 ? ">=" : ">"' },
-                    { name: "rightTests", main: 'openRight && i!=iMax ? "<" : "<="' },
-                    { name: "bins", main: "INTERVAL_FILTER(data, intervals, leftTests, rightTests)", reduce: true },
-                    { name: "counts", main: "COUNT(bins)" }
-                    ];
-            }
-*/
-            function definitions() {
-                var binRounding = chart.dataBinDecimals;
-                return [
-                    { name: "width", main: (chart.dataRange/10).roundTo(chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(Array.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
-                    { name: "offset", main: "0.00", extra: Array.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
-                    { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding },
-                    { name: "left", main: "ALL_BUT_LAST(breaks)", reduce: true, rounding: binRounding },
-                    { name: "right", main: "ALL_BUT_FIRST(breaks)", reduce: true, rounding: binRounding },
-                    { name: "open", main: '"R"', extra: ['"L"', '"R"'] },
-                    { name: "leftTest", main: 'open=="L" && i!=0 ? ">" : ">="' },
-                    { name: "rightTest", main: 'open=="R" && i!=iMax ? "<" : "<="' },
-                    { name: "bins", main: "FILTER(data, v=>v{leftTest}left && v{rightTest}right)" },
-                    { name: "counts", main: "COUNT(bins)" }
-                    ];
-            }
-    
-            chart.binsAreDraggable = true;
-            chart.initHistogramArea({ instant: true });
-            chart.buildTable(definitions(), {});
-            }
-        }
-
-        ];
-        
-    function stepIndex(label) { return stepDefs.findIndex(def=>def.label===label) || 0 }
-    
-    return stepDefs;
 };
 
 chartObject.spaceBifocally=function spaceBifocally(groupSelection, groupObject) {

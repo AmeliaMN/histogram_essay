@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0">   take back control of responsiveness -->
+	<meta name="description" content="Histogram stuff" />
+
+    <meta name="author" content="Aran Lunzer and Amelia McNamara">
+    <title>Exploring Histograms</title>
+    <link rel="stylesheet" href="dist/font-awesome/css/font-awesome.min.css">
+    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="styles/my.css" rel="stylesheet">
+    <link href="styles/scrolly.css" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="{{ site.name }}" href="{{ site.baseurl }}/blog/feed.xml">
+
+    <style>@import 'https://fonts.googleapis.com/css?family=Raleway:100,300';</style>
+    
+    <script type="text/javascript" src="dist/js/lively.lang.min.279fd.js"></script>
+    <script type="text/javascript" src="dist/js/d3.v4.js"></script>
+    <script type="text/javascript" src="scripts/chartObject.js"></script>
+    <script type="text/javascript" src="scripts/scrollSteps.js"></script>
+
+<script>
+window.Global = window;
+
+lively.lang.installGlobals();
+lively.pt = function pt(x, y) { return { x:x, y: y } }; // trivial, non-functional version
+
+// the chartDefs function is expected to return one or more functions, each of which accepts a newly created chartObject and initialises it  
+function startup() {
+    chartDefs().forEach(initFn=>initFn(createChartObject()));
+};
+
+function chartDefs() { return [
+    // for now, on a scrolly page we only expect a single vis definition.
+    ch=>{
+        var options = {
+            stepDefinitions: scrollStepDefs(ch),
+            visExtent: { x: 900, y: 850 }, // preferred, and max
+            visMinExtent: { x: 500, y: 500 },
+            textMinWidth: 300,
+            textMaxWidth: 600,
+            element: "vis",
+            dataset: "mpg"
+        };
+        ch.initScrolliness(options);
+        }
+    ] }
+</script>
+</head>
+
+
+<body onload="startup()">
+
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+<!--           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button> -->
+          <a class="navbar-brand" href="#">Exploring Histograms, an essay by Aran Lunzer and Amelia McNamara</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+<!--           <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul> -->
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+
+<div class="container">
+	<div class="row">
+	<div class="col-lg-12">
+		<h1 id="top">What's so hard about histograms?</h1>	
+		<p class="lead">Histograms are a way to summarize a numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
+	</div>
+    </div>
+
+
+<div class="row">&nbsp;</div>
+<div class="row">
+	<h2>Exploratory data analysis</h2>
+	<div class="col-md-8">
+		
+		<p>When thinking about data, it is often useful to produce plots of variables in one- and two-dimensions, a process which is called <a href="https://en.wikipedia.org/wiki/Exploratory_data_analysis">Exploratory Data Analysis</a>, or EDA. EDA was the brainchild of John Tukey in the 1960s, and has become even more powerful with the rise of better computer graphics.</p>
+
+		<p>Often, when considering one variable you are interested in the <b>distribution</b> of that variable. And the way you visualize a distribution depends on whether the variable of interest is categorical or numeric.</p>
+
+    <p><b>Categorical</b> variables take on only on a few specific values. For example, gender is often reported as a categorical variable, perhaps with categories "male," "female," and "gender non-conforming." Racial categories are another common use of categorical variables.</p>
+
+    <p><b>Numeric</b> variables are measured as numbers. For example, height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables can only take on certain integer values. Continuous variables can take on any value! If you think about the number <a href="https://en.wikipedia.org/wiki/Pi">pi</a>, it is a number with an infinite decimal. Continuous variables don't have to take on such extremely irrational values, they might be numbers like 2.56. </p>
+		
+
+
+		</div>
+<div class="col-md-4">
+	<a class="thumbnail" href="https://smile.amazon.com/Exploratory-Data-Analysis-John-Tukey/dp/0201076160?sa-no-redirect=1"><img  src="img/EDA.jpg" height="500" width="400" alt="EDA book"/></a>
+	</div>
+</div>
+
+
+	<div class="row">
+		<h2>Visualizing the distribution of a categorical variable</h2>
+	<div class="col-md-8">
+
+    <p>When a variable is <a href="#" data-toggle="tooltip" title="(Meaning it only has a few possible discrete values)">categorical</a>, the way to view the distribution of one variable is a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (also known as a bar graph). Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>.</p>
+
+    <p>The categories for painting elements are discrete choices, so Walt Hickey (the author of the chart) counted up how many paintings contained each element and displayed the <a href="#" data-toggle="tooltip" title="Technically, he really showed the percentages">counts</a>.</p>
+
+    <p>Bar charts are nice because they are not parameterized. That is, there aren't many choices for the data analyst to make when creating a bar chart. As we will see, this is not the case for histograms.</p>
+    
+    <blockquote><p>There’s a strand of the data viz world that argues that everything could be a bar chart. That’s possibly true but also possibly a world without joy.</p>
+      <p>-<a href="https://hbr.org/2013/03/power-of-visualizations-aha-moment">Amanda Cox</a>, The Upshot. </p></blockquote>
+    
+		
+
+		
+	</div>
+	<div class="col-md-4">
+		<a class="thumbnail" href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/"><img src="img/hickey-ross-tags-1.png" class="img-responsive" alt="Bob Ross paintings containing the named elements"/></a>
+
+		
+	</div>
+</div>
+<div class="row">&nbsp;</div>
+<div class="row">
+  <h2>Visualizing the distribution of a numeric variable</h2>
+	<div class="col-lg-8">
+		<p>When a variable is numeric, there are a <a href="#" data-toggle="tooltip" title="Including boxplots, stem and leaf plots, and density plots">a variety of ways</a> to visualize the distribution, but the most common method is probably the histogram.</p>
+    <p>For example, Justin Wolfers of The Upshot produced a histogram to visualize the finishing times of 10 million marathon finishers.</p>
+
+    <p>At first glance, this looks simple enough. We bin data into a set of discrete bins, then count how many values fall into each of the bins to aggregate the data. But, as we look closer we realize that there are actually many choices the data analyst needs to make in order to create a histogram, and the choices have big consequences on the resulting distribution!</p>
+
+		
+	</div>
+	<div class="col-lg-4">
+		<a class="thumbnail" href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=0"><img src="img/0422-ups-marathon-945-1.png", class="img-responsive" alt="Marathon finishing times"/></a>
+	</div>
+</div>
+
+<div class="row">&nbsp;</div>
+
+<div class="row">
+  <h2>Building a histogram</h2>
+</div>
+
+<div id="scrolly">
+<div id="sections">
+  <section class="step">
+    <div class="title">Gather your data</div>
+    The first step in building a histogram is to find some numeric data. We're going to start by considering the fuel mileage from a variety of cars sampled in 1974 (yes, this data is out of date). We can start by considering the dataset as a pool of items, each identified by its value. We can "see" all the data, but it is hard to get the gestalt of the variable. What are some common values? Is there a lot of variation? To answer these questions, we need to sort the data. 
+  </section>
+  <section class="step">
+    <div class="title">Sort into an ordered list</div>
+    A first step in being able to describe the distribution of the variable is to gather the items into a list, sorted by value. Now we can see the maximum value (33.9) and the minimum value (10.4). Beyond that, it is hard to say much about the center, shape, and spread of the distribution. Part of the problem is that the list is completely filled- the space between 10.5 and 13.3 is the same as between 19.2 and 19.3. We'd like to move these values appropriately so we can tell how sparse or clumpy they are. 
+  </section>
+  <section class="step">
+    <div class="title">Prepare a number line</div>
+    A common convention is to use a number line, where higher values move to the right and smaller (or negative) values to the left. We can draw a line representing all possible numbers between the minimum and maximum data values.
+  </section>
+  <section class="step">
+    <div class="title">Add data to the number line</div>
+    Now, we want to show each item as a dot at the appropriate point along the number line.  Here we draw a path connecting each item's position in the list to its position on the line, to highlight how adjacent items in the list will end up close or far apart on the number line depending on their values.
+    
+    <p>In the first sample dataset ("mpg"), there are&mdash;by chance&mdash;no two items having exactly the same value.<p>
+    
+    <p>We have some other datasets available.  At an opposite extreme from "mpg" is "nba", an R sample dataset comprising the ages of 105 NBA athletes.  Because the ages are rounded to whole years, there end up being multiple items (i.e., multiple athletes) with the same age value.  We show repeated values by stacking them on top of each other on the number line.<p>
+    
+    <p>A third example is "faithful", an R sample dataset of 272 timings (in seconds) between eruptions of the Old Faithful geyser in Yellowstone National Park.  Again, this dataset turns out to have some values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are being rounded to integers.  If the timings were measured to multiple decimal places (fanciful though that would be, for something as vague as an eruption onset), this dataset would almost certainly have no duplicates.  This is why counting items over a <i>range</i> of values&mdash;which is what histograms are all about&mdash;is useful in the first place.<p>
+<p>The buttons at the bottom of the visualisation allow you to switch between these datasets at any stage of the essay.<p>
+  </section>
+  <section class="step">
+    <div class="title">The essence of a histogram</div>
+    Once the items are placed along the number line, drawing a histogram involves sectioning the number line into bins and counting the items that fall into each bin.
+    
+    <p>The <span style="font-family:monospace">hist()</span> function in R will create a histogram for any dataset that you give it, using&mdash;unless you specify otherwise&mdash;default settings for the number and placement of the bins.  Here we show the default histogram that R would draw for this dataset.</p>
+  </section>
+  <section class="step">
+    <div class="title">Why have the bins been drawn here?</div>
+    By default, R sets bin edges ("breaks") that are round numbers.  This certainly makes it easy to draw labels for the bins&mdash;and for the "mpg" and "nba" datasets, the chosen breaks do cover the value ranges quite tidily.  But if you look at "faithful" (switching with the buttons along the bottom), that first bin seems a bit arbitrary.  And it is.
+  </section>
+  <section class="step">
+    <div class="title">Shifting histogram</div>
+    Watch what happens to the relative bin heights as we move them back and forth along the number line.  Any position is just as valid as any other.
+    <p>Mouse over the green dashed rectangle to slow down the animation.</p>
+  </section>
+  <section class="step">
+    <div class="title">Changing histogram width</div>
+    Now we try different widths, fixing the left end of the first bin to be equal to the minimum data value.
+    <p>Unlike offsets, some widths can be argued as being more valid than others.  For example, setting a width of 1.4 years for the "nba" dataset, where values are always integers, is asking for trouble: some bins will inevitably span two integer values, while others only include one.</p>
+  </section>
+  <section class="step">
+    <div class="title">Unmasking the magic</div>
+    The calculations behind a simple histogram.
+  </section>
+  <section class="step">
+    <div class="title">More adjustments</div>
+    Now you can vary bin width and/or offset.
+  </section>
+  <section class="step">
+    <div class="title">One more thing...</div>
+    What happens at the boundaries matters.
+  </section>
+</div>
+<div id='vis'>
+</div>
+
+</div> <!-- end of #scrolly -->
+</div> <!-- end of .container -->
+
+
+   <footer>
+      <div class="container">
+        <p class="text-muted credit">Copyright &copy; 2017 Aran Lunzer and Amelia McNamara. All Rights Reserved.</p>
+      </div>
+    </footer>
+
+
+    <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="dist/js/jquery.min.js"></script>
+    <script src="dist/js/bootstrap.min.js"></script>
+    <!-- <script src="dist/js/Repo.js/repo.js"></script> -->
+    <script type="text/javascript">
+	$('.tooltip-test').tooltip()
+	$(function () {
+  		$('[data-toggle="tooltip"]').tooltip()
+	})
+	$('#collapseOne').collapse("hide");
+	
+	$('.more').click(function(){
+    	$(this).text(function(i,old){
+        	return old=='read less' ?  'read more' : 'read less';
+    	});
+    	$(this).blur();
+	});
+	$('.code').click(function(){
+    	$(this).text(function(i,old){
+        	return old=='hide code' ?  'view code' : 'hide code';
+    	});
+    	$(this).blur();
+	});
+	</script>
+
+<div id="extra-space"></div>
+
+  </body>
+</html>
