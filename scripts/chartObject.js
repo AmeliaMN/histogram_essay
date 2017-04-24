@@ -4255,7 +4255,7 @@ chartObject.loadData=function loadData(dataset, thenDo) {
             // juggle using colour picker at http://tristen.ca/hcl-picker/#/hcl/6/0.92/6D9CFF/FF64BF
             // test for impact of colour blindness at http://www.color-blindness.com/coblis-color-blindness-simulator/
             // commonest being Deuteranomaly, according to https://nei.nih.gov/health/color_blindness/facts_about
-        chart.colourScale = function(val, opacity) { var c = d3.color(colourInterpolator(valueScale(val))); c.opacity = opacity; return c };
+        chart.colourScale = function(val, opacity) { var c = d3.color(colourInterpolator(valueScale(val))); c.opacity = opacity; return c.toString() };
 
         chart.drawDataName();
 
