@@ -812,9 +812,7 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
                                 var spans = textSeln.selectAll("tspan").data(cellItem.styledText);
                                 spans.exit().remove();  // shouldn't happen
                                 spans.enter().append("tspan")
-                                    //.style("dominant-baseline", "central")
-                                    //.style("font-size", (str, i)=>(i===0 ? fontSize : fontSize-1)+"px")
-                                    //.style("fill", (str, i)=>i===0 ? colourScale(d.value, 1) : "grey")
+                                    .style("dominant-baseline", "hanging")
                                   .merge(spans)
                                     .style("font-style", d=>d.style)
                                     .style("fill", d=>d.colour || "black")
