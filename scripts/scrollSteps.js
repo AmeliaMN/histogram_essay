@@ -298,6 +298,76 @@ function scrollStepDefs(ch) {
             chart.initHistogramArea({ instant: true });
             chart.buildTable(definitions(), {});
             }
+        },
+
+        { // temporary postamble.  just repeat previous section.
+        command: "...and breathe.",
+        activate: chart=>{
+            function definitions() {
+                var binRounding = chart.dataBinDecimals;
+                return [
+                    { name: "width", main: (chart.dataRange/10).roundTo(chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(Array.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
+                    { name: "offset", main: "0.00", extra: Array.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
+                    { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding, styled: [
+                        { style: "italic", text: "from ", colour: "grey" },
+                        { style: "normal", text: "dataMin+width*offset" },
+                        { style: "italic", text: " to ", colour: "grey" },
+                        { style: "normal", text: "dataMax+width" },
+                        { style: "italic", text: " by ", colour: "grey" },
+                        { style: "normal", text: "width" }
+                        ] },
+                    { name: "lefts", main: "ALL_BUT_LAST(breaks)", reduce: true, rounding: binRounding,
+                        styled: [
+                            { style: "italic", text: "all but last of ", colour: "grey" },
+                            { style: "normal", text: "breaks" }
+                        ] },
+                    { name: "rights", main: "ALL_BUT_FIRST(breaks)", reduce: true, rounding: binRounding,
+                        styled: [
+                            { style: "italic", text: "all but first of ", colour: "grey" },
+                            { style: "normal", text: "breaks" }
+                        ] },
+                    { name: "open", main: '"R"', extra: ['"L"', '"R"'] },
+                    { name: "leftTests", main: 'open=="L" && i!=0 ? ">" : ">="', styled: [
+                        { style: "italic", text: "if ", colour: "grey" },
+                        { style: "normal", text: "open" },
+                        { style: "normal", text: " = " },
+                        { style: "normal", text: '"L"' },
+                        { style: "italic", text: " and ", colour: "grey" },
+                        { style: "italic", text: "not first bin" },
+                        { style: "italic", text: " then ", colour: "grey" },
+                        { style: "normal", text: '">"' },
+                        { style: "italic", text: " else ", colour: "grey" },
+                        { style: "normal", text: '">="' }
+                        ] },
+                    { name: "rightTests", main: 'open=="R" && i!=iMax ? "<" : "<="', styled: [
+                        { style: "italic", text: "if ", colour: "grey" },
+                        { style: "normal", text: "open" },
+                        { style: "normal", text: " = " },
+                        { style: "normal", text: '"R"' },
+                        { style: "italic", text: " and ", colour: "grey" },
+                        { style: "italic", text: "not last bin" },
+                        { style: "italic", text: " then ", colour: "grey" },
+                        { style: "normal", text: '"<"' },
+                        { style: "italic", text: " else ", colour: "grey" },
+                        { style: "normal", text: '"<="' }
+                        ] },
+                    { name: "bins", main: "FILTER(data, lefts, rights, leftTests, rightTests)", reduce: true,
+                        styled: [
+                            { style: "italic", text: "portion items based on ", colour: "grey" },
+                            { style: "normal", text: "lefts, rights, leftTests, rightTests" }
+                        ]},
+                    { name: "counts", main: "COUNT(bins)",
+                        styled: [
+                            { style: "italic", text: "count items in ", colour: "grey" },
+                            { style: "normal", text: "bins" }
+                        ]}
+                    ];
+            }
+    
+            chart.binsAreDraggable = true;
+            chart.initHistogramArea({ instant: true });
+            chart.buildTable(definitions(), {});
+            }
         }
 
         ];

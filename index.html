@@ -249,36 +249,32 @@ function chartDefs() { return [
 
     
   </section>
-</div>
-<div id='vis'>
-</div>
+  <section class="step">
+    <div class="title">So what?</div>
+    
+    <p><i>(in the beta release we'll put this section somewhere better :-)</i></p>
+    
+<p>Hopefully, we have convinced you that histograms can be quite sensitive to parameter choices. It's never a good idea to accept the default bins provided to you by a visualization system, and if you see a histogram in the wild you should be interested in how the bins were chosen. Did the author pick the bins they are using in order to tell a particular story? Sometimes, authors "cherry-pick" parameter values to show a story that isn't really there in the data.</p>
 
-</div> <!-- end of #scrolly -->
-</div> <!-- end of .container -->
-
-<div class="container">
-  <div class="row">
-  <div class="col-lg-8">
-<h3>So what?</h3>
-<p>Hopefully, we have convinced you that histograms can be quite sensitive to parameter choices. It's never a good idea to accept the default bins provided to you by a visualization system, and if you see a histogram in the wild you should be interested in how the bins were chosen. Did the author pick a the bins they are using in order to tell a particular story? Sometimes, authors "cherry-pick" parameter values to show a story that isn't really there in the data.</p>
-
-<!-- <p>It turns out there are even more ways to complicate histograms. All the histograms we have shown have equal-width bins, but sometimes varying binwidths make more sense.  -->
-
-<p>We want designers of histograms to understand how parameter choices effect what they create. People making tools should know how parameter choices effect the visual distribution. 
+<p>We want designers of histograms to understand how parameter choices affect what they create. People making tools should know how parameter choices affect the visual distribution.
 
 <p>We believe, whenever you see a histogram, it should be possible to play with parameter values like this.</p>
 
 
 <p>"Stretchy histograms" (those allowing users to adjust the binwidth dynamically) are available in a variety of commercially-available systems. In his 1997 paper, "Software for Learning and Doing Statistics," Rolf Biehler talks about this feature in his software Statistics Workshop. Similar abilities were included in DataDesk, Fathom, and TinkerPlots. However, many professional tools eschewed stretchy histograms (or even left histograms out altogether!). Excel can be extended to create histograms by the installation of a third-party add-on. Expert R users can create stretchy histograms using Shiny or manipulate, but even these do not offer direct manipulation, instead waiting for the user to drop a slider before updating the view. </p>
 
-<!-- <p>"The order in which graph types are introduced is likely to reflect the complexity associated understanding the basic elements as other related aspects of mathematics are developing. Conservation of number and counting are clearly prerequisites for work with graphing, although early graphs can be used for reinforcement of counting and comparison skills. Categorical attributes, such as colors or fruit types, are likely to be understood before measurement attributes, for example, measuring with rulers. The related complexity of the scales for axes suggests an ordering such as categories (e.g., red, blue, green, ...), followed by whole number markings for ``stacking dots,'' then scales with markings in fractions or decimals between whole number values. Later interval scales associated with histograms may be quite variable and hence more complex." - Jane Watson and Noleine Fitzallen </p> -->
-
-<h3>Who we are</h3>
+    <h4>Who we are</h4>
+    
     <p>Both of us (<a href="http://www.vpri.org/html/team_bios/aran_lunzer.htm">Aran Lunzer</a> and <a href="http://www.science.smith.edu/~amcnamara/">Amelia McNamara</a>) are interested in making it easier to see these types of choices. Lunzer's work focuses on "subjunctive interfaces," those that show you what <em>else</em> you might have seem, while McNamara is primarily interested in the effects of parameter choices on statistical visualizations.</p>
-  </div>
-<div class="col-lg-4"></div>
-
+    
+  </section>
+  
 </div>
+<div id='vis'>
+</div>
+
+</div> <!-- end of #scrolly -->
+</div> <!-- end of .container -->
 
 
 
