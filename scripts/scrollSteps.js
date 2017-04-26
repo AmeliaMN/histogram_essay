@@ -91,7 +91,7 @@ function scrollStepDefs(ch) {
             chart.stopTimer(true);
             chart.scenarioRecords = [];
             chart.iterate(
-                Array.range(-100,0,20),
+                lively.lang.arr.range(-100,0,20),
                 function(proportion) {
                     chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: proportion*0.01 });
                     chart.drawBreakValues(true);
@@ -107,7 +107,7 @@ function scrollStepDefs(ch) {
             chart.stopTimer();
             chart.clearScenarioZone();
             chart.iterate(
-                Array.range(100,50,-10),
+                lively.lang.arr.range(100,50,-10),
                 function(proportion) {
                     chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: 0, widthProportion: proportion*0.01 });
                     chart.drawBreakValues(true);
@@ -124,7 +124,7 @@ function scrollStepDefs(ch) {
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
                 return [
-                    { name: "width", main: (chart.dataRange/10).roundTo(chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(Array.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
+                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
                     { name: "breaks", main: "RANGE(dataMin, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
                         { style: "normal", text: "dataMin" },
@@ -190,8 +190,8 @@ function scrollStepDefs(ch) {
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
                 return [
-                    { name: "width", main: (chart.dataRange/10).roundTo(chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(Array.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
-                    { name: "offset", main: "0.00", extra: Array.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
+                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
+                    { name: "offset", main: "0.00", extra: lively.lang.arr.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
                     { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
                         { style: "normal", text: "dataMin+width*offset" },
@@ -236,8 +236,8 @@ function scrollStepDefs(ch) {
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
                 return [
-                    { name: "width", main: (chart.dataRange/10).roundTo(chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(Array.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
-                    { name: "offset", main: "0.00", extra: Array.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
+                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
+                    { name: "offset", main: "0.00", extra: lively.lang.arr.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
                     { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
                         { style: "normal", text: "dataMin+width*offset" },
@@ -306,8 +306,8 @@ function scrollStepDefs(ch) {
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
                 return [
-                    { name: "width", main: (chart.dataRange/10).roundTo(chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(Array.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
-                    { name: "offset", main: "0.00", extra: Array.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
+                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
+                    { name: "offset", main: "0.00", extra: lively.lang.arr.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
                     { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
                         { style: "normal", text: "dataMin+width*offset" },

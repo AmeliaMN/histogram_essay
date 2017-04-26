@@ -168,7 +168,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         function Sturges(data) { return Math.ceil(Math.log(data.length)/Math.log(2))+1 }
         function ALL_BUT_FIRST(array) { return array.slice(1) }
         function ALL_BUT_LAST(array) { return array.slice(0, -1) }
-        function PAIRS(array) { return Array.range(1,array.length-1).map(i=>[quantize(array[i-1]), quantize(array[i])]) }
+        function PAIRS(array) { return lively.lang.arr.livelyrange(1,array.length-1).map(i=>[quantize(array[i-1]), quantize(array[i])]) }
         function FILTER(data, lefts, rights, leftTests, rightTests) {
             if (leftTests) {
                 var leftFns = { ">": (left, v)=>v>left, ">=": (left, v)=>v>=left };
@@ -322,11 +322,11 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
     
     var fixups = [];
     function defer(sel, func) {
-        fixups.push((function(s, trans) {
+        fixups.push(lively.lang.fun.curry(function(s, trans) {
             s
                 .transition(trans)
                 .call(func)
-            }).curry(sel))
+            }, sel))
     }
     function runDeferred(dur) {
         // does putting in a short delay help ensure that everything's ready to listen to the transition once it gets moving?
@@ -492,7 +492,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
             if (!varDef.noDisplay) {
                 var mainExpr = varDef.main;
                 if (typeof mainExpr==="function") mainExpr = mainExpr(chosen);
-                var isInChoice = !!varDef.choiceGroup, isChosen = isInChoice && choiceGroups[varDef.choiceGroup].chosen===vn, isLastChoice = isInChoice && choiceGroups[varDef.choiceGroup].choices.last()===vn;
+                var isInChoice = !!varDef.choiceGroup, isChosen = isInChoice && choiceGroups[varDef.choiceGroup].chosen===vn, isLastChoice = isInChoice && lively.lang.arr.last(choiceGroups[varDef.choiceGroup].choices)===vn;
                 
                 // new apr 2017 (expt24): include any extraDefs in the var's main row
                 var extrasHere = varDef.extra; // may be undefined
@@ -553,7 +553,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                     .attr("class", "rowSeparator")
                     .attr("x1", 0)
                     .attr("y1", -1)
-                    .attr("x2", edges.last())
+                    .attr("x2", lively.lang.arr.last(edges))
                     .attr("y2", -1)
                     .style("stroke", "grey")
                     .style("stroke-width", 0.75)
@@ -564,7 +564,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                         .attr("class", "rowBackground")
                         .attr("x", 0)
                         .attr("y", 0)
-                        .attr("width", edges.last())
+                        .attr("width", lively.lang.arr.last(edges))
                         .attr("height", rowHeight-2)
                         .style("opacity", 1);
                         
@@ -1090,9 +1090,9 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
                                 } else seln.selectAll("path").remove();
                                 
                                 var dots = isNumeric ? [] : vertices.map(vert=>({ point: vert, reason: "base" }));
-                                var highlightVertex = highlighting && vertices.detect(vert=>vert.contextIndex===highlightIndex);;
+                                var highlightVertex = highlighting && vertices.find(vert=>vert.contextIndex===highlightIndex);;
                                 if (highlightVertex) dots.push({point: highlightVertex, reason: "highlight"});
-                                var primaryVertex = vertices.detect(vert=>vert.contextIndex===primaryIndex);
+                                var primaryVertex = vertices.find(vert=>vert.contextIndex===primaryIndex);
                                 if (primaryVertex) dots.push({point: primaryVertex, reason: "primary"});
                                 
                                 var readouts = (isCallout && options.hasOwnProperty("focusIndex")) ? [stringyValue(vals[options.focusIndex], rowVar)] : [];
@@ -1177,7 +1177,7 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
     	group.selectAll("rect.context").style("opacity", chart.contextOpacity);
     }
     
-    this.drawTriangleControl(lively.pt(-140,0), Functions.throttle(opacityHandler, 100));
+    this.drawTriangleControl(lively.pt(-140,0), lively.lang.fun.throttle(opacityHandler, 100));
     if (tableOptions.noDensity!==true) {
         this.drawDensityControl(lively.pt(-150, -70), ()=>refreshTable({}, 250));
     }
@@ -1242,11 +1242,11 @@ chartObject.computeG=function computeG(nBins) {
 chartObject.defaultDefinitions=function defaultDefinitions() {
     var binRounding = this.dataRange > 10 ? 1 : 2, totalQuanta = this.dataRange/this.dataQuantum, quantaRange = [ Math.round(totalQuanta/30), Math.round(totalQuanta/10) ];
     return [
-        { name: "binsOverRange", main: "20", choiceGroup: "widthDefs", default: true, derivedMain: "'~ '+((dataMax-dataMin)/(quantaPerBin*dataQuantum)).toFixed(1)", extra: Array.range(10,40).map(String) },
-        { name: "quantaPerBin", main: String(Math.max(quantaRange[0], Math.min(quantaRange[1], 20))), choiceGroup: "widthDefs", derivedMain: "'~ '+((dataMax-dataMin)/binsOverRange/dataQuantum).toFixed(1)", extra: Array.range.apply([], quantaRange).map(String) },
+        { name: "binsOverRange", main: "20", choiceGroup: "widthDefs", default: true, derivedMain: "'~ '+((dataMax-dataMin)/(quantaPerBin*dataQuantum)).toFixed(1)", extra: lively.lang.arr.range(10,40).map(String) },
+        { name: "quantaPerBin", main: String(Math.max(quantaRange[0], Math.min(quantaRange[1], 20))), choiceGroup: "widthDefs", derivedMain: "'~ '+((dataMax-dataMin)/binsOverRange/dataQuantum).toFixed(1)", extra: lively.lang.arr.range.apply([], quantaRange).map(String) },
 //{ name: "gScore", main: "G(binsOverRange)", rounding: 2 },
         { name: "width", main: choices=>choices.widthDefs==="binsOverRange" ? "(dataMax-dataMin)/binsOverRange" : "dataQuantum*quantaPerBin", rounding: binRounding },
-        { name: "offset", main: "0.00", extra: Array.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
+        { name: "offset", main: "0.00", extra: lively.lang.arr.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
         { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding },
         { name: "left", main: "allButLast(breaks)", reduce: true, rounding: binRounding },
         { name: "right", main: "allButFirst(breaks)", reduce: true, rounding: binRounding },
@@ -1379,7 +1379,7 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
 			.call(seln=>{ if (!isContext) seln.raise() });
         if (preWidth) {
             var postWidth = +(d3.select(rects.nodes()[0]).attr("width"));
-            if (postWidth.roundTo(0.1)!==preWidth.roundTo(0.1)) {
+            if (lively.lang.num.roundTo(postWidth, 0.1)!==lively.lang.num.roundTo(preWidth, 0.1)) {
 //console.log("resetting odd/evens", preWidth, postWidth);
                 chart.dataGroup.selectAll("circle.ball")
                     .each(function() { delete this.oddEven });
@@ -2260,11 +2260,11 @@ chartObject.drawRDefaultBinning=function drawRDefaultBinning(options) {
 
     if (shiftProportion!==undefined) {
         // when shift is specified, it's used to set the bins' positions relative to dataMin
-        var width = breaks[1]-breaks[0], firstShiftedBreak = dataMin + (width*shiftProportion).roundTo(dataBinQuantum), shift = firstShiftedBreak-breaks[0];
+        var width = breaks[1]-breaks[0], firstShiftedBreak = dataMin + lively.lang.num.roundTo(width*shiftProportion, dataBinQuantum), shift = firstShiftedBreak-breaks[0];
         var newBreaks = [], breakPoint = firstShiftedBreak;
         while (breakPoint < dataMax) {
             newBreaks.push(breakPoint);
-            breakPoint = (breakPoint + width).roundTo(dataBinQuantum);
+            breakPoint = lively.lang.num.roundTo(breakPoint + width, dataBinQuantum);
         }
         newBreaks.push(breakPoint);  // right-hand end of last bin
         breaks = newBreaks;
@@ -2272,11 +2272,11 @@ chartObject.drawRDefaultBinning=function drawRDefaultBinning(options) {
 
     if (widthProportion!==undefined) {
         // when width is specified, it's used to reduce the bins' widths (without changing the first break position)
-        var baseWidth = breaks[1]-breaks[0], adjustedWidth = (baseWidth*widthProportion).roundTo(dataBinQuantum);
+        var baseWidth = breaks[1]-breaks[0], adjustedWidth = lively.lang.num.roundTo(baseWidth*widthProportion, dataBinQuantum);
         var newBreaks = [], breakPoint = breaks[0];
         while (breakPoint < dataMax) {
             newBreaks.push(breakPoint);
-            breakPoint = (breakPoint + adjustedWidth).roundTo(dataBinQuantum);
+            breakPoint = lively.lang.num.roundTo(breakPoint + adjustedWidth, dataBinQuantum);
         }
         newBreaks.push(breakPoint);  // right-hand end of last bin
         breaks = newBreaks;
@@ -2481,7 +2481,7 @@ chartObject.drawValueList=function drawValueList(options) {
                 var positionFromTop = d3.mouse(this.parentNode)[1]-valueListTop;
                 var numToShow = 10;
                 var firstInFocus = Math.max(0, Math.min(numEntries-numToShow, Math.round(listScale.invert(positionFromTop+valueListTop))-Math.floor(numToShow/2))), lastInFocus = Math.min(numEntries-1, firstInFocus+numToShow-1);
-                var indexRange = Array.range(firstInFocus, lastInFocus);
+                var indexRange = lively.lang.arr.range(firstInFocus, lastInFocus);
                 
                 if (chart.highlightPathIndices) chart.highlightPathIndices(indexRange);
                 chart.highlightValueIndices(indexRange);
@@ -2635,7 +2635,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         });
 
     // we use a shuffled set of bin indices to decide the order of bin filling
-    var binIndices = Array.range(0, binDefs.length-1);
+    var binIndices = lively.lang.arr.range(0, binDefs.length-1);
     shuffle(binIndices);
 
     // draw a zero count as a vanishingly tall bin (i.e., a line)
@@ -2700,7 +2700,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
 
     var binDropDelay = 0, binsToFill = binDefs.length;
     var interrupted = false;
-    binIndices.each(function(bi) {
+    binIndices.forEach(function(bi) {
         var def = binDefs[bi];
         var eezer = t=>d3.easePolyIn(t,2);
         d3.transition().delay(synchronised ? 0 : binDropDelay).on("start", ()=>{
@@ -2981,7 +2981,7 @@ chartObject.flyBalls=function flyBalls(options) {
                 if (!(lastEnclosingIndex===uniqueValues.length-1 && !found)) {
                     var midHighlight = pathDef.firstIndex+pathWithinValue-1;
                     firstHighlightIndex = Math.max(0, Math.min(numValues-numToHighlight, midHighlight-numToHighlight/2));
-                    var indexRange = Array.range(firstHighlightIndex, firstHighlightIndex   +numToHighlight-1);
+                    var indexRange = lively.lang.arr.range(firstHighlightIndex, firstHighlightIndex   +numToHighlight-1);
                 }
             }
             chart.highlightPathIndices(indexRange);
@@ -3220,7 +3220,7 @@ lastTime=elapsed;
             var probeValue = xScale.invert(evtX);
             var nearest = d3.scan(uniqueValues, (a, b)=>(Math.abs(a-probeValue)-Math.abs(b-probeValue)));
             var def = pathDefs[String(uniqueValues[nearest])];
-            var indexRange = Array.range(def.firstIndex, def.firstIndex+def.count-1);
+            var indexRange = lively.lang.arr.range(def.firstIndex, def.firstIndex+def.count-1);
             chart.highlightPathIndices(indexRange);
             chart.highlightValueIndices(indexRange, true);
             })
