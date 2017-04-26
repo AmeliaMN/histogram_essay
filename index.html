@@ -15,8 +15,7 @@
 
     <style>@import 'https://fonts.googleapis.com/css?family=Raleway:100,300';</style>
     
-    <script type="text/javascript" src="dist/js/lively.lang.js"></script>
-<!--     <script type="text/javascript" src="dist/js/lively.lang.min.279fd.js"></script> -->
+    <script type="text/javascript" src="dist/js/lively.lang.min.js"></script>
     <script type="text/javascript" src="dist/js/d3.v4.js"></script>
     <script type="text/javascript" src="scripts/chartObject.js"></script>
     <script type="text/javascript" src="scripts/scrollSteps.js"></script>
@@ -24,7 +23,6 @@
 <script>
 window.Global = window;
 
-//lively.lang.installGlobals();
 lively.pt = function pt(x, y) { return { x:x, y: y } }; // trivial, non-functional version
 
 // the chartDefs function is expected to return one or more functions, each of which accepts a newly created chartObject and initialises it  
