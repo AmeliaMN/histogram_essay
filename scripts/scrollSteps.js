@@ -22,24 +22,27 @@ function scrollStepDefs(ch) {
     
         { // move values across to list
         command: "sort items into list",
-        activate: chart=>{
-            chart.drawValueList();
+        activate: (chart, prevRendered, targetStep, thisStep)=>{
+            var options = targetStep===thisStep ? undefined : { stage: 1 };
+            chart.drawValueList(options);
             }
         },
         
         { // draw a number line
         command: "draw a number line",
-        activate: chart=>{
+        activate: (chart, prevRendered, targetStep, thisStep)=>{
             chart.stopTimer(true);  // force completion of value list
-            chart.drawColouredNumberLine();
+            var options = targetStep===thisStep ? undefined : { instant: true };
+            chart.drawColouredNumberLine(options);
             }
         },
         
         { // fly the values down to stacks on the number line
         command: "place items on number line",
-        activate: chart=>{
+        activate: (chart, prevRendered, targetStep, thisStep)=>{
             chart.stopTimer(true);  // force completion of number line
-            chart.flyBalls();
+            var options = targetStep===thisStep ? undefined : { instant: true };
+            chart.flyBalls(options);
             },
         update: (chart, progress)=>{
             if (progress > 0.25 && !chart.dataSwitchShown) {
@@ -67,53 +70,59 @@ function scrollStepDefs(ch) {
 
         { // drop the balls through to build up bins
         command: "portion items into bins",
-        activate: chart=>{
+        activate: (chart, prevRendered, targetStep, thisStep)=>{
             if (!chart.dataSwitchShown) {  // force showing of data switch if user scrolled too quickly
                 chart.drawDataSwitch();
                 chart.dataSwitchShown = true;
             }
             chart.stopTimer(true);  // force completion of ball stacks
-            chart.drawRDefaultBinning();
+            var options = targetStep===thisStep ? undefined : { instant: true };
+            chart.drawRDefaultBinning(options);
             }
         },
 
         { // show the break values
         command: "show bin-break values",
-        activate: chart=>{
+        activate: (chart, prevRendered, targetStep, thisStep)=>{
             chart.stopTimer(true);
-            chart.drawBreakValues();
+            var options = targetStep===thisStep ? undefined : { instant: true };
+            chart.drawBreakValues(options);
             }
         },
 
         { // move the bins through a sweep of offsets (relative to dataMin)
         command: "fiddle with bin alignment",
-        activate: chart=>{
+        activate: (chart, prevRendered, targetStep, thisStep)=>{
             chart.stopTimer(true);
             chart.scenarioRecords = [];
-            chart.iterate(
-                lively.lang.arr.range(-100,0,20),
-                function(proportion) {
-                    chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: proportion*0.01 });
-                    chart.drawBreakValues(true);
-                }
-                );
-            chart.drawCyclingScenarios(v=>"offset = bin width * "+(-v)+"%");
+            if (targetStep === thisStep) {
+                chart.iterate(
+                    lively.lang.arr.range(-100,0,20),
+                    function(proportion) {
+                        chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: proportion*0.01 });
+                        chart.drawBreakValues({ instant: true });
+                    }
+                    );
+                chart.drawCyclingScenarios(v=>"offset = bin width * "+(-v)+"%");
+            }
             }
         },
         
         { // move the bins through a sweep of widths (1.0 down to 0.5 of R default)
         command: "fiddle with bin width",
-        activate: chart=>{
+        activate: (chart, prevRendered, targetStep, thisStep)=>{
             chart.stopTimer();
             chart.clearScenarioZone();
-            chart.iterate(
-                lively.lang.arr.range(100,50,-10),
-                function(proportion) {
-                    chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: 0, widthProportion: proportion*0.01 });
-                    chart.drawBreakValues(true);
-                }
-                );
-            chart.drawCyclingScenarios(v=>"bin width = "+v+"% of default");
+            if (targetStep === thisStep) {
+                chart.iterate(
+                    lively.lang.arr.range(100,50,-10),
+                    function(proportion) {
+                        chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: 0, widthProportion: proportion*0.01 });
+                        chart.drawBreakValues({ instant: true });
+                        }
+                    );
+                chart.drawCyclingScenarios(v=>"bin width = "+v+"% of default");
+            }
             }
         },
         

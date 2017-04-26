@@ -168,7 +168,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         function Sturges(data) { return Math.ceil(Math.log(data.length)/Math.log(2))+1 }
         function ALL_BUT_FIRST(array) { return array.slice(1) }
         function ALL_BUT_LAST(array) { return array.slice(0, -1) }
-        function PAIRS(array) { return lively.lang.arr.livelyrange(1,array.length-1).map(i=>[quantize(array[i-1]), quantize(array[i])]) }
+        function PAIRS(array) { return lively.lang.arr.range(1,array.length-1).map(i=>[quantize(array[i-1]), quantize(array[i])]) }
         function FILTER(data, lefts, rights, leftTests, rightTests) {
             if (leftTests) {
                 var leftFns = { ">": (left, v)=>v>left, ">=": (left, v)=>v>=left };
@@ -1518,9 +1518,11 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
 
 };
 
-chartObject.drawBreakValues=function drawBreakValues(instant) {
+chartObject.drawBreakValues=function drawBreakValues(options) {
     var chart=this;
     
+    var instant = !!(options && options.instant);
+
     var stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance;
     var xScale = this.xScale;
 
@@ -1665,9 +1667,11 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
 
 };
 
-chartObject.drawColouredNumberLine=function drawColouredNumberLine(instant) {
+chartObject.drawColouredNumberLine=function drawColouredNumberLine(options) {
     var chart=this;
 
+    var instant = !!(options && options.instant);
+    
     var dataMin = this.dataMin, dataMax = this.dataMax, dataRange = dataMax-dataMin;
     var xScale = this.xScale, colourScale = this.colourScale;
     var bandLeft = this.plotOrigin.x, bandTop = this.plotOrigin.y -this.fallAfterFlight + 5, bandHeight = 10;
@@ -2365,7 +2369,7 @@ chartObject.drawValueList=function drawValueList(options) {
     chart.data.forEach(v=>values.push(v));
     var numEntries = values.length;
 
-    var stage = options && options.stage; // if undefined, start timed flight
+    var stage = options && options.stage; // iff undefined, start timed flight
 
     var maxStringLength = d3.max(this.data.values, v=>String(v).length);
 
@@ -3305,6 +3309,11 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
 
     this.tableGroup = this.chartGroup.append('g')
 		.attr("transform", transformString(tableOrigin.x, tableOrigin.y));
+		
+    this.clearScenarioZone = function() {
+        this.chartGroup.selectAll("rect.scenariozone,rect.demoScenarioMousetrap,g.groupclone").remove();
+        this.scenarioRecords = [];
+        }
 
 };
 
@@ -3754,7 +3763,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
         // y coordinate of each section
         // that is scrolled through
         var sectionPositions = [];
-        var currentIndex = -1;
+        var currentIndex = -1;  // somewhat redundantly tracked both here and by the stepController
         // y coordinate of
         var containerStart = 0;
         
@@ -3798,9 +3807,12 @@ chartObject.initScrolliness=function initScrolliness(options) {
         }
         
         /**
-        * resize - called initially and
+        * resize - called on load, and
         * also when page is resized.
-        * Resets the sectionPositions
+        * Resizes the vis and the text as needed,
+        * then recalculates sectionPositions and
+        * calls position() to figure out where
+        * the window now is.
         *
         */
         function resize() {
@@ -3832,18 +3844,16 @@ chartObject.initScrolliness=function initScrolliness(options) {
             var lastSection = sections.nodes()[sections.size()-1];
             d3.select(lastSection).style("padding-bottom", "0px");
             
-            // HACK - wait a bit for the text to resize itself before we measure height of last section
+            // give the page some time to reflow before we measure section positions
             setTimeout(function() {
-                // sectionPositions will be each sections
+                // sectionPositions will be each section's
                 // starting position relative to the top
                 // of the first section.
                 sectionPositions = [];
                 var startPos;
                 sections.each(function (d, i) {
                   var top = this.getBoundingClientRect().top;
-                  if (i === 0) {
-                    startPos = top;
-                  }
+                  if (i === 0) startPos = top;
                   sectionPositions.push(top - startPos);
                 });
                 containerStart = container.node().getBoundingClientRect().top + window.pageYOffset;
@@ -4146,11 +4156,6 @@ chartObject.initScrolliness=function initScrolliness(options) {
     scroll.on('size', function(extent) {
         chart.stopTimer();  // abandon anything that was running
         chart.resizeChartSubstrates(visSeln, extent);
-        // we'll get called once at startup before the chart has any data
-        if (chart.data) {
-            chart.replaySteps();
-            chart.stopTimer(true);
-        }
         });
 
     // set up event handling for scrolling.  this is called through a throttled handler.
@@ -4159,7 +4164,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
         d3.selectAll('.step')
           .style('opacity', function (d, i) { return i === index ? 1 : 0.1; });
 
-        chart.lastScrolledIndex = index; // ael - more hack
+        chart.lastScrolledIndex = index; // ael - for the moving hand
         if (index > chart.maximumScrolledIndex) chart.maximumScrolledIndex = index;
 
         // activate current section (and intermediates along the way)
@@ -4361,11 +4366,6 @@ chartObject.prepareScenarioZone=function prepareScenarioZone(rectObj) {
         .on("mouseover", ()=>chart.slowScenarioCycles=true)
         .on("mouseout", ()=>chart.slowScenarioCycles=false);
 
-    this.clearScenarioZone = function() {
-        this.chartGroup.selectAll("rect.scenariozone,rect.demoScenarioMousetrap,g.groupclone").remove();
-        this.scenarioRecords = [];
-        }
-        
     this.slowScenarioCycles = false;
 };
 
