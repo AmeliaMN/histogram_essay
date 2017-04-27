@@ -3894,20 +3894,17 @@ chartObject.initScrolliness=function initScrolliness(options) {
                 visSeln.style("position", "fixed").style("top", stickPoint+"px");
             }
             
-            var sectionIndex = d3.bisect(sectionPositions, pos+switchPos)-1;
-            if (sectionIndex<0) return
+            var sectionIndex = Math.max(0, d3.bisect(sectionPositions, pos+switchPos)-1);
 
             if (currentIndex !== sectionIndex) {
-//console.log("active",sectionIndex);
               dispatch.call('active', this, sectionIndex);
               currentIndex = sectionIndex;
             }
 
-            // NB: no "progress" can be registered on the very last section
+            // NB: no "progress" calls will be made for the very last section
             var sectionTop = sectionPositions[sectionIndex], sectionLength = (sectionIndex<sectionPositions.length-1) ? sectionPositions[sectionIndex+1]-sectionTop : Infinity;
-            var progress = (pos + switchPos - sectionTop) / sectionLength;
-//console.log(pos, sectionIndex, Math.round(progress*100)+"%");
-            dispatch.call('progress', this, currentIndex, progress);
+            var belowSectionTop = pos + switchPos - sectionTop;
+            if (belowSectionTop > 0) dispatch.call('progress', this, currentIndex, belowSectionTop/sectionLength);
         }
         
         // augmented version of lively.lang.fun.throttle, for coping if the browser is too busy to service its setTimeout queue.  the events from a scroll gesture on a MacBook trackpad seem to induce such issues, at least in Chrome.
