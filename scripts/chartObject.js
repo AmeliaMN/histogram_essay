@@ -3976,6 +3976,8 @@ chartObject.initScrolliness=function initScrolliness(options) {
             return scroll;
         }
 
+        scroll.resetLastIndex = function() { currentIndex = -1 }
+
         return scroll;
     }
 
@@ -4111,6 +4113,8 @@ chartObject.initScrolliness=function initScrolliness(options) {
         
         stepController.activeIndex = function() { return activeIndex }
 
+        stepController.resetLastIndex = function() { lastIndex = -1 }
+
         // return stepController function
         return stepController;
     };
@@ -4153,6 +4157,8 @@ chartObject.initScrolliness=function initScrolliness(options) {
     scroll.on('size', function(extent) {
         chart.stopTimer();  // abandon anything that was running
         chart.resizeChartSubstrates(visSeln, extent);
+        scroll.resetLastIndex();
+        stepController.resetLastIndex();
         });
 
     // set up event handling for scrolling.  this is called through a throttled handler.
