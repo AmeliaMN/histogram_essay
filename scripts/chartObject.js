@@ -1333,6 +1333,57 @@ chartObject.drawBalls=function drawBalls(data) {
 */
 };
 
+chartObject.drawBinAnnotations=function drawBinAnnotations(group, axisOrigin, axisHeight, tickDefs, labelDefs, instant) {
+    var axisX = axisOrigin.x, axisBase = axisOrigin.y;
+    
+	var labels = group.selectAll("text.histLabel").data(labelDefs);
+	labels.exit().remove();
+	labels.enter().append("text")
+	    .attr("class", "histLabel")
+	    .style("font-size", "10px")
+	    .style("fill", "grey")
+        .style("-webkit-user-select","none")
+        .each(function() {
+            if (!instant) {
+                d3.select(this)
+                    .style("opacity", 0)
+                    .transition()
+                    .duration(500)
+                    .style("opacity", 1)
+            }
+            })
+      .merge(labels)
+	    .attr("x", d=>d.x)
+	    .attr("y", d=>axisBase+d.y)
+	    .style("text-anchor", d=>d.anchor || "start")
+        .style("dominant-baseline", d=>d.baseline || "central")
+        .text(d=>d.text);
+    
+	var ticks = group.selectAll("line.tick").data(tickDefs);
+	ticks.exit().remove();
+	ticks.enter().append("line")
+	    .attr("class", "tick")
+	    .style("stroke", "grey")
+	    .style("stroke-width", 1)
+      .merge(ticks)
+	    .attr("x1", d=>d.x)
+	    .attr("x2", d=>d.x+d.dx)
+	    .attr("y1", d=>axisBase+d.y)
+	    .attr("y2", d=>axisBase+d.y+d.dy);
+
+	var refLines = group.selectAll("line.yscale").data([axisHeight]);
+	refLines.enter().append("line")
+	    .attr("class", "yscale")
+	    .attr("x1", axisX)
+	    .attr("x2", axisX)
+	    .attr("y1", axisBase)
+	    .style("stroke-width", "1px")
+	    .style("stroke", "grey")
+      .merge(refLines)
+	    .attr("y2", d=>axisBase-d);
+
+};
+
 chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contextBins, highlight) {
 
     // bins go into g.binGroup, a child of histGroup; scale goes directly into histGroup
@@ -1388,27 +1439,7 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
 	}
 
     // @@ experimental
-	function showStripeRects(binData, startOffset) {
-	    var rects = histGroup.selectAll("rect.binStripe").data(binData, binItem=>binItem.dataIndex);
-    	rects.enter().append("rect")
-    	    .attr("class", "binStripe")
-    	   .merge(rects)
-		    .attr("x", binItem=>xScale(binItem.min))
-			.attr("y", -250)
-            .attr("width", binItem=>xScale(binItem.max)-xScale(binItem.min))
-			.attr("height", 125)
-			.style("fill", binItem=>(binItem.dataIndex+startOffset)&1 ? "#f5f5f5" : "#ccc")  
-    	    .style("stroke", "none")
-    	    .style("fill-opacity", binItem=>(binItem.dataIndex+startOffset)&1 ? 0.8 : 0.4)
-            .attr("pointer-events", "none")
-            .each(function(binItem) {
-                //if (!isContext) d3.select(this).raise();
-                });
-
-    	rects.exit().remove();
-	}
-
-    // @@ experimental
+/*
 	function showPoles(binData) {
 	    var offsets = [];
 	    binData.forEach((binItem, i)=>{
@@ -1429,9 +1460,9 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
 
     	lines.exit().remove();
 	}
+*/
 
 //showPoles(primaryBins);   @@ probably want to use these when the bins are moved
-//showStripes(primaryBins, this.stripeOffset);
 	var allContext = [];
 	contextBins.forEach(function(binCollection) {
 	    allContext = allContext.concat(binCollection);
@@ -1458,64 +1489,7 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
 	    labelDefs.push({ x: legendX+tickLength+3, y: -heightScale(v), text: String(v) });
 	    tickDefs.push({ x: legendX, y: -heightScale(v), dx: tickLength, dy: 0 });
 	    });
-	var labels = histGroup.selectAll("text.histLabel").data(labelDefs);
-	labels.exit().remove();
-	labels.enter().append("text")
-	    .attr("class", "histLabel")
-	    .style("font-size", "10px")
-        .style("dominant-baseline", "central")
-        .style("-webkit-user-select","none")
-      .merge(labels)
-	    .attr("x", d=>d.x)
-	    .attr("y", d=>d.y)
-	    .style("text-anchor", d=>d.anchor || "start")
-        .text(d=>d.text);
-    
-	var ticks = histGroup.selectAll("line.tick").data(tickDefs);
-	ticks.exit().remove();
-	ticks.enter().append("line")
-	    .attr("class", "tick")
-	    .style("stroke", "grey")
-	    .style("stroke-width", 1)
-      .merge(ticks)
-	    .attr("x1", d=>d.x)
-	    .attr("x2", d=>d.x+d.dx)
-	    .attr("y1", d=>d.y)
-	    .attr("y2", d=>d.y+d.dy);
-
-/*
-	var refLines = group.selectAll("line.max").data([rangeMax]);
-	refLines.enter().append("line")
-	    .attr("class", "max")
-	    .attr("x1", xScale(this.dataMin))
-	    .attr("y1", -maxHeight)
-	    .attr("x2", xScale(this.dataMax)+legendExtraX)
-	    .attr("y2", -maxHeight)
-	    .style("stroke-width", "1px")
-	    .style("stroke", "lightgray");
-*/
-
-	var refLines = histGroup.selectAll("line.yscale").data([lastValue]);
-	refLines.enter().append("line")
-	    .attr("class", "yscale")
-	    .attr("x1", legendX)
-	    .attr("x2", legendX)
-	    .attr("y1", 0)
-	    .style("stroke-width", "1px")
-	    .style("stroke", "grey")
-      .merge(refLines)
-	    .attr("y2", d=>-heightScale(d));
-/*
-	var refArrows = histGroup.selectAll("path.yscale").data([lastValue]);
-	refArrows.enter().append("path")
-	    .attr("class", "yscale")
-        .attr("d", d3.symbol().type(d3.symbolTriangle).size(36))
-        .style("fill", "grey")
-        .style("pointer-events", "none")
-      .merge(refArrows)
-        .attr("transform", d=>transformString(xScale(this.dataMax)+legendExtraX, -heightScale(d)+4));
-*/
-
+    this.drawBinAnnotations(histGroup, { x: legendX, y: 0 }, heightScale(lastValue), tickDefs, labelDefs, true);  // instant
 };
 
 chartObject.drawBreakValues=function drawBreakValues(options) {
@@ -1538,7 +1512,7 @@ chartObject.drawBreakValues=function drawBreakValues(options) {
     labels.exit().remove();
     labels.enter().append("text")
         .attr("class", "binbreak")
-        .attr("y", binBase+5)
+        .attr("y", binBase+10)
         .style("font-size", "12px")
         .style("text-anchor", "middle")
         .style("dominant-baseline", "hanging")
@@ -1744,8 +1718,8 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
 
     var scenarioClasses = "rect.demobin,line.binbreak,text.binbreak";  // @@ like this
     
-    var outerMargin = 50; // relative to outer edge
-    var left = outerMargin, right = this.visMaxExtent.x - outerMargin, top = this.plotOrigin.y + 10, bottom = this.plotOrigin.y + this.fallIntoBins + 20;
+    var outerMargin = 40; // relative to outer edge
+    var left = outerMargin, right = this.visMaxExtent.x - outerMargin, top = this.plotOrigin.y + 10, bottom = this.plotOrigin.y + this.fallIntoBins + 26;
     
     chart.prepareScenarioZone({ left: left, top: top, width: right-left, height: bottom-top }); // includes sending clearScenarioZone()
 
@@ -2570,18 +2544,23 @@ chartObject.drawValueList=function drawValueList(options) {
 
 chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) {
     var chart = this;
-    var instant = !!(options && options.instant), synchronised = !!(options && options.synchronised), showLines = !!(options && options.showLines) || !instant;
-
-// setTimeout(()=>chart.stopTimer(true), 1000);   TO TEST "FORCE TO END" HANDLING
+    var instant = !!(options && options.instant),
+        synchronised = !!(options && options.synchronised),
+        showLines = !!(options && options.showLines) || !instant,
+        showScale = !(options && options.noScale);
 
     function clearDemoBins() {
-        chart.chartGroup.selectAll("rect.demobin,line.binbreak,text.binbreak,text.democounter,circle.movingBall").interrupt().remove();
+        chart.chartGroup.selectAll("rect.demobin,line.binbreak,text.binbreak,text.democounter,circle.movingBall,g.annotation").interrupt().remove();
     }
     chart.clearDemoBins = clearDemoBins;
 
+    var demoGroup = chart.demoGroup;
+    var annotationGroup = demoGroup.select("g.annotation");
+    if (annotationGroup.empty()) annotationGroup = demoGroup.append("g").attr("class", "annotation").attr("transform", "translate(0,0)");
+
     var balls = chart.dataGroup.selectAll(instant ? "circle.settled,circle.dropped" : "circle.settled");
 
-    var xScale = this.xScale, plotOrigin = this.plotOrigin, stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance, maxBinHeight = dropDistance-30;
+    var xScale = this.xScale, plotOrigin = this.plotOrigin, stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance, maxBinHeight = dropDistance-36;
     var colourScale = this.colourScale;
 
     // shuffle from stackoverflow (!): http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array 
@@ -2610,7 +2589,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         });
 
     // the data element for a break includes value, index
-    var lines = chart.demoGroup.selectAll("line.binbreak").data(breakDefs);
+    var lines = demoGroup.selectAll("line.binbreak").data(breakDefs);
     lines.exit().remove();
     lines.enter().append("line")
         .attr("class", "binbreak")
@@ -2643,11 +2622,13 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
     shuffle(binIndices);
 
     // draw a zero count as a vanishingly tall bin (i.e., a line)
-    function binHeightScale(count) { return count===0 ? 0.01 : maxBinHeight*count/maxBinCount }
+    function heightScale(count) { return count===0 ? 0.01 : maxBinHeight*count/maxBinCount }
 
-    //var newBinColour = "steelblue";
-    
-    var bins = chart.demoGroup.selectAll("rect.demobin").data(binDefs, def=>def.binNum);
+    // settings for the count scale, which we build incrementally as needed
+	var scaleValues = this.rPretty([0, maxBinCount], 5, true), lastValue = scaleValues[scaleValues.length-1];
+    var countPlottedSoFar = 0;
+
+    var bins = demoGroup.selectAll("rect.demobin").data(binDefs, def=>def.binNum);
     bins.exit().remove();
     var binsE = bins.enter().append("rect")
         .attr("class", "demobin")
@@ -2674,11 +2655,11 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         return;
     }
 
-    var counters = chart.demoGroup.selectAll("text.democounter").data(binDefs, def=>def.binNum);
+    var counters = demoGroup.selectAll("text.democounter").data(binDefs, def=>def.binNum);
     counters.exit().remove();
     var countersE = counters.enter().append("text")
         .attr("class", "democounter")
-        .attr("y", binBase+4)
+        .attr("y", binBase+8)
         .style("fill", "grey")
         .style("font-size", "11px")
         .style("dominant-baseline", "hanging")
@@ -2694,7 +2675,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         cleanup: ()=>{
             interrupted=true;
             chart.dataGroup.selectAll("circle.movingBall").interrupt().remove();
-            chart.demoGroup.selectAll("text.democounter").interrupt().remove();
+            demoGroup.selectAll("text.democounter").interrupt().remove();
             },
         forceToEnd: ()=>{
             balls.call(showBallAsOutline);
@@ -2761,8 +2742,8 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
             def.indices = indices;
             
             seln
-                .attr("y", binBase-binHeightScale(indices.length))
-                .attr("height", binHeightScale(indices.length))
+                .attr("y", binBase-heightScale(indices.length))
+                .attr("height", heightScale(indices.length))
                 .style("fill", "lightgray")
                 .style("fill-opacity", 0.25)
                 .style("stroke-opacity", 1);
@@ -2776,15 +2757,18 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         binDef.indices.push(valueIndex);
         var binNode = bins.nodes()[binIndex], binSeln = d3.select(binNode);
         binSeln
-            .attr("y", def=>binBase-binHeightScale(def.indices.length))
-            .attr("height", def=>binHeightScale(def.indices.length));
+            .attr("y", def=>binBase-heightScale(def.indices.length))
+            .attr("height", def=>heightScale(def.indices.length));
             
         var counterNode = counters.nodes()[binIndex], counterSeln = d3.select(counterNode);
         counterSeln
             .style("opacity", 1)
             .text(String(binDef.indices.length));
 
-        if (binDef.indices.length===binDef.totalCount) {
+        var binCount = binDef.indices.length;
+        if (binCount > countPlottedSoFar) addAxisAnnotations(binCount);
+
+        if (binCount===binDef.totalCount) {
             binDef.indices.sort(d3.ascending);
             binSeln
                 .transition()
@@ -2803,16 +2787,33 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         }
     }
     
+    function addAxisAnnotations(count) {
+        if (!showScale) return;
+        if (count <= countPlottedSoFar) return;
+        
+        var numOfScaleValues = d3.bisect(scaleValues, count);
+
+    	var legendX = xScale(chart.dataMax)+85;  // try to steer clear of moving bins
+    	var labelDefs = [
+            { x: legendX, anchor: "start", y: -heightScale(Math.max(lastValue, maxBinCount))-15, text: "count" },
+    	    ];
+        var tickLength = 4;
+        var tickDefs = [
+            { x: legendX, y: 0, dx: -tickLength, dy: 0 }
+            ];
+    	scaleValues.slice(0, numOfScaleValues).forEach(v=>{
+        	    labelDefs.push({ x: legendX+tickLength+3, y: -heightScale(v), text: String(v) });
+        	    tickDefs.push({ x: legendX, y: -heightScale(v), dx: tickLength, dy: 0 });
+    	    });
+        chart.drawBinAnnotations(annotationGroup, { x: legendX, y: binBase }, heightScale(count), tickDefs, labelDefs, instant);
+        countPlottedSoFar = count;
+    }
+    
     function allDone() {
-        /* some people were bothered by the balls being restored...
-        balls
-            .transition()
-            .duration(1000)
-            .style("fill-opacity", 1)
-            .style("stroke-opacity", 0);
-        */
+        addAxisAnnotations(Math.max(lastValue, maxBinCount));
+
         if (!instant) {
-            chart.demoGroup.selectAll("line.binbreak")
+            demoGroup.selectAll("line.binbreak")
                 .transition()
                 .duration(1000)
                 .style("opacity", 0)
@@ -3279,7 +3280,7 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
 
     this.numberLineWidth = 550;  // between dataMin and dataMax
     this.fallAfterFlight = 115;  // bottom of flight arcs to number line
-    this.fallIntoBins = 100;     // number line to histogram base line
+    this.fallIntoBins = 110;     // number line to histogram base line
 
     // definition of valueListOrigin is relative to plotOrigin
     var valueListHeight = this.valueListHeight = 400, valueListBottomGap = 75;

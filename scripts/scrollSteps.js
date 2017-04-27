@@ -99,7 +99,7 @@ function scrollStepDefs(ch) {
                 chart.iterate(
                     lively.lang.arr.range(-100,0,20),
                     function(proportion) {
-                        chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: proportion*0.01 });
+                        chart.drawRDefaultBinning({ instant: true, showLines: true, noScale: true, shiftProportion: proportion*0.01 });
                         chart.drawBreakValues({ instant: true });
                     }
                     );
@@ -117,7 +117,7 @@ function scrollStepDefs(ch) {
                 chart.iterate(
                     lively.lang.arr.range(100,50,-10),
                     function(proportion) {
-                        chart.drawRDefaultBinning({ instant: true, showLines: true, shiftProportion: 0, widthProportion: proportion*0.01 });
+                        chart.drawRDefaultBinning({ instant: true, showLines: true, noScale: true, shiftProportion: 0, widthProportion: proportion*0.01 });
                         chart.drawBreakValues({ instant: true });
                         }
                     );
