@@ -152,7 +152,7 @@ function scrollStepDefs(ch) {
                             { style: "italic", text: "all but first of ", colour: "grey" },
                             { style: "normal", text: "breaks" }
                         ] },
-                    { name: "bins", main: "FILTER(data, lefts, rights)", reduce: true,
+                    { name: "bins", main: "FILTER(data, lefts, rights)", reduce: true, rounding: binRounding,
                         styled: [
                             { style: "italic", text: "portion items based on ", colour: "grey" },
                             { style: "normal", text: "lefts, rights" }
@@ -219,7 +219,7 @@ function scrollStepDefs(ch) {
                             { style: "italic", text: "all but first of ", colour: "grey" },
                             { style: "normal", text: "breaks" }
                         ] },
-                    { name: "bins", main: "FILTER(data, lefts, rights)", reduce: true,
+                    { name: "bins", main: "FILTER(data, lefts, rights)", reduce: true, rounding: binRounding,
                         styled: [
                             { style: "italic", text: "portion items based on ", colour: "grey" },
                             { style: "normal", text: "lefts, rights" }
@@ -290,7 +290,7 @@ function scrollStepDefs(ch) {
                         { style: "italic", text: " else ", colour: "grey" },
                         { style: "normal", text: '"<="' }
                         ] },
-                    { name: "bins", main: "FILTER(data, lefts, rights, leftTests, rightTests)", reduce: true,
+                    { name: "bins", main: "FILTER(data, lefts, rights, leftTests, rightTests, open)", reduce: true, rounding: binRounding,
                         styled: [
                             { style: "italic", text: "portion items based on ", colour: "grey" },
                             { style: "normal", text: "lefts, rights, leftTests, rightTests" }

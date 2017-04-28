@@ -169,22 +169,18 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         function ALL_BUT_FIRST(array) { return array.slice(1) }
         function ALL_BUT_LAST(array) { return array.slice(0, -1) }
         function PAIRS(array) { return lively.lang.arr.range(1,array.length-1).map(i=>[quantize(array[i-1]), quantize(array[i])]) }
-        function FILTER(data, lefts, rights, leftTests, rightTests, open) {
+        function FILTER(data, lefts, rights, leftTests, rightTests) {
             if (leftTests) {
                 var leftFns = { ">": (left, v)=>v>left, ">=": (left, v)=>v>=left };
                 var rightFns = { "<": (right, v)=>v<right, "<=": (right, v)=>v<=right };
                 return lefts.map((left, i)=>{
                     var right = rights[i];
-                    var subset = FILTER_FN(data, v=> leftFns[leftTests[i]](left, v) && rightFns[rightTests[i]](right, v));
-                    subset.stringyValueParts = open==="L" ? [ "⋯", right ] : [ left, "⋯" ];
-                    return subset;
+                    return FILTER_FN(data, v=> leftFns[leftTests[i]](left, v) && rightFns[rightTests[i]](right, v))
                     })
             } else {
                 return lefts.map((left, i)=>{
                     var right = rights[i];
-                    var subset = FILTER_FN(data, v=> i===0 ? (v>=left && v<=right) : (v>left && v<=right));
-                    subset.stringyValueParts = [ left, "⋯" ];
-                    return subset;
+                    return FILTER_FN(data, v=> i===0 ? (v>=left && v<=right) : (v>left && v<=right))
                     });
             }
         }
@@ -364,10 +360,6 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
     function stringyValue(val, varName) {
         if (val===null) return "";
 
-        if (val.stringyValueParts) {
-            return val.stringyValueParts.map(vp=>stringyValue(vp, varName)).join("");
-        }
-
         var result = val;
         if (!isNaN(val)) {
             var roundIfAny = varDefs[varName].rounding;
@@ -545,7 +537,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
             .attr("class", "defunctRow")
             .call(defer, function(s) {
                 s
-                    .style("opacity", 1e-6)
+                    .style("opacity", 0)
                     .remove();
                 });
 
@@ -772,7 +764,7 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
                             if (options.isDragging || cellItem.isContext) seln.remove(); // must be instant
                             else defer(seln, function(s) {
                                 s
-                                    .style("opacity", 1e-6)
+                                    .style("opacity", 0)
                                     .remove();
                                 });
                             });
@@ -1354,7 +1346,7 @@ chartObject.drawBinAnnotations=function drawBinAnnotations(group, axisOrigin, ax
         .each(function() {
             if (!instant) {
                 d3.select(this)
-                    .style("opacity", 1e-6)
+                    .style("opacity", 0)
                     .transition()
                     .duration(500)
                     .style("opacity", 1)
@@ -1428,16 +1420,14 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
 			.style("fill", fillColour)
     	    .style("stroke", isContext ? "black" : "blue")
     	    //.style("fill-opacity", isContext ? 0.15 : 1)
-    	    .style("stroke-width", isContext ? 1 : 0.5)
+    	    .style("stroke-width", 0.5)
     	    .style("stroke-opacity", binItem=>isContext
                         	                ? (binItem.scenario===highlight ? 1 : 0)
                         	                : 1)
             .style("opacity", isContext ? chart.contextOpacity : chart.primaryOpacity)
             .attr("pointer-events", isContext ? "none" : "all")
 			.style("cursor", chart.binsAreDraggable ? "ew-resize" : "pointer")
-			.each(function(binItem) {
-			    if (!isContext || binItem.scenario===highlight) d3.select(this).raise();
-    			});
+			.call(seln=>{ if (!isContext) seln.raise() });
         if (preWidth) {
             var postWidth = +(d3.select(rects.nodes()[0]).attr("width"));
             if (lively.lang.num.roundTo(postWidth, 0.1)!==lively.lang.num.roundTo(preWidth, 0.1)) {
@@ -1485,7 +1475,7 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
 	var scaleValues = this.rPretty([0, rangeMax], 5), lastValue = scaleValues[scaleValues.length-1];
 	var legendX = xScale(this.dataMax)+40, lineLegendY = 12;
 	var labelDefs = [
-        { x: legendX, anchor: "start", y: -heightScale(lastValue)-15, text: useDensity ? "density" : "count" },
+        { x: legendX, anchor: "middle", y: -heightScale(lastValue)-15, text: useDensity ? "density" : "count" },
 	    { x: xScale(this.dataMin), anchor: "middle", y: lineLegendY, text: this.dataMin },
 	    { x: xScale(this.dataMax), anchor: "middle", y: lineLegendY, text: this.dataMax }
 	    ];
@@ -1608,7 +1598,7 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
                 .attr("width", buttonSize)
                 .attr("height", buttonSize)
                 .style("fill", "green")
-                .style("fill-opacity", 1e-6)
+                .style("fill-opacity", 0)
                 .style("stroke", "green")
                 .style("stroke-width", 1)
                 .on("click", function(cmd) { console.log(cmd) });
@@ -1787,7 +1777,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
 
         trans
             .on("end", function() {
-//nextGroupSeln.style("opacity", 1e-6);
+//nextGroupSeln.style("opacity", 0);
                 if (!cycling) return;
 
                 updateLabelText(chart.scenarioRecords[cycleStep+cycleDirection].value);
@@ -1813,14 +1803,14 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .transition().delay(pauseTime).duration(changeTime)
             .on("start.defunctrect", function(def) {
                 d3.select(this)
-                    .style("stroke-opacity", 1e-6)
+                    .style("stroke-opacity", 0)
                     .style("fill-opacity", 0.15)
                     })
             .attr("x", def=>postMoveFirstX + def.binNum*postMoveWidth)
             .attr("y", def=>def.y+def.height)
             .attr("height", 0)
-            .style("opacity", 1e-6)
-            .style("stroke-opacity", 1e-6)
+            .style("opacity", 0)
+            .style("stroke-opacity", 0)
             .remove();
 
         rects.enter().append(def=>{
@@ -1829,8 +1819,8 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
                 return node
                 })
             .attr("class", "movingclone")
-            .style("opacity", 1e-6)
-            .style("stroke-opacity", 1e-6)
+            .style("opacity", 0)
+            .style("stroke-opacity", 0)
             .attr("x", def=>preMoveFirstX + def.binNum*preMoveWidth)
             .attr("y", def=>def.y+def.height)
             .attr("width", def=>def.width)
@@ -1852,7 +1842,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .on("start.rect", function(def) {
                 d3.select(this)
                     //.style("stroke", "lightgrey")
-                    .style("stroke-opacity", 1e-6)
+                    .style("stroke-opacity", 0)
                     .attr("y", def=>def.preY-1)
                     .attr("height", def=>def.preHeight+1)
                     //.style("fill-opacity", 0.1)
@@ -1894,7 +1884,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .attr("class", "defunctclone")
             .transition(trans)
             .attr("x", def=>postMoveFirstX + def.index*postMoveWidth)
-            .style("opacity", 1e-6)
+            .style("opacity", 0)
             .remove();
 
         texts.enter().append(def=>{
@@ -1903,7 +1893,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
                 return node
                 })
             .attr("class", "movingclone")
-            .style("opacity", 1e-6)
+            .style("opacity", 0)
             .attr("x", def=>preMoveFirstX + def.index*preMoveWidth)
             .text("-");
             
@@ -1922,7 +1912,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .transition(trans)
             .attr("x1", def=>postMoveFirstX + def.index*postMoveWidth)
             .attr("x2", def=>postMoveFirstX + def.index*postMoveWidth)
-            .style("opacity", 1e-6)
+            .style("opacity", 0)
             .remove();
 
         lines.enter().append(def=>{
@@ -1931,7 +1921,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
                 return node
                 })
             .attr("class", "movingclone")
-            .style("opacity", 1e-6)
+            .style("opacity", 0)
             .attr("x1", def=>preMoveFirstX + def.index*preMoveWidth)
             .attr("x2", def=>preMoveFirstX + def.index*preMoveWidth);
 
@@ -1980,7 +1970,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .style("stroke-opacity", 1);
 
         // hide the main-scenario elements
-        chart.demoGroup.selectAll(scenarioClasses).style("opacity", 1e-6);
+        chart.demoGroup.selectAll(scenarioClasses).style("opacity", 0);
 
         cycleStep = 0;
         cycleDirection = 1;
@@ -2055,7 +2045,7 @@ chartObject.drawDataSwitch=function drawDataSwitch() {
                 .style("fill-opacity", 0.2)
                 .style("stroke", "green")
                 .style("stroke-width", 1)
-                .style("stroke-opacity", 1e-6)
+                .style("stroke-opacity", 0)
                 .style("cursor", "pointer")
                 .on("click", def=>{
 //console.log(def.dataName);
@@ -2658,7 +2648,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         .style("fill-opacity", 1)
         .style("stroke-width", 0.5)
         .style("stroke", "grey")
-        .style("stroke-opacity", 1e-6);
+        .style("stroke-opacity", 0);
 
     if (instant) {
         finishBins();
@@ -2790,7 +2780,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
             counterSeln
                 .transition()
                 .duration(finishDuration)
-                .style("opacity", 1e-6)
+                .style("opacity", 0)
                 .remove();
                 
             if (--binsToFill===0) allDone();
@@ -2826,7 +2816,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
             demoGroup.selectAll("line.binbreak")
                 .transition()
                 .duration(1000)
-                .style("opacity", 1e-6)
+                .style("opacity", 0)
                 //.remove();        don't remove; we can use them to draw the values
         }
     }
@@ -2842,7 +2832,7 @@ chartObject.duplicateBins=function duplicateBins() {
     
     var presentGroupNode = this.demoGroup.node();
     var groupNodeClone = this.duplicateObjects(presentGroupNode, scenarioClasses);
-    d3.select(groupNodeClone).style("opacity", 1e-6)
+    d3.select(groupNodeClone).style("opacity", 0)
     return groupNodeClone;
 };
 
@@ -2878,8 +2868,8 @@ chartObject.duplicateObjects=function duplicateObjects(oldGroupNode, classes) {
 
 chartObject.estimateMaxBinDensity=function estimateMaxBinDensity(data) {
     var guess = 0;
-    // rather arbitrarily, we assume that 30 bins over the range is fine enough, and we slide the binning through ten positions.
-    var refDensity = data.length * this.dataRange / 30;
+    // rather arbitrarily, we assume that 40 bins over the range is fine enough, and we slide the binning through ten positions.
+    var refDensity = data.length * this.dataRange / 40;
     for (var off=0; off<100; off+=10) {
         var ranges = this.generateRanges(2.5, -off);
         var bins = this.binData(data, ranges);
@@ -3062,7 +3052,7 @@ chartObject.flyBalls=function flyBalls(options) {
                 .transition()
                 .delay(500)
                 .duration(1000)
-                .style("opacity", 1e-6)
+                .style("opacity", 0)
                 .remove();
         }
         
@@ -3428,15 +3418,15 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
     var eezer = d3.easeQuadInOut, interpolator = d3.interpolateTransformSvg(oldTrans, newTrans), easedTransform = t=>interpolator(eezer(t));
 
     var tableGroup = this.tableGroup;
-    tableGroup.style("opacity", 1e-6);
+    tableGroup.style("opacity", 0);
 
     var histGroup = this.histGroup;
-    histGroup.style("opacity", 1e-6);
+    histGroup.style("opacity", 0);
 
     this.drawNumberLine();  // make sure it's there
     this.drawBalls(this.data);
     var newBalls = dataGroup.selectAll("circle.ball");
-    newBalls.style("opacity", 1e-6);
+    newBalls.style("opacity", 0);
     
     var oldBalls = dataGroup.selectAll("circle.settled,circle.dropped");
     oldBalls.style("fill", def=>colourScale(def.value, 1));
@@ -3557,8 +3547,8 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
 
         var isContext = binClass === "context";
         var highlightColour = isContext ? contextHighlightColour : primaryHighlightColour;
-        var binHighlight = d3.color(highlightColour.darker());
-        //binHighlight.opacity = 0.5;
+        var binHighlight = d3.color(highlightColour);
+        binHighlight.opacity = 0.5;
         var binSeln = d3.select(binNode);
         var highlightIndex, valueSet;
         binSeln
@@ -3698,9 +3688,7 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
         binClass = binClass || "primary";
         var yBase = recordedBinState[0].y+recordedBinState[0].height; // as good as any
         var phosphorGroup = chart.histGroup.append("g").attr("class", "phosphor");
-        phosphorGroup.lower();
 
-        // check (in a somewhat inefficient way) if anything has changed visually
         var anyChanges = false;
         chart.histGroup.selectAll("rect."+binClass).each(function() {
             var seln = d3.select(this);
@@ -3712,34 +3700,36 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
             if (!prevBin || prevBin.left!==left || prevBin.width!==width || prevBin.y!==y) anyChanges = true;
             });
 
-        if (anyChanges) {
-            var firstDur = 200, delay = 1000, secondDur = 1000;
-            phosphorGroup.selectAll("rect").data(recordedBinState).enter().append("rect")
-                .attr("x", def=>def.left)
-                .attr("y", def=>def.y)
-                .attr("width", def=>def.width)
-                .attr("height", def=>def.height)
-                .style("fill", "lightgrey")
-                .style("fill-opacity", 0.5)
-                //.style("stroke", "lightgrey")
-                //.style("stroke-opacity", 0.5)
-                .style("pointer-events", "none")
-/*
-                .transition()
-                .duration(firstDur)
-                .ease(d3.easeLinear)
-                .style("stroke-opacity", 1e-6)
-                .style("fill-opacity", 0.25)
-                .on("end", ()=>phosphorGroup.lower())
-*/
-                .transition()
-                .delay(delay)
-                .duration(secondDur)
-                .ease(d3.easeLinear)  // easeQuadOut another possibility
-                .style("fill-opacity", 1e-6) // attempting to reduce flicker, as per bost.ocks.org/mike/transition/
-                .remove();
-        }
-        
+        if (!anyChanges) return;
+
+//* just using rects
+        var firstDur = 500, secondDur = 2000;
+        phosphorGroup.selectAll("rect").data(recordedBinState).enter().append("rect")
+            .attr("x", def=>def.left)
+            .attr("y", def=>def.y)
+            .attr("width", def=>def.width)
+            .attr("height", def=>def.height)
+            .style("fill", "lightgrey")
+            .style("fill-opacity", 0.5)
+            .style("stroke", "none")
+            //.style("stroke-opacity", 0)
+            .style("pointer-events", "none")
+            .transition()
+            //.delay(500)
+            .duration(firstDur)
+            .ease(d3.easeLinear)
+            .style("fill", "lightgrey")
+            //.style("stroke-opacity", 0)
+            //.style("fill-opacity", 0.5)
+            .on("start", ()=>phosphorGroup.lower())
+            .transition()
+            //.delay(500)
+            .duration(secondDur)
+            .ease(d3.easeQuadOut)
+            .style("fill-opacity", 0)
+            .remove();
+
+
         recordedBinState=null;
         
     }
@@ -4381,7 +4371,7 @@ chartObject.prepareScenarioZone=function prepareScenarioZone(rectObj) {
         .attr("width", rectObj.width)
         .attr("height", rectObj.height)
         .style("stroke", "green")
-        .style("fill-opacity", 1e-6)
+        .style("fill-opacity", 0)
         .on("mouseover", ()=>chart.slowScenarioCycles=true)
         .on("mouseout", ()=>chart.slowScenarioCycles=false);
 
