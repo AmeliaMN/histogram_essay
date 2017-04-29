@@ -1213,9 +1213,9 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
     	group.selectAll("rect.context").style("opacity", chart.contextOpacity);
     }
     
-    this.drawTriangleControl(lively.pt(-140,0), lively.lang.fun.throttle(opacityHandler, 100));
+    this.drawTriangleControl(lively.pt(-100,0), lively.lang.fun.throttle(opacityHandler, 100));
     if (tableOptions.noDensity!==true) {
-        this.drawDensityControl(lively.pt(-150, -70), ()=>refreshTable({}, 250));
+        this.drawDensityControl(lively.pt(480, 25), ()=>refreshTable({}, 250));
     }
     
 //this.drawBalls(data);  now assumed to have been handled earlier
@@ -3308,20 +3308,20 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     this.stopTimer();
     this.chartGroup.selectAll("*").remove();
 
-    var plotOrigin = this.plotOrigin = lively.pt(185, 630);
+    var plotOrigin = this.plotOrigin = lively.pt(185, 525);
     var commandListOrigin = this.commandListOrigin = lively.pt(50, 20);
     
     // once we've presented the code table
-    var tableOrigin = this.tableOrigin = lively.pt(20, 400);
-    var dataOrigin = this.dataOrigin = lively.pt(270, 210);
-    var histOrigin = this.histOrigin = lively.pt(270, 360);
+    var tableOrigin = this.tableOrigin = lively.pt(20, 330);
+    var dataOrigin = this.dataOrigin = lively.pt(270, 150);
+    var histOrigin = this.histOrigin = lively.pt(270, 300);
 
     this.numberLineWidth = 550;  // between dataMin and dataMax
     this.fallAfterFlight = 115;  // bottom of flight arcs to number line
     this.fallIntoBins = 110;     // number line to histogram base line
 
     // definition of valueListOrigin is relative to plotOrigin
-    var valueListHeight = this.valueListHeight = 400, valueListBottomGap = 75;
+    var valueListHeight = this.valueListHeight = 310, valueListBottomGap = 60;
     this.valueListOrigin = lively.pt(620, -valueListHeight-valueListBottomGap-this.fallAfterFlight);
     this.valueListFontSize = 12;
     this.valueListEntryHeight = 15;
