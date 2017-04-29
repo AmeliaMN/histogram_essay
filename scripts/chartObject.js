@@ -687,7 +687,7 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
                     var entryWidth = 32, startOffset = rowItem.hasExtras ? boxGap : 0;
                     lively.lang.obj.extend(groupObject, {
                         isFishy: true,  // use distortion if needed
-                        fishWidth: edges[2]-edges[1]-startOffset-12,
+                        fishWidth: edges[2]-edges[1]-startOffset-32,
                         fishItemWidth: entryWidth
                         });
                     groupObject.xOffset += startOffset;
@@ -1505,7 +1505,7 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
 	contextBins.forEach(function(binCollection) {
 	    allContext = allContext.concat(binCollection);
     	});
-    var contextColour = d3.color("grey");
+    var contextColour = this.contextBinFill;
     contextColour.opacity = 0.15;
 	showBins(allContext, "context", contextColour.toString());
     showBins(primaryBins, "primary", this.restingBinFill);
@@ -3329,6 +3329,7 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     var binFill = d3.color("blue");
     binFill.opacity = 0.5;
     this.restingBinFill = binFill.toString();
+    this.contextBinFill = d3.color("darkgreen");
 
     function transformString(x, y) { return "translate("+x+", "+y+")" }
 
@@ -3573,7 +3574,7 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
         return found;
     }
     
-    var contextBaseColour = d3.color("grey"), contextBaseOpacity = 0.15;
+    var contextBaseColour = this.contextBinFill, contextBaseOpacity = 0.15;
     var primaryHighlightColour = d3.hcl(274,100,75), contextHighlightColour = d3.hcl(73,100,75), primaryTextColour = primaryHighlightColour.darker(), contextTextColour = contextHighlightColour; /*.darker(0.25);*/
 
     function applyBinHighlights(binNode, binClass) {
