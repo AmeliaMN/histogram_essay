@@ -1456,7 +1456,9 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
 			.style("fill", fillColour)
     	    .style("stroke", isContext ? "black" : "blue")
     	    //.style("fill-opacity", isContext ? 0.15 : 1)
-    	    .style("stroke-width", isContext ? 1 : 0.5)
+    	    .style("stroke-width", binItem=>isContext
+    	                                    ? (binItem.scenario===highlight ? 1 : 0)
+    	                                    : (contextBins.length ? 1 : 0.5))
     	    .style("stroke-opacity", binItem=>isContext
                         	                ? (binItem.scenario===highlight ? 1 : 0)
                         	                : 1)
@@ -1508,7 +1510,7 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
     var contextColour = this.contextBinFill;
     contextColour.opacity = 0.15;
 	showBins(allContext, "context", contextColour.toString());
-    showBins(primaryBins, "primary", this.restingBinFill);
+    showBins(primaryBins, "primary", allContext.length ? "none" : this.restingBinFill);
 
 	var scaleValues = this.rPretty([0, rangeMax], 5), lastValue = scaleValues[scaleValues.length-1];
 	var legendX = xScale(this.dataMax)+40, lineLegendY = 12;
@@ -3644,11 +3646,15 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
             this.oddEven = oddEven;
             });
 
-        //chart.dataGroup.selectAll("circle.ball").style("fill", "black");
-        chart.histGroup.selectAll("rect.primary").style("fill", chart.restingBinFill);
-        var contextColour = d3.color(contextBaseColour);
-        contextColour.opacity = contextBaseOpacity;
-        chart.histGroup.selectAll("rect.context").style("fill", contextColour.toString());
+        var primaryBins = chart.histGroup.selectAll("rect.primary");
+        var contextBins = chart.histGroup.selectAll("rect.context");
+        if (!contextBins.empty()) {
+            var contextColour = d3.color(contextBaseColour);
+            contextColour.opacity = contextBaseOpacity;
+            contextBins.style("fill", contextColour.toString());
+            primaryBins.style("fill", "none");
+        } else primaryBins.style("fill", chart.restingBinFill);
+
         if (highlightedBinNode !== null) chart.chartGroup.selectAll("text.dataTextCell").style("fill", "black");  // only do this bit if there was a highlight
 
         highlightedBinNode = null;
