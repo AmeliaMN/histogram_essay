@@ -371,7 +371,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
     function toggleContextSpec(varName) {
         if (contextVar===varName) contextVar = null;
         else contextVar = varName;
-        scheduleEvent("", 0, ()=>refreshTable({ force: true }, 0));  // force refresh
+        scheduleEvent("", 0, ()=>refreshTable({ force: true }, 500));  // force refresh
     }
 
     var edges = [ 10, 90, 450, 840 ], boxSize=10, boxGap=boxSize+8;
@@ -2502,8 +2502,8 @@ chartObject.drawValueList=function drawValueList(options) {
 
     if (!valueEntries) {
         valueEntries = [];
-        var poolCentreX = valueListX-plotOrigin.x-400,
-            poolCentreY = valueListTop-plotOrigin.y+listHeight/2+40, // minor fudge
+        var poolCentreX = valueListX-plotOrigin.x-380,
+            poolCentreY = valueListTop-plotOrigin.y+listHeight/2+60, // minor fudge
             poolRadius = Math.sqrt(numEntries*100);
 
         var pi = Math.PI;
@@ -2564,7 +2564,7 @@ chartObject.drawValueList=function drawValueList(options) {
             else if (flightStage > 1) flightStage = 1;
 
             var x = plotOrigin.x+valueObj.x+flightStage*valueObj.diffX, y = plotOrigin.y+valueObj.y+flightStage*valueObj.diffY, angle = valueObj.angle*(1-flightStage);
-            fixedContext.fillStyle = colourScale(valueObj.value, flightStage > 0 ? 1-flightStage*(1-baseOpacity) : baseOpacity);
+            fixedContext.fillStyle = colourScale(valueObj.value, flightStage > 0 ? 1-flightStage*(1-baseOpacity) : 0.7);
             
             fixedContext.save();
             fixedContext.font = fontSize+"px Arial";  // seems to be necessary
@@ -3692,7 +3692,7 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     this.chartGroup.selectAll("*").remove();
 
     var plotOrigin = this.plotOrigin = lively.pt(185, 525);
-    var commandListOrigin = this.commandListOrigin = lively.pt(50, 15);
+    var commandListOrigin = this.commandListOrigin = lively.pt(45, 10);
     
     this.numberLineWidth = 550;  // between dataMin and dataMax
     this.fallAfterFlight = 115;  // bottom of flight arcs to number line
@@ -3705,9 +3705,9 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     this.valueListEntryHeight = 15;
     
     // once we've presented the code table
-    var tableOrigin = this.tableOrigin = lively.pt(10, 330);
+    var tableOrigin = this.tableOrigin = lively.pt(10, 335);
     var dataOrigin = this.dataOrigin = lively.pt(270, 150);
-    var histOrigin = this.histOrigin = lively.pt(270, 300);
+    var histOrigin = this.histOrigin = lively.pt(270, 305);
 
     var binFill = d3.color("blue");
     binFill.opacity = 0.8;
