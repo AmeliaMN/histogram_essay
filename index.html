@@ -15,7 +15,7 @@
 
     <style>@import 'https://fonts.googleapis.com/css?family=Raleway:100,300';</style>
     
-    <script type="text/javascript" src="dist/js/lively.lang.min.279fd.js"></script>
+    <script type="text/javascript" src="dist/js/lively.lang.min.js"></script>
     <script type="text/javascript" src="dist/js/d3.v4.js"></script>
     <script type="text/javascript" src="scripts/chartObject.js"></script>
     <script type="text/javascript" src="scripts/scrollSteps.js"></script>
@@ -23,7 +23,6 @@
 <script>
 window.Global = window;
 
-lively.lang.installGlobals();
 lively.pt = function pt(x, y) { return { x:x, y: y } }; // trivial, non-functional version
 
 // the chartDefs function is expected to return one or more functions, each of which accepts a newly created chartObject and initialises it  
@@ -36,7 +35,7 @@ function chartDefs() { return [
     ch=>{
         var options = {
             stepDefinitions: scrollStepDefs(ch),
-            visExtent: { x: 900, y: 850 }, // preferred, and max
+            visExtent: { x: 900, y: 745 }, // preferred, and max
             visMinExtent: { x: 500, y: 500 },
             textMinWidth: 300,
             textMaxWidth: 600,
@@ -61,7 +60,7 @@ function chartDefs() { return [
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button> -->
-          <a class="navbar-brand" href="#">Exploring Histograms, an essay by Aran Lunzer and Amelia McNamara</a>
+          <a class="navbar-brand" href="#">Exploring Histograms, an essay by Aran Lunzer and Amelia McNamara (alpha release)</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
 <!--           <ul class="nav navbar-nav">
@@ -79,6 +78,8 @@ function chartDefs() { return [
 	<div class="col-lg-12">
 		<h1 id="top">What's so hard about histograms?</h1>	
 		<p class="lead">Histograms are a way to summarize a numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
+        
+        <p><i>April 2017: Please note the "alpha release" designation; this is a work in progress.  The interactive parts have so far been tested mainly on Chrome.</i></p>
 	</div>
     </div>
 
@@ -166,59 +167,125 @@ function chartDefs() { return [
   </section>
   <section class="step">
     <div class="title">Add data to the number line</div>
-    Now, we want to show each item as a dot at the appropriate point along the number line.  Here we draw a path connecting each item's position in the list to its position on the line, to highlight how adjacent items in the list will end up close or far apart on the number line depending on their values.
+    <p>Now, we want to show each item as a dot at the appropriate point along the number line.  Here we draw a path connecting each item's position in the list to its position on the line, to highlight how adjacent items in the list will end up close or far apart on the number line depending on their values.</p>
     
-    <p>In the first sample dataset ("mpg"), there are&mdash;by chance&mdash;no two items having exactly the same value.<p>
+    <p>In the first sample dataset ("mpg"), there are&mdash;by chance&mdash;no two items having exactly the same value. We have some other datasets available.  At an opposite extreme from "mpg" is "nba", a dataset comprising the ages of 105 NBA athletes.  Because ages are rounded to whole years, there end up being multiple items (i.e., multiple athletes) with the same age value.  We show repeated values by <b>stacking</b> them on top of each other on the number line.<p>
     
-    <p>We have some other datasets available.  At an opposite extreme from "mpg" is "nba", an R sample dataset comprising the ages of 105 NBA athletes.  Because the ages are rounded to whole years, there end up being multiple items (i.e., multiple athletes) with the same age value.  We show repeated values by stacking them on top of each other on the number line.<p>
+    <p>A third example dataset is "faithful", a dataset of 272 timings (in seconds) between eruptions of the Old Faithful geyser in Yellowstone National Park.  Again, this dataset turns out to have some values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are being rounded to integers.  If the timings were measured to multiple decimal places (fanciful though that would be, for something as vague as an eruption onset), this dataset would almost certainly have no duplicates.  This is why counting items over a <i>range</i> of values&mdash;which is what histograms are all about&mdash;is useful in the first place.<p>
     
-    <p>A third example is "faithful", an R sample dataset of 272 timings (in seconds) between eruptions of the Old Faithful geyser in Yellowstone National Park.  Again, this dataset turns out to have some values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are being rounded to integers.  If the timings were measured to multiple decimal places (fanciful though that would be, for something as vague as an eruption onset), this dataset would almost certainly have no duplicates.  This is why counting items over a <i>range</i> of values&mdash;which is what histograms are all about&mdash;is useful in the first place.<p>
-<p>The buttons at the bottom of the visualisation allow you to switch between these datasets at any stage of the essay.<p>
+    <p>The buttons at the bottom of the visualisation allow you to switch between these datasets at any stage of the essay.<p>
   </section>
   <section class="step">
-    <div class="title">The essence of a histogram</div>
-    Once the items are placed along the number line, drawing a histogram involves sectioning the number line into bins and counting the items that fall into each bin.
+    <div class="title">Portioning items into bins- the essence of a histogram</div>
+    <p>In these small datasets, the stacks of dots may give you a good sense of the distribution of the data. However, many real-world datasets have values which are repeated many hundreds or thousands of times. It becomes very hard to plot all the dots. Histograms provide a way to visualize data by aggregating it into bins, and they can be used with data of any size.</p>
+
+    <p>Once items are placed along a number line, drawing a histogram involves sectioning the number line into bins and <b>counting</b> the items that fall into each bin. Notice how the distribution shown in the histogram echoes the distribution we could see in the dot plot.</p>
+
+    <p>Perhaps because of their visual similarity to bar charts, histograms can appear very objective. But, unlike bar charts, histograms are governed by many <a href="https://em.wikipedia.org/wiki/Parameter" data-toggle="tooltip" title="Things that can be changed">parameters</a>.</p>
     
-    <p>The <span style="font-family:monospace">hist()</span> function in R will create a histogram for any dataset that you give it, using&mdash;unless you specify otherwise&mdash;default settings for the number and placement of the bins.  Here we show the default histogram that R would draw for this dataset.</p>
+<!--     <p>The <span style="font-family:monospace">hist()</span> function in R will create a histogram for any dataset that you give it, using&mdash;unless you specify otherwise&mdash;default settings for the number and placement of the bins.  Here we show the default histogram that R would draw for this dataset.</p> -->
   </section>
   <section class="step">
-    <div class="title">Why have the bins been drawn here?</div>
-    By default, R sets bin edges ("breaks") that are round numbers.  This certainly makes it easy to draw labels for the bins&mdash;and for the "mpg" and "nba" datasets, the chosen breaks do cover the value ranges quite tidily.  But if you look at "faithful" (switching with the buttons along the bottom), that first bin seems a bit arbitrary.  And it is.
+    <div class="title">Why these bins?</div>
+    <p>Many tools for working with data provide functionality to generate histograms, but most of them abstract away the defaults baked into the system. As a result, it is easy to come away with the belief that the histogram you generated is representative of the data you used, when in fact it is only one of a great number of possible histograms.</p>
+
+    <p> For example, the statistical programming language R sets bin edges ("breaks") that are round numbers.  This certainly makes it easy to draw labels for the bins&mdash;and for the "mpg" and "nba" datasets, the chosen breaks do cover the value ranges quite tidily.  But if you look at "faithful" (switching with the buttons along the bottom), that first bin seems a bit arbitrary.  And it is.</p>
+
+
+    <p>There are many algorithms for automatically choosing the number of bins in a histogram or the width of histogram bins. The Sturges algorithm is a well-known method for choosing bin widths, but other algorithms include Scott's choice and the <a href="https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule">Freedman-Diaconis choice</a>. However, these are essentially just heuristics, and the generation of histograms should always involve human intervention.  </p>
+
+    <p>No matter which parameters we choose, we're trying to answer the question "what is the distribution of this data like?" This is like trying to explain the distribution to someone over the phone. I could read the entire list of data and you could see exactly what the values were, but you're probably more interested in knowing whether it is symmetric, where it is centered, and whether it has extreme values. How consistent is this description when we vary the parameters?</p>
+
   </section>
   <section class="step">
-    <div class="title">Shifting histogram</div>
-    Watch what happens to the relative bin heights as we move them back and forth along the number line.  Any position is just as valid as any other.
+    <div class="title">Shifting the bin offset</div>
+    <p>Is the histogram that we created the only possible way to visualize this data? No. Is it the best? Maybe not.</p>
+
+    <p>Watch what happens to the relative bin heights as we move the bins back and forth along the number line (changing the "bin offset"). Points are essentially being moved from one bin to another, changing the aggregation of height in the bins.</p>
+    <p>The only thing we are varying is this offset. The data remains the same, the binwidth remains the same, but we nudge the edges in one direction or another. Some of the distributions look quite similar to one another, but occasionally a strangely different distribution will pop out.</p>
     <p>Mouse over the green dashed rectangle to slow down the animation.</p>
   </section>
   <section class="step">
-    <div class="title">Changing histogram width</div>
-    Now we try different widths, fixing the left end of the first bin to be equal to the minimum data value.
+    <div class="title">Shifting the bin width</div>
+    <p>Another parameter we can vary is the width of the histogram bins. Now we fix the left end of the first bin to be equal to the minimum data value, and adjust the widths.</p>
     <p>Unlike offsets, some widths can be argued as being more valid than others.  For example, setting a width of 1.4 years for the "nba" dataset, where values are always integers, is asking for trouble: some bins will inevitably span two integer values, while others only include one.</p>
   </section>
   <section class="step">
     <div class="title">Unmasking the magic</div>
-    The calculations behind a simple histogram.
+    <p>So far, we have only let you vary one parameter or another. However, there are interactions between parameters that can affect the shape of the distribution, and ways in which visualizing more of the parameter space can increase your knowlege of the distribution. This section allows you to see the "code" associated with our histogram creation.</p>
+
+    <p>Try mousing over the values in the <b>width</b> row of the table to see a variety of histograms with different bin widths. 
+    <p>The green square at the left side of the row will allow you to see a "sweep" of parameter values, creating a cloud of transparent histograms with slightly different bin widths. Turning on a sweep adds additional rows to the table. Try mousing over the table to see more information about how the heights of bins varies.</p>
+
+    <p>Because broader bins generally capture more items, and narrower bins fewer, it can sometimes be hard to compare between histograms with different bin widths. One solution is to plot the histogram as densities rather than as counts. Use the radio button to toggle this option. Notice that the shape of the histogram does not change, but the labels on the axis do. Now you can more easily compare the shapes of histograms with different bin widths.</p>
+
+    <p>Compare between a few of the sample datasets, and see if you can find histograms where changing the bin width changes the visual "center" of the distribution. 
   </section>
   <section class="step">
     <div class="title">More adjustments</div>
-    Now you can vary bin width and/or offset.
+    <p>Now, we add an additional row so you can vary bin width and/or offset.</p>
+
+    <p>Try setting up a sweep on binwidth, then varying the bin offset. Again, you may want to toggle the option to show density histograms for easier comparison.</p>
+
+    <p>Sometimes, you may come across a set of parameter values that shows a vastly different shape for the distribution. Often, this is the result of a mismatch between the scale of the data and the scale of the bins. Several "stacks" of dots then get caught into a single bin in a way that might feel unexpected to a human.</p>
+
+    
   </section>
   <section class="step">
     <div class="title">One more thing...</div>
-    What happens at the boundaries matters.
+    <p>We've been focusing on the effects of the bin offset and bin width, but there is at least one more relevant parameter-- the "closedness" of the bins.  What happens to items that fall exactly on a boundary? Do they get counted as part of the bin on the left, or the one on the right?  Or both?</p>
+
+    <p>It's not both - because that would mean that the boundary items were being counted twice. In a histogram, each data item must be assigned to exactly one bin.</p>
+
+    <p>So, then: left or right? Again, tools to make visualizations will pick a default. In R, the default is left-open bins. </p>
+
+    <p>How much of a difference does this choice make?  Just as the impact of boundary position depends on the density of items in the vicinity of the boundaries, the impact of left- or right-closure of a histogram's intervals depends on how many items match exactly the boundary values.</p>
+
+    <p>Try switching <b>open</b> from R to L.  Notice how the data points "jump" as they are moved from one bin to the next.</p>
+
+    <p>In the previous section we pointed out that when the spacing of the bins isn't a pure multiple of the spacing of valid data values, some bins will end up covering more of the possible data values.  In such a case, it's easy to see that the relative item counts in the bins are likely to change depending on how the bin boundaries line up relative to the number line: shift all boundaries to the left, for example, and you'll also be shifting to the left the places where item counts happen to get clumped together.</p>
+
+    <p>What if there's no mismatch between value spacing and bin width?  Can the bins' offset still make a difference to the shape of the histogram?  Yes!  Another effect seen in the previous section is when a concentration of items on nearby values - nearby, but not identical - could fall into a single bin, or could instead be split across two or more.  If all bins are shifted up or down the number line, the apportioning of values to bins in densely populated regions will of course change too.</p>
+
+
+    
   </section>
+  <section class="step">
+    <div class="title">So what?</div>
+    
+    <p><i>(in the beta release we'll put this section somewhere better :-)</i></p>
+    
+<p>Hopefully, we have convinced you that histograms can be quite sensitive to parameter choices. It's never a good idea to accept the default bins provided to you by a visualization system, and if you see a histogram in the wild you should be interested in how the bins were chosen. Did the author pick the bins they are using in order to tell a particular story? Sometimes, authors "cherry-pick" parameter values to show a story that isn't really there in the data.</p>
+
+<p>We want designers of histograms to understand how parameter choices affect what they create. People making tools should know how parameter choices affect the visual distribution.
+
+<p>We believe, whenever you see a histogram, it should be possible to play with parameter values like this.</p>
+
+
+<p>"Stretchy histograms" (those allowing users to adjust the binwidth dynamically) are available in a variety of commercially-available systems. In his 1997 paper, "Software for Learning and Doing Statistics," Rolf Biehler talks about this feature in his software Statistics Workshop. Similar abilities were included in DataDesk, Fathom, and TinkerPlots. However, many professional tools eschewed stretchy histograms (or even left histograms out altogether!). Excel can be extended to create histograms by the installation of a third-party add-on. Expert R users can create stretchy histograms using Shiny or manipulate, but even these do not offer direct manipulation, instead waiting for the user to drop a slider before updating the view. </p>
+
+    <h4>Who we are</h4>
+    
+    <p>Both of us (<a href="http://www.vpri.org/html/team_bios/aran_lunzer.htm">Aran Lunzer</a> and <a href="http://www.science.smith.edu/~amcnamara/">Amelia McNamara</a>) are interested in making it easier to see these types of choices. Lunzer's work focuses on "subjunctive interfaces," those that show you what <em>else</em> you might have seen, while McNamara is primarily interested in the effects of parameter choices on statistical visualizations.  We gratefully acknowledge the support of our many colleagues and collaborators, in particular within the <a href="http://harc.ycr.org">Human Advancement Research Community</a>.</p>
+    
+    <p>This essay is built using <a href="http://getbootstrap.com/">Bootstrap</a>, with scrolly behaviour derived from Jim Vallandingham's <a href="http://vallandingham.me/scroller.html">So You Want to Build A Scroller</a>.  The interactive visualisations make extensive use of <a href="https://d3js.org/">D3.js</a>, and utility functions from <a href="https://github.com/LivelyKernel/lively.lang/">lively.lang</a>.</p>
+    
+  </section>
+  
 </div>
 <div id='vis'>
 </div>
-<div id="extra-space">
-</div>
-</div>
+
+</div> <!-- end of #scrolly -->
+</div> <!-- end of .container -->
+
 
 
 
    <footer>
       <div class="container">
-        <p class="text-muted credit">Copyright &copy; 2017 Aran Lunzer and Amelia McNamara. All Rights Reserved.</p>
+<!--        <p class="text-muted credit">Copyright &copy; 2017 Aran Lunzer and Amelia McNamara.</p> -->
+    <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work, by <a href="http://www.vpri.org/html/team_bios/aran_lunzer.htm">Aran Lunzer</a> and <a href="http://www.science.smith.edu/~amcnamara/">Amelia McNamara</a>, is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
       </div>
     </footer>
 
@@ -252,6 +319,8 @@ function chartDefs() { return [
     	$(this).blur();
 	});
 	</script>
-    
+
+<div id="extra-space"></div>
+
   </body>
 </html>
