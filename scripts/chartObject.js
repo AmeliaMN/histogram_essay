@@ -371,7 +371,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
     function toggleContextSpec(varName) {
         if (contextVar===varName) contextVar = null;
         else contextVar = varName;
-        scheduleEvent("", 0, ()=>refreshTable({ force: true }, 500));  // force refresh
+        scheduleEvent("", 0, ()=>refreshTable({ force: true }, 0));  // force refresh
     }
 
     var edges = [ 10, 90, 450, 840 ], boxSize=10, boxGap=boxSize+8;
@@ -505,698 +505,700 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
 
         if (!contextVar) chart.highlightBinDifferences("primary", !options.isDragging); // true to delete previous (@@ currently ignored by hBD)
 
-        if (!(tableOptions.noRanges)) {
-            var rangeSets = { primary: mainBins, context: [] };
-            if (highlighting) rangeSets.context = contextBins[highlightIndex];
-            chart.drawRanges(rangeSets);
-        }
-        
-        function padIfNeeded(data) {
-            if (lively.lang.obj.isArray(data) && data.length < maxDataColumns) {
-                return data.concat(lively.lang.arr.withN(maxDataColumns-data.length, null))
+        if (!tableOptions.noVisibleTable) {
+            if (!tableOptions.noRanges) {
+                var rangeSets = { primary: mainBins, context: [] };
+                if (highlighting) rangeSets.context = contextBins[highlightIndex];
+                chart.drawRanges(rangeSets);
             }
-            return data;
-        }
-        var primaryIndex = contextVar ? varDefs[contextVar].extra.indexOf(varDefs[contextVar].main) : null; // slightly hacky assumption
-
-        var dataRows = [];
-        var affectedByExtra = [];
-        var rowsAdded = 0;
-        dataRows.push({ varName: "dummy", reason: "rule", rowInDisplay: rowsAdded });
-        orderedVarNames.forEach(function(vn, varIndex) {
-            var varDef = varDefs[vn];
-            if (!varDef.noDisplay) {
-                var mainExpr = varDef.main;
-                if (typeof mainExpr==="function") mainExpr = mainExpr(chosen);
-                var isInChoice = !!varDef.choiceGroup, isChosen = isInChoice && choiceGroups[varDef.choiceGroup].chosen===vn, isLastChoice = isInChoice && lively.lang.arr.last(choiceGroups[varDef.choiceGroup].choices)===vn;
-                
-                // new apr 2017 (expt24): include any extraDefs in the var's main row
-                var extrasHere = varDef.extra; // may be undefined
-                if (extrasHere && !(isInChoice && !isChosen)) {
-                    dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded++, reason: "main", hasExtras: true, expr: extrasHere, data: padIfNeeded(mainResult[vn]) });
-                    if (vn===contextVar) affectedByExtra.push(vn);
-                } else {
-                    dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded++, reason: "main", expr: isInChoice && !isChosen ? "-" : mainExpr, styledExpr: varDef.styled, data: padIfNeeded(mainResult[vn]) });
+            
+            function padIfNeeded(data) {
+                if (lively.lang.obj.isArray(data) && data.length < maxDataColumns) {
+                    return data.concat(lively.lang.arr.withN(maxDataColumns-data.length, null))
                 }
-
-                // and then any row needed for an extension coming from another var
-                if (contextVar && (contextVar!==vn)) {
-                    /* each item in a context array is the value for a named variable in the context-defining execution.  the items may be arrays, and may have different sizes.  for example, for the variable "left" the context array could be:
-                            [
-                            array of 10 values,
-                            array of 11 values,
-                            array of 12 values,
-                            ...
-                            array of 18 values
-                            ]
-                    */
-                    var tokens = mainExpr.split(/\W/);
-                    if (affectedByExtra.some(evn => tokens.indexOf(evn)>=0)) {
-                        affectedByExtra.push(vn);
-
-                        var extraData = extraResults.map(res=>res[vn]);
-                        extraData.isContextArray = true;
-        
-                        dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded, reason: "extraShadow", expr: "", data: [] });
-                        dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded, reason: contextVar+"extra", expr: "", data: [], context: extraData });
-                        rowsAdded++;
+                return data;
+            }
+            var primaryIndex = contextVar ? varDefs[contextVar].extra.indexOf(varDefs[contextVar].main) : null; // slightly hacky assumption
+    
+            var dataRows = [];
+            var affectedByExtra = [];
+            var rowsAdded = 0;
+            dataRows.push({ varName: "dummy", reason: "rule", rowInDisplay: rowsAdded });
+            orderedVarNames.forEach(function(vn, varIndex) {
+                var varDef = varDefs[vn];
+                if (!varDef.noDisplay) {
+                    var mainExpr = varDef.main;
+                    if (typeof mainExpr==="function") mainExpr = mainExpr(chosen);
+                    var isInChoice = !!varDef.choiceGroup, isChosen = isInChoice && choiceGroups[varDef.choiceGroup].chosen===vn, isLastChoice = isInChoice && lively.lang.arr.last(choiceGroups[varDef.choiceGroup].choices)===vn;
+                    
+                    // new apr 2017 (expt24): include any extraDefs in the var's main row
+                    var extrasHere = varDef.extra; // may be undefined
+                    if (extrasHere && !(isInChoice && !isChosen)) {
+                        dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded++, reason: "main", hasExtras: true, expr: extrasHere, data: padIfNeeded(mainResult[vn]) });
+                        if (vn===contextVar) affectedByExtra.push(vn);
+                    } else {
+                        dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded++, reason: "main", expr: isInChoice && !isChosen ? "-" : mainExpr, styledExpr: varDef.styled, data: padIfNeeded(mainResult[vn]) });
                     }
+    
+                    // and then any row needed for an extension coming from another var
+                    if (contextVar && (contextVar!==vn)) {
+                        /* each item in a context array is the value for a named variable in the context-defining execution.  the items may be arrays, and may have different sizes.  for example, for the variable "left" the context array could be:
+                                [
+                                array of 10 values,
+                                array of 11 values,
+                                array of 12 values,
+                                ...
+                                array of 18 values
+                                ]
+                        */
+                        var tokens = mainExpr.split(/\W/);
+                        if (affectedByExtra.some(evn => tokens.indexOf(evn)>=0)) {
+                            affectedByExtra.push(vn);
+    
+                            var extraData = extraResults.map(res=>res[vn]);
+                            extraData.isContextArray = true;
+            
+                            dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded, reason: "extraShadow", expr: "", data: [] });
+                            dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded, reason: contextVar+"extra", expr: "", data: [], context: extraData });
+                            rowsAdded++;
+                        }
+                    }
+                    
+                    if (!(isInChoice && !isLastChoice)) dataRows.push({ varName: vn, reason: "rule", rowInDisplay: rowsAdded });
                 }
-                
-                if (!(isInChoice && !isLastChoice)) dataRows.push({ varName: vn, reason: "rule", rowInDisplay: rowsAdded });
-            }
-            });
-//console.log(dataRows);
-        var rows = tableGroup.selectAll(".row").data(dataRows, keyString);
-
-        rows.exit()
-            .attr("class", "defunctRow")
-            .call(defer, function(s) {
-                s
-                    .style("opacity", 1e-6)
-                    .remove();
                 });
-
-        // each rowItem has { varName, baseRow, rowIndisplay, reason, expr, data, context }
-        rows.enter().append("g")
-            .attr("class", "row")
-            .attr("transform", rowItem => transformString(xInset, yInset+rowHeight*rowItem.rowInDisplay+1) )
-            .style("opacity", rowItem => rowItem.reason==="main" ? 1 : 0)
-            .each(function(rowItem) {
-                var seln = d3.select(this);
-                if (rowItem.reason==="rule") {
-                    seln.append("line")
-                    .attr("class", "rowSeparator")
-                    .attr("x1", 0)
-                    .attr("y1", -1)
-                    .attr("x2", lively.lang.arr.last(edges))
-                    .attr("y2", -1)
-                    .style("stroke", "grey")
-                    .style("stroke-width", 0.75)
-                    .style("opacity", 1)
-                    .style("pointer-events", "none");
-                } else {
-                    seln.append("rect")
-                        .attr("class", "rowBackground")
-                        .attr("x", 0)
-                        .attr("y", 0)
-                        .attr("width", lively.lang.arr.last(edges))
-                        .attr("height", rowHeight-2)
-                        .style("opacity", 1);
-                        
-                    if (rowItem.hasExtras) {
+    //console.log(dataRows);
+            var rows = tableGroup.selectAll(".row").data(dataRows, keyString);
+    
+            rows.exit()
+                .attr("class", "defunctRow")
+                .call(defer, function(s) {
+                    s
+                        .style("opacity", 1e-6)
+                        .remove();
+                    });
+    
+            // each rowItem has { varName, baseRow, rowIndisplay, reason, expr, data, context }
+            rows.enter().append("g")
+                .attr("class", "row")
+                .attr("transform", rowItem => transformString(xInset, yInset+rowHeight*rowItem.rowInDisplay+1) )
+                .style("opacity", rowItem => rowItem.reason==="main" ? 1 : 0)
+                .each(function(rowItem) {
+                    var seln = d3.select(this);
+                    if (rowItem.reason==="rule") {
+                        seln.append("line")
+                        .attr("class", "rowSeparator")
+                        .attr("x1", 0)
+                        .attr("y1", -1)
+                        .attr("x2", lively.lang.arr.last(edges))
+                        .attr("y2", -1)
+                        .style("stroke", "grey")
+                        .style("stroke-width", 0.75)
+                        .style("opacity", 1)
+                        .style("pointer-events", "none");
+                    } else {
                         seln.append("rect")
-                            .attr("class", "extraToggle")
-                            .attr("x", edges[1])
-                            .attr("y", (rowHeight-boxSize)/2-2)
-                            .attr("width", boxSize)
-                            .attr("height", boxSize)
-                            .style("fill", "green")
-                            .style("fill-opacity", 0.3)
-                            .style("stroke", "green")
-                            .style("stroke-opacity", 0.7)
-                            .style("stroke-width", 2)
-                            .on("click", ()=>toggleContextSpec(rowItem.varName))
-                    }
-
-                    if (rowItem.reason==="main" && varDefs[rowItem.varName].choiceGroup) {
-                        seln.append("circle")
-                            .attr("class", "choiceToggle")
-                            .attr("cx", edges[0]+boxSize/2)
-                            .attr("cy", rowHeight/2-2)
-                            .attr("r", boxSize/2)
-                            .style("fill", "green")
-                            .style("fill-opacity", 0.3)
-                            .style("stroke", "green")
-                            .style("stroke-opacity", 0.7)
-                            .style("stroke-width", 2)
-                            .on("click", ()=>{
-                                choiceGroups[varDefs[rowItem.varName].choiceGroup].chosen=rowItem.varName;
-                                contextVar = null;
-                                refreshTable({ force: true }, 250);
-                                });
-                    }
-                }
-                });
-
-        tableGroup.selectAll(".row").each(function(rowItem) {
-            var rowSeln = d3.select(this); // the g element for the row
-            var isHighlightContext = highlighting && rowItem.reason===contextVar+"extra";
-            var rowVar = rowItem.varName;
-            var isContextDef = !!rowItem.hasExtras, isActiveContextDef = isContextDef && rowVar===contextVar;
-
-            // set up the row background
-            rowSeln.select("rect.rowBackground").style("fill", (rowItem.reason==="extraShadow" || isActiveContextDef) ? spreadBackground : (rowItem.reason==="main" ? "white" : "none"));
-            
-            defer(rowSeln, function(s) {
-                s
-                    .attr("transform", transformString(xInset, yInset+rowHeight*rowItem.rowInDisplay))
-                    .style("opacity", 1)
-                });
-
-            if (rowItem.reason==="rule") return;
-
-            var isInChoice = !!varDefs[rowVar].choiceGroup, isChosen = isInChoice && choiceGroups[varDefs[rowVar].choiceGroup].chosen===rowVar;
-
-            // set appearance of the "extra values" toggle, if there is one
-            rowSeln.select("rect.extraToggle").style("fill-opacity", isActiveContextDef ? 1 : 0);
-            
-            // and the choices switch, if any
-            if (isInChoice) rowSeln.select("circle.choiceToggle").style("fill-opacity", isChosen ? 1 : 0);
-
-            // the data item associated with each cellItem within a row has { rowSpec, x, width, text, anchor } and optionally { indexInGroup, dataIndex, mouseover, mouseout, click }.  and maybe some other gunk.
-            var rowCellGroups = [];
-            
-            // label column
-            if (rowItem.reason==="main") rowCellGroups.push({ category: "label", xOffset: edges[0], cells: [{ rowSpec: rowItem, text: rowVar, x: isInChoice ? boxGap : 0 }] });
-            
-            // expression columns
-            if (rowItem.expr !== "") {
-                var cellGroup = [], groupObject = { category: "expr", cells: cellGroup, xOffset: edges[1] };
-                if (rowItem.reason==="extraShadow") cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 32, fill: "green"}); // jan 2017: text is empty
-                else if (!lively.lang.obj.isArray(rowItem.expr)) cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 0, styledText: rowItem.styledExpr});
-                else {
-                    if (rowItem.hasExtras) {
-                        if (options.focusVar===rowVar) groupObject.focusIndex = groupObject.indexToHighlight = options.focusIndex;
-                        else {
-                            var varDef = varDefs[rowVar];
-                            groupObject.focusIndex = varDef.extra.indexOf(varDef.main);
-if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",varDef);
-                        }
-                    }
-                    var entryWidth = 32, startOffset = rowItem.hasExtras ? boxGap : 0;
-                    lively.lang.obj.extend(groupObject, {
-                        isFishy: true,  // use distortion if needed
-                        fishWidth: edges[2]-edges[1]-startOffset-32,
-                        fishItemWidth: entryWidth
-                        });
-                    groupObject.xOffset += startOffset;
-                    rowItem.expr.forEach(function(e, i) {
-                        cellGroup.push({rowSpec: rowItem, indexInGroup: i, width: entryWidth, text: stringyValue(e, rowVar), x: i*entryWidth, anchor: "middle",
-                            // add handlers for probing alternative values from the "extra" list
-                            mouseover: function(cellItem) {
-                                var vn = cellItem.rowSpec.varName, index = cellItem.indexInGroup;
-                                scheduleEvent("probe", 0, ()=>{
-                                    refreshTable({ focusVar: vn, focusIndex: index }, 250);
-                                    chart.resetBinHighlight()
-                                    });
-                            },
-                            mouseout: function(cellItem) {
-                                scheduleEvent("probe", 200, ()=>{
-                                    refreshTable({}, 250);
-                                    chart.resetBinHighlight()
-                                    });
-                            },
-                            click: function(cellItem) {
-                                var vn = cellItem.rowSpec.varName, index = cellItem.indexInGroup;
-                                varDefs[vn].main = varDefs[vn].extra[index];
-                                scheduleEvent("probe", 0, ()=>{
-                                    refreshTable({ focusVar: vn, focusIndex: index, force: true }, 250); // force refresh
-                                    chart.resetBinHighlight()
-                                    });
-                            }
-                            });
-                        });
-                }
-                if (cellGroup.length) rowCellGroups.push(groupObject);
-            }
-
-            // data columns
-            if (lively.lang.obj.isArray(rowItem.data)) {
-                var entryWidth = 44;
-                var cellGroup = [], groupObject = {
-                    category: "data",
-                    cells: cellGroup,
-                    xOffset: edges[2],
-                    isFishy: true,
-                    fishWidth: edges[3]-edges[2]-xInset,
-                    fishItemWidth: entryWidth,
-                    focusIndex: (options.dataFocusIndex) || 0,
-                    };
-                if (options.isDragging && rowItem.data.length) {
-                    var n = rowItem.data.length;
-                    if (mainResult.offset != 0) n--; // we have an extra item, so n is one less
-                    var scale = d3.scaleLinear().domain([0, (n+1)*entryWidth]).range([entryWidth, groupObject.fishWidth-entryWidth]);
-                    groupObject.focusItemOffset = scale((groupObject.focusIndex+mainResult.offset)*entryWidth);
-                    groupObject.linearFocusOffset = (mainResult.offset+1)*entryWidth;
-                }
-                rowItem.data.forEach(function(e, i) {
-                    var text = lively.lang.obj.isArray(e)
-                        ? "{"+(e.length)+"}"
-                        : stringyValue(e, rowVar);
-                    var cellSpec = {
-                        rowSpec: rowItem, 
-                        text: text, 
-                        x: i*entryWidth, 
-                        width: entryWidth, 
-                        anchor: "middle", 
-                        dataIndex: i,
-                        indexInGroup: i,
-                        isContext: isHighlightContext
-                        };
-                    if (!isHighlightContext) {
-                        // for texty values, add mouseover behaviour (which will result in addition of an overlaid rect to do the detection)
-                        cellSpec.mouseover = function(cellItem) {
-//console.log("over");
-                            scheduleEvent("probe", 0, ()=>{
-                                refreshTable({ dataFocusIndex: cellItem.dataIndex, binHighlight: cellItem.dataIndex }, 0);
-                                //chart.highlightBinNumber(cellItem.dataIndex)
-                                });
-                            };
-                        cellSpec.mouseout = function(cellItem) {
-                            scheduleEvent("probe", 200, ()=>{
-                                refreshTable({ binHighlight: null }, 0);
-                                //chart.resetBinHighlight();
-                                });
-                            };
-                    }
-                    cellGroup.push(cellSpec);
-                    });
-                if (cellGroup.length) rowCellGroups.push(groupObject);
-            } else {
-                var startOffset = 12;
-                var val = stringyValue(rowItem.data, rowVar);
-                rowCellGroups.push({ category: "data", xOffset: edges[2]+startOffset, cells: [{ rowSpec: rowItem, text: val, x: 0, isContext: isHighlightContext }] });
-            }
-
-            var cellGroups = rowSeln.selectAll(".cellGroup").data(rowCellGroups, rcg=>rcg.category);
-            cellGroups.exit().remove(); // if we ever count on this (rather than just destroying the entire row), it might need a bit of finesse
-            cellGroups.enter().append("g")
-                .attr("class", "cellGroup")
-              .merge(cellGroups)
-                .attr("transform", groupObject => transformString(groupObject.xOffset,0))
-                .each(function(groupObject) {
-                    var groupSeln = d3.select(this);
-                    var cellClass = groupObject.isFishy ? "fishItem" : "cellItem";
-
-                    var cells = groupSeln.selectAll("."+cellClass).data(groupObject.cells, cellItem=>cellItem.indexInGroup);
-                    
-                    cells.exit()
-                        .attr("class", "defunctCell")
-                        .interrupt()
-                        .each(function(cellItem) {
-                            var seln = d3.select(this);
-                            seln.select("text").attr("class","defunctText")
-                            if (options.isDragging || cellItem.isContext) seln.remove(); // must be instant
-                            else defer(seln, function(s) {
-                                s
-                                    .style("opacity", 1e-6)
-                                    .remove();
-                                });
-                            });
-                            
-                    cells.enter().append("g")
-                        .attr("class", cellClass)
-                        .each(function(cellItem) {
-                            var seln = d3.select(this);
-                            if (cellItem.mouseover) {
-                                seln.append("rect")
-                                    .attr("class", groupObject.category+"MouseTrap")
-                                    .attr("y", 0)
-                                    .attr("height", isContextDef ? rowHeight-3 : rowHeight)
-                                    .style("fill-opacity", groupObject.isFishy ? 1 : 0)
-                                    .style("stroke-opacity", 1)
-                                    .style("stroke", "green")
-                                    .style("stroke-width", 0)
-                                    .style("cursor", "pointer")
-                                    .on("mouseover", cellItem=>cellItem.mouseover(cellItem))
-                                    .on("mouseout", cellItem=>cellItem.mouseout(cellItem))
-                                    .on("click", cellItem=>{ if (cellItem.click) cellItem.click(cellItem); })
-                            }
-                            seln.append("text")
-                                .attr("class", groupObject.category+"TextCell")
-                                .style("fill", cellItem=>cellItem.fill || "black")
-                                .style("font-size", (isHighlightContext ? fontHeight-4 : fontHeight)+"px")
-                                .style("dominant-baseline", "hanging")
-                                .style("text-anchor", cellItem.anchor || "start")
-                                .style("opacity", groupObject.isFishy ? 0.2 : 1)
-                                .style("pointer-events", "none")
-                                .style("-webkit-user-select","none");
-                            });
-
-                    if (groupObject.isFishy) chart.spaceBifocally(groupSeln, groupObject);
-
-                    d3.select(this).selectAll("."+cellClass)
-                        .each(function(cellItem) { // @@ probably some efficiency improvements to be made here
-                            var seln = d3.select(this);
-                            if (!groupObject.isFishy) seln.attr("transform", transformString(cellItem.x, 0));
-                            
-                            var textSeln = seln.select("text");
-                            textSeln.attr("y", isHighlightContext ? 0 : 4); // now redundant?
-                            
-                            if (cellItem.styledText) {
-                                var spans = textSeln.selectAll("tspan").data(cellItem.styledText);
-                                spans.exit().remove();  // shouldn't happen
-                                spans.enter().append("tspan")
-                                    .style("dominant-baseline", "hanging")
-                                  .merge(spans)
-                                    .style("font-style", d=>d.style)
-                                    .style("fill", d=>d.colour || "black")
-                                    .text(d=>d.text);
-                            } else {
-                                var oldText = textSeln.text();
-                                if (oldText !== cellItem.text) textSeln.call(showChange);
-                                
-                                textSeln.text(cellItem.text);
-                            }
-                            
-                            if (groupObject.isFishy) {
-                                var trapSeln = seln.select("rect");
-                                trapSeln
-                                    .style("fill", isActiveContextDef ? spreadBackground : "white");
-                            
-                                // highlight (if groupObject wants it) by showing a border
-                                var sw = (groupObject.indexToHighlight === cellItem.indexInGroup) ? 1 : 0;
-                                trapSeln.style("stroke-width", sw);
-                                
-                                //var adjustedWidth = trapSeln.attr("width");
-                                var lineLocs = cellItem.text==="" ? [true] : [];
-                                var lines = seln.selectAll("line").data(lineLocs);
-                                lines.exit().remove();
-                                lines.enter().append("line")
-                                    .attr("y1", rowHeight/2)
-                                    .attr("y2", rowHeight/2)
-                                    .style("stroke", "grey")
-                                    .style("stroke-width", 1)
-                                  .merge(lines)
-                                    .attr("x1", -2)
-                                    .attr("x2", 2)
-                            }
-                            });
-                    });
-
-            // @@ maybe want to merge this group into the general handling above
-            var maxRange = 0, probeFill = "#d8d8d8";
-            var pictureCellGroups = [];
-            if (rowItem.context) {
-                var rowCells = [];
-                // a context array is arranged by scenario, and if the values are arrays then these arrays might have different lengths.  we unpack them into an array by indices - each array having one value per scenario, with a null if the scenario doesn't have an entry at that index.
-                var maxLen = d3.max(rowItem.context, val=>lively.lang.obj.isArray(val) ? val.length : 1), unpacked = [];
-                for (var ai=0; ai<maxLen; ai++) {
-                    var oneArray = unpacked[ai] = [];
-                    rowItem.context.forEach(val=>{
-                        var v;
-                        if (lively.lang.obj.isArray(val)) {
-                            v = val.length > ai ? val[ai] : null
-                        } else {
-                            v = ai===0 ? val : null;
-                        }
-                        oneArray.push(v);
-                        });
-                }
-                var entryWidth = 44;
-                unpacked.forEach(function(vals, i) {
-                    rowCells.push({
-                        rowSpec: rowItem,
-                        dataIndex: i,
-                        indexInGroup: i,
-                        x: i*entryWidth,
-                        width: entryWidth,
-                        values: vals,
-                        mouseover: function(cellItem) {
-//console.log("over mousetrap "+cellItem.dataIndex)
-                            scheduleEvent("probe", 0, ()=>{
-                                refreshTable({ dataFocusIndex: cellItem.dataIndex, calloutVar: cellItem.rowSpec.varName, calloutIndex: cellItem.dataIndex, binHighlight: cellItem.dataIndex }, 0);
-                                //chart.highlightBinNumber(cellItem.dataIndex)
-                                });
-                            },
-                        mouseout: function(cellItem) {
-//console.log("out of "+cellItem.dataIndex)
-                            scheduleEvent("probe", 200, ()=>{
-                                refreshTable({ binHighlight: null }, 0);
-                                //chart.resetBinHighlight();
-                                });
-                            }
-                        });
-                    if (vals.length && vals.some(v=>typeof v === "number")) {
-                        var ex = d3.extent(vals), range = ex[1]-ex[0];
-                        if (range>maxRange) maxRange=range;
-                    }
-                    });
-                var groupObj = {
-                    cells: rowCells,
-                    xOffset: edges[2],
-                    isFishy: true,
-                    fishWidth: edges[3]-edges[2]-xInset,
-                    fishItemWidth: entryWidth,
-                    focusIndex: (options.dataFocusIndex) || 0,
-                    };
-                    
-                if (rowItem.varName===options.calloutVar) {
-                    var calloutIndex = options.calloutIndex;
-                    groupObj.calloutItem = {
-                        isCallout: true,
-                        rowSpec: rowItem,
-                        dataIndex: calloutIndex,
-                        // x: calloutIndex*entryWidth,  never used
-                        width: entryWidth*2.5,
-                        values: unpacked[calloutIndex]
-                    };
-                }
-                    
-                pictureCellGroups.push(groupObj);
-            } 
-            var pcGroups = rowSeln.selectAll(".pictureCellGroup").data(pictureCellGroups);
-            pcGroups.exit().remove();
-            pcGroups.enter().append("g")
-                .attr("class", "pictureCellGroup")
-              .merge(pcGroups)
-                .attr("transform", (groupObject) => transformString(groupObject.xOffset,0))
-                .each(function(groupObject) {
-                    var groupSeln = d3.select(this);
-                    var cellClass = "fishItem";
-
-                    var callouts = [];
-                    if (groupObject.calloutItem) callouts.push(groupObject.calloutItem);
-                    
-                    var pictureCells = groupSeln.selectAll("."+cellClass+",.callout").data(groupObject.cells.concat(callouts), cellItem=>cellItem.isCallout ? "callout" : cellItem.indexInGroup);
-
-                    // now that fishiness is the norm, disappearing cells shouldn't clutter up the fish zone by taking time to fade out
-                    pictureCells.exit().remove();  // just go
-
-                    pictureCells.enter().append("g")
-                        .attr("class", cellItem=>cellItem.isCallout ? "callout" : cellClass)
-                        .style("opacity", cellItem=>cellItem.isCallout ? 1 : 0) // will be brought up by spaceBifocally
-                        .append("rect")
-                            .attr("class", "pictureMouseTrap")
-                            .attr("x", cellItem=>-cellItem.width/2)
+                            .attr("class", "rowBackground")
+                            .attr("x", 0)
                             .attr("y", 0)
-                            .attr("width", (cellItem) => cellItem.width)
-                            .attr("height", cellItem=>cellItem.isCallout ? rowHeight*3 : rowHeight)
-                            .style("stroke", "none")
-                            .style("fill", cellItem=>cellItem.isCallout ? probeFill : "none")
-                            .style("cursor", cellItem=>cellItem.isCallout ? "ew-resize": "pointer")
-                            .style("pointer-events", "all");
+                            .attr("width", lively.lang.arr.last(edges))
+                            .attr("height", rowHeight-2)
+                            .style("opacity", 1);
                             
-                    chart.spaceBifocally(groupSeln, groupObject);
-                    
-                    // the spaceBifocally call will have set all fishItems' widths instantly; the positions of their enclosing g elements might be changing in a timed transition
-                    var trans = d3.transition().duration(300).ease(d3.easeLinear);
-                    var immediate = d3.transition().duration(0);
-                    groupSeln.selectAll("."+cellClass+",.callout")
-                        .each(function(cellItem, i, siblingItems) {
-                            var isCallout = cellItem.isCallout;
-                            var seln = d3.select(this), rectSeln = seln.select("rect");
-                            rectSeln.style("fill", cellItem.rowSpec.varName===options.calloutVar && cellItem.dataIndex===options.calloutIndex ? probeFill : "none");
-                            var sizeFactor = isCallout ? 2 : 1;
-                            var width = rectSeln.attr("width"),
-                                height = rectSeln.attr("height"),
-                                topMargin = isCallout ? 14 : 3,
-                                bottomMargin = isCallout ? 10 : 3,
-                                innerHeight = height-topMargin-bottomMargin,
-                                leftMargin = isCallout ? 24 : 5,
-                                rightMargin = isCallout ? 16 : 5,
-                                innerWidth = Math.max(1, width-leftMargin-rightMargin),
-                                midX = (leftMargin-rightMargin)/2;
-
-                            // a callout "cell" takes care of its own positioning, and has special mousemove behaviour
-                            if (isCallout) {
-                                var baseCellX = 0;
-                                d3.selectAll(siblingItems).each(function(sibling) {
-                                    if (sibling.dataIndex===cellItem.dataIndex && d3.select(this).attr("class")==="fishItem") {
-                                        // extracting (in this case) the x translation from the transform http://stackoverflow.com/questions/38224875/replacing-d3-transform-in-d3-v4
-                                        baseCellX = this.transform.baseVal[0].matrix.e; }
+                        if (rowItem.hasExtras) {
+                            seln.append("rect")
+                                .attr("class", "extraToggle")
+                                .attr("x", edges[1])
+                                .attr("y", (rowHeight-boxSize)/2-2)
+                                .attr("width", boxSize)
+                                .attr("height", boxSize)
+                                .style("fill", "green")
+                                .style("fill-opacity", 0.3)
+                                .style("stroke", "green")
+                                .style("stroke-opacity", 0.7)
+                                .style("stroke-width", 2)
+                                .on("click", ()=>toggleContextSpec(rowItem.varName))
+                        }
+    
+                        if (rowItem.reason==="main" && varDefs[rowItem.varName].choiceGroup) {
+                            seln.append("circle")
+                                .attr("class", "choiceToggle")
+                                .attr("cx", edges[0]+boxSize/2)
+                                .attr("cy", rowHeight/2-2)
+                                .attr("r", boxSize/2)
+                                .style("fill", "green")
+                                .style("fill-opacity", 0.3)
+                                .style("stroke", "green")
+                                .style("stroke-opacity", 0.7)
+                                .style("stroke-width", 2)
+                                .on("click", ()=>{
+                                    choiceGroups[varDefs[rowItem.varName].choiceGroup].chosen=rowItem.varName;
+                                    contextVar = null;
+                                    refreshTable({ force: true }, 250);
                                     });
-                                seln
-                                    .attr("transform", transformString(baseCellX, rowHeight-1));
-                                rectSeln
-                                    .on("mouseout", function(cellItem) {
-//console.log("out of callout");
-                                        scheduleEvent("probe", 200, ()=>{
-                                            refreshTable({}, 0);
-                                            chart.resetBinHighlight();
-                                            })
-                                        })
-                                    .on("mousemove", function(cellItem) {
-                                        if (!contextVar) return; // e.g., when context has been cancelled, and row is fading away
-                                        var x = d3.mouse(this)[0];            
-                                        scheduleEvent("probe", 0, function() {
-                                            var index = xStep === 0 ? 0 : Math.round((x-xStart)/xStep);
-                                            index = Math.max(0, Math.min(index, numVerts-1));
-                                            var contextIndex = vertices[index].contextIndex;
-                                            //chart.resetBinHighlight();
-                                            refreshTable({ focusVar: contextVar, focusIndex: contextIndex, dataFocusIndex: cellItem.dataIndex, calloutVar: cellItem.rowSpec.varName, calloutIndex: cellItem.dataIndex, binHighlight: null }, 0);
-                                            chart.highlightBinNumber(cellItem.dataIndex, contextIndex);
-                                            });
-                                        })
-                                    .on("click", function(cellItem) {
-                                        if (options.focusIndex) {
-                                            var vn = contextVar, index = options.focusIndex;
-                                            varDefs[vn].main = varDefs[vn].extra[index];
-                                            var newOptions = lively.lang.obj.clone(options);
-                                            newOptions.force = true;
-                                            scheduleEvent("probe", 0, ()=>{
-                                                refreshTable(newOptions, 250);
-                                                });
-                                        }
-                                        })
+                        }
+                    }
+                    });
+    
+            tableGroup.selectAll(".row").each(function(rowItem) {
+                var rowSeln = d3.select(this); // the g element for the row
+                var isHighlightContext = highlighting && rowItem.reason===contextVar+"extra";
+                var rowVar = rowItem.varName;
+                var isContextDef = !!rowItem.hasExtras, isActiveContextDef = isContextDef && rowVar===contextVar;
+    
+                // set up the row background
+                rowSeln.select("rect.rowBackground").style("fill", (rowItem.reason==="extraShadow" || isActiveContextDef) ? spreadBackground : (rowItem.reason==="main" ? "white" : "none"));
+                
+                defer(rowSeln, function(s) {
+                    s
+                        .attr("transform", transformString(xInset, yInset+rowHeight*rowItem.rowInDisplay))
+                        .style("opacity", 1)
+                    });
+    
+                if (rowItem.reason==="rule") return;
+    
+                var isInChoice = !!varDefs[rowVar].choiceGroup, isChosen = isInChoice && choiceGroups[varDefs[rowVar].choiceGroup].chosen===rowVar;
+    
+                // set appearance of the "extra values" toggle, if there is one
+                rowSeln.select("rect.extraToggle").style("fill-opacity", isActiveContextDef ? 1 : 0);
+                
+                // and the choices switch, if any
+                if (isInChoice) rowSeln.select("circle.choiceToggle").style("fill-opacity", isChosen ? 1 : 0);
+    
+                // the data item associated with each cellItem within a row has { rowSpec, x, width, text, anchor } and optionally { indexInGroup, dataIndex, mouseover, mouseout, click }.  and maybe some other gunk.
+                var rowCellGroups = [];
+                
+                // label column
+                if (rowItem.reason==="main") rowCellGroups.push({ category: "label", xOffset: edges[0], cells: [{ rowSpec: rowItem, text: rowVar, x: isInChoice ? boxGap : 0 }] });
+                
+                // expression columns
+                if (rowItem.expr !== "") {
+                    var cellGroup = [], groupObject = { category: "expr", cells: cellGroup, xOffset: edges[1] };
+                    if (rowItem.reason==="extraShadow") cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 32, fill: "green"}); // jan 2017: text is empty
+                    else if (!lively.lang.obj.isArray(rowItem.expr)) cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 0, styledText: rowItem.styledExpr});
+                    else {
+                        if (rowItem.hasExtras) {
+                            if (options.focusVar===rowVar) groupObject.focusIndex = groupObject.indexToHighlight = options.focusIndex;
+                            else {
+                                var varDef = varDefs[rowVar];
+                                groupObject.focusIndex = varDef.extra.indexOf(varDef.main);
+    if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",varDef);
                             }
-
-                            var vals = cellItem.values;
-                            if (vals.length===0) {
-                                seln.selectAll("*").remove();
-                            } else {
-                                var nonNulls = vals.filter(v=>v!==null);
-                                var vertices = [], labels = [];
-                                var yMid=topMargin+innerHeight*0.5;
-                                var isNumeric = nonNulls.some(v=>typeof v === "number");
-                                if (isNumeric) {
-                                    var ex = d3.extent(nonNulls), mid=(ex[0]+ex[1])/2;
-                                    function yForVal(val) { return yMid-innerHeight*(maxRange==0 ? 0 : (val-mid)/maxRange) }
-                                    vals.forEach(function(v, i) {
-                                        if (v!==null) vertices.push({ y: yForVal(v), contextIndex: i });
+                        }
+                        var entryWidth = 32, startOffset = rowItem.hasExtras ? boxGap : 0;
+                        lively.lang.obj.extend(groupObject, {
+                            isFishy: true,  // use distortion if needed
+                            fishWidth: edges[2]-edges[1]-startOffset-32,
+                            fishItemWidth: entryWidth
+                            });
+                        groupObject.xOffset += startOffset;
+                        rowItem.expr.forEach(function(e, i) {
+                            cellGroup.push({rowSpec: rowItem, indexInGroup: i, width: entryWidth, text: stringyValue(e, rowVar), x: i*entryWidth, anchor: "middle",
+                                // add handlers for probing alternative values from the "extra" list
+                                mouseover: function(cellItem) {
+                                    var vn = cellItem.rowSpec.varName, index = cellItem.indexInGroup;
+                                    scheduleEvent("probe", 0, ()=>{
+                                        refreshTable({ focusVar: vn, focusIndex: index }, 250);
+                                        chart.resetBinHighlight()
                                         });
-                                    if (isCallout) {
-                                        var nums = ex[0]==ex[1] ? [ex[0]] : ex;
-                                        labels = nums.map(n=>({ text: stringyValue(n, cellItem.rowSpec.varName), y: yForVal(n) }));
-                                        if (labels.length===2) {
-                                            var yGap = labels[0].y - labels[1].y;
-                                            if (yGap<10) {
-                                                var adj = (10-yGap)/2;
-                                                labels[0].y += adj;
-                                                labels[1].y -= adj;
-                                            }
-                                        }
-                                    }
-                                } else if (nonNulls.some(v=>typeof v === "boolean")) {
-                                    var yOffset=2;
-                                    vals.forEach(function(v, i) {
-                                        if (v!==null) vertices.push({ y: yMid+(v ? -yOffset : yOffset), contextIndex: i });
+                                },
+                                mouseout: function(cellItem) {
+                                    scheduleEvent("probe", 200, ()=>{
+                                        refreshTable({}, 250);
+                                        chart.resetBinHighlight()
                                         });
-                                } else if (nonNulls.some(v=>typeof v === "string")) {
-                                    var allStrings = lively.lang.arr.uniq(nonNulls);
-                                    allStrings.sort();
-                                    var ex = allStrings.length-1, yFactor=ex===0 ? 0 : Math.min(4, innerHeight/ex);
-                                    vals.forEach(function(v, i) {
-                                        if (v!==null) {
-                                            var si = allStrings.indexOf(v); // we assume tiny collections
-                                            vertices.push({ y: yMid+yFactor*(si-ex/2), contextIndex: i });
-                                        }
-                                        });
-                                } else if (nonNulls.some(v=>v.hasOwnProperty("collection") || lively.lang.obj.isArray(v))) {
-                                    var stringyVals = vals.map(arr=>arr===null ? null : JSON.stringify(arr.collection ? arr.collection : arr));
-                                    var uniqueStrings = lively.lang.arr.uniq(stringyVals);
-                                    var ex = uniqueStrings.length-1, yFactor=ex===0 ? 0 : Math.min(4, innerHeight/ex);
-                                    stringyVals.forEach(function(v, i) {
-                                        if (v!==null) {
-                                            var si = uniqueStrings.indexOf(v); // we assume tiny collections
-                                            vertices.push({ y: yMid-yFactor*(si-ex/2), contextIndex: i });
-                                        }
+                                },
+                                click: function(cellItem) {
+                                    var vn = cellItem.rowSpec.varName, index = cellItem.indexInGroup;
+                                    varDefs[vn].main = varDefs[vn].extra[index];
+                                    scheduleEvent("probe", 0, ()=>{
+                                        refreshTable({ focusVar: vn, focusIndex: index, force: true }, 250); // force refresh
+                                        chart.resetBinHighlight()
                                         });
                                 }
-                                var numVerts = vertices.length, xStep = numVerts <= 1 ? 0 : Math.min(innerWidth/(numVerts-1), 6*sizeFactor);
-                                var xStart = midX - (numVerts-1)*0.5*xStep; 
-                                vertices.forEach(function(vert, i) {
-                                    vert.x = xStart + i*xStep;
+                                });
+                            });
+                    }
+                    if (cellGroup.length) rowCellGroups.push(groupObject);
+                }
+    
+                // data columns
+                if (lively.lang.obj.isArray(rowItem.data)) {
+                    var entryWidth = 44;
+                    var cellGroup = [], groupObject = {
+                        category: "data",
+                        cells: cellGroup,
+                        xOffset: edges[2],
+                        isFishy: true,
+                        fishWidth: edges[3]-edges[2]-xInset,
+                        fishItemWidth: entryWidth,
+                        focusIndex: (options.dataFocusIndex) || 0,
+                        };
+                    if (options.isDragging && rowItem.data.length) {
+                        var n = rowItem.data.length;
+                        if (mainResult.offset != 0) n--; // we have an extra item, so n is one less
+                        var scale = d3.scaleLinear().domain([0, (n+1)*entryWidth]).range([entryWidth, groupObject.fishWidth-entryWidth]);
+                        groupObject.focusItemOffset = scale((groupObject.focusIndex+mainResult.offset)*entryWidth);
+                        groupObject.linearFocusOffset = (mainResult.offset+1)*entryWidth;
+                    }
+                    rowItem.data.forEach(function(e, i) {
+                        var text = lively.lang.obj.isArray(e)
+                            ? "{"+(e.length)+"}"
+                            : stringyValue(e, rowVar);
+                        var cellSpec = {
+                            rowSpec: rowItem, 
+                            text: text, 
+                            x: i*entryWidth, 
+                            width: entryWidth, 
+                            anchor: "middle", 
+                            dataIndex: i,
+                            indexInGroup: i,
+                            isContext: isHighlightContext
+                            };
+                        if (!isHighlightContext) {
+                            // for texty values, add mouseover behaviour (which will result in addition of an overlaid rect to do the detection)
+                            cellSpec.mouseover = function(cellItem) {
+                                scheduleEvent("probe", 0, ()=>{
+                                    refreshTable({ dataFocusIndex: cellItem.dataIndex, binHighlight: cellItem.dataIndex }, 0);
                                     });
-                                var animate = !(isCallout || options.hasOwnProperty("focusIndex"));
-                                if (isNumeric) {
-                                    var paths = seln.selectAll("path").data([vertices]);
-                                    paths.enter().append("path")
-                                        .attr("class", "spark")
-                                        .attr("d", d3.line().x(p=>p.x).y(p=>p.y))
-                                        .style("stroke", "green") // was highlighting ? "black" : "green"
-                                        .style("stroke-width", sizeFactor)
-                                        .style("fill", "none")
+                                };
+                            cellSpec.mouseout = function(cellItem) {
+                                scheduleEvent("probe", 200, ()=>{
+                                    refreshTable({ binHighlight: null }, 0);
+                                    });
+                                };
+                        }
+                        cellGroup.push(cellSpec);
+                        });
+                    if (cellGroup.length) rowCellGroups.push(groupObject);
+                } else {
+                    var startOffset = 12;
+                    var val = stringyValue(rowItem.data, rowVar);
+                    rowCellGroups.push({ category: "data", xOffset: edges[2]+startOffset, cells: [{ rowSpec: rowItem, text: val, x: 0, isContext: isHighlightContext }] });
+                }
+    
+                var cellGroups = rowSeln.selectAll(".cellGroup").data(rowCellGroups, rcg=>rcg.category);
+                cellGroups.exit().remove(); // if we ever count on this (rather than just destroying the entire row), it might need a bit of finesse
+                cellGroups.enter().append("g")
+                    .attr("class", "cellGroup")
+                  .merge(cellGroups)
+                    .attr("transform", groupObject => transformString(groupObject.xOffset,0))
+                    .each(function(groupObject) {
+                        var groupSeln = d3.select(this);
+                        var cellClass = groupObject.isFishy ? "fishItem" : "cellItem";
+    
+                        var cells = groupSeln.selectAll("."+cellClass).data(groupObject.cells, cellItem=>cellItem.indexInGroup);
+                        
+                        cells.exit()
+                            .attr("class", "defunctCell")
+                            .interrupt()
+                            .each(function(cellItem) {
+                                var seln = d3.select(this);
+                                seln.select("text").attr("class","defunctText")
+                                if (options.isDragging || cellItem.isContext) seln.remove(); // must be instant
+                                else defer(seln, function(s) {
+                                    s
+                                        .style("opacity", 1e-6)
+                                        .remove();
+                                    });
+                                });
+                                
+                        cells.enter().append("g")
+                            .attr("class", cellClass)
+                            .each(function(cellItem) {
+                                var seln = d3.select(this);
+                                if (cellItem.mouseover) {
+                                    seln.append("rect")
+                                        .attr("class", groupObject.category+"MouseTrap")
+                                        .attr("y", 1)
+                                        .attr("height", isContextDef ? rowHeight-4 : rowHeight)
+                                        .style("fill-opacity", groupObject.isFishy ? 1 : 0)
+                                        .style("stroke", "green") // should never be seen
+                                        .style("stroke-width", 1)
+                                        .style("stroke-opacity", 0)
+                                        .style("cursor", "pointer")
+                                        .on("mouseover", cellItem=>cellItem.mouseover(cellItem))
+                                        .on("mouseout", cellItem=>cellItem.mouseout(cellItem))
+                                        .on("click", cellItem=>{ if (cellItem.click) cellItem.click(cellItem); })
+                                }
+                                seln.append("text")
+                                    .attr("class", groupObject.category+"TextCell")
+                                    .style("fill", cellItem=>cellItem.fill || "black")
+                                    .style("font-size", (isHighlightContext ? fontHeight-4 : fontHeight)+"px")
+                                    .style("dominant-baseline", "hanging")
+                                    .style("text-anchor", cellItem.anchor || "start")
+                                    .style("opacity", groupObject.isFishy ? 0.2 : 1)
+                                    .style("pointer-events", "none")
+                                    .style("-webkit-user-select","none");
+                                });
+    
+                        if (groupObject.isFishy) chart.spaceBifocally(groupSeln, groupObject);
+    
+                        d3.select(this).selectAll("."+cellClass)
+                            .each(function(cellItem) { // @@ probably some efficiency improvements to be made here
+                                var seln = d3.select(this);
+                                if (!groupObject.isFishy) seln.attr("transform", transformString(cellItem.x, 0));
+                                
+                                var textSeln = seln.select("text");
+                                textSeln.attr("y", isHighlightContext ? 0 : 4); // now redundant?
+                                
+                                if (cellItem.styledText) {
+                                    var spans = textSeln.selectAll("tspan").data(cellItem.styledText);
+                                    spans.exit().remove();  // shouldn't happen
+                                    spans.enter().append("tspan")
+                                        .style("dominant-baseline", "hanging")
+                                      .merge(spans)
+                                        .style("font-style", d=>d.style)
+                                        .style("fill", d=>d.colour || "black")
+                                        .text(d=>d.text);
+                                } else {
+                                    var oldText = textSeln.text();
+                                    if (oldText !== cellItem.text) textSeln.call(showChange);
+                                    
+                                    textSeln.text(cellItem.text);
+                                }
+                                
+                                if (groupObject.isFishy) {
+                                    var trapSeln = seln.select("rect");
+                                    trapSeln
+                                        .style("fill", isActiveContextDef ? spreadBackground : "white");
+                                
+                                    // highlight (if groupObject wants it) by showing a border
+                                    if (groupObject.indexToHighlight === cellItem.indexInGroup) {
+                                        trapSeln
+                                            .style("stroke", isActiveContextDef ? "black" : "blue")
+                                            .style("stroke-opacity", 1);
+                                    } else trapSeln.style("stroke-opacity", 0);
+                                    
+                                    //var adjustedWidth = trapSeln.attr("width");
+                                    var lineLocs = cellItem.text==="" ? [true] : [];
+                                    var lines = seln.selectAll("line").data(lineLocs);
+                                    lines.exit().remove();
+                                    lines.enter().append("line")
+                                        .attr("y1", rowHeight/2)
+                                        .attr("y2", rowHeight/2)
+                                        .style("stroke", "grey")
+                                        .style("stroke-width", 1)
+                                      .merge(lines)
+                                        .attr("x1", -2)
+                                        .attr("x2", 2)
+                                }
+                                });
+                        });
+    
+                // @@ maybe want to merge this group into the general handling above
+                var maxRange = 0, probeFill = "#d8d8d8";
+                var pictureCellGroups = [];
+                if (rowItem.context) {
+                    var rowCells = [];
+                    // a context array is arranged by scenario, and if the values are arrays then these arrays might have different lengths.  we unpack them into an array by indices - each array having one value per scenario, with a null if the scenario doesn't have an entry at that index.
+                    var maxLen = d3.max(rowItem.context, val=>lively.lang.obj.isArray(val) ? val.length : 1), unpacked = [];
+                    for (var ai=0; ai<maxLen; ai++) {
+                        var oneArray = unpacked[ai] = [];
+                        rowItem.context.forEach(val=>{
+                            var v;
+                            if (lively.lang.obj.isArray(val)) {
+                                v = val.length > ai ? val[ai] : null
+                            } else {
+                                v = ai===0 ? val : null;
+                            }
+                            oneArray.push(v);
+                            });
+                    }
+                    var entryWidth = 44;
+                    unpacked.forEach(function(vals, i) {
+                        rowCells.push({
+                            rowSpec: rowItem,
+                            dataIndex: i,
+                            indexInGroup: i,
+                            x: i*entryWidth,
+                            width: entryWidth,
+                            values: vals,
+                            mouseover: function(cellItem) {
+    //console.log("over mousetrap "+cellItem.dataIndex)
+                                scheduleEvent("probe", 0, ()=>{
+                                    refreshTable({ dataFocusIndex: cellItem.dataIndex, calloutVar: cellItem.rowSpec.varName, calloutIndex: cellItem.dataIndex, binHighlight: cellItem.dataIndex }, 0);
+                                    //chart.highlightBinNumber(cellItem.dataIndex)
+                                    });
+                                },
+                            mouseout: function(cellItem) {
+    //console.log("out of "+cellItem.dataIndex)
+                                scheduleEvent("probe", 200, ()=>{
+                                    refreshTable({ binHighlight: null }, 0);
+                                    //chart.resetBinHighlight();
+                                    });
+                                }
+                            });
+                        if (vals.length && vals.some(v=>typeof v === "number")) {
+                            var ex = d3.extent(vals), range = ex[1]-ex[0];
+                            if (range>maxRange) maxRange=range;
+                        }
+                        });
+                    var groupObj = {
+                        cells: rowCells,
+                        xOffset: edges[2],
+                        isFishy: true,
+                        fishWidth: edges[3]-edges[2]-xInset,
+                        fishItemWidth: entryWidth,
+                        focusIndex: (options.dataFocusIndex) || 0,
+                        };
+                        
+                    if (rowItem.varName===options.calloutVar) {
+                        var calloutIndex = options.calloutIndex;
+                        groupObj.calloutItem = {
+                            isCallout: true,
+                            rowSpec: rowItem,
+                            dataIndex: calloutIndex,
+                            // x: calloutIndex*entryWidth,  never used
+                            width: entryWidth*2.5,
+                            values: unpacked[calloutIndex]
+                        };
+                    }
+                        
+                    pictureCellGroups.push(groupObj);
+                } 
+                var pcGroups = rowSeln.selectAll(".pictureCellGroup").data(pictureCellGroups);
+                pcGroups.exit().remove();
+                pcGroups.enter().append("g")
+                    .attr("class", "pictureCellGroup")
+                  .merge(pcGroups)
+                    .attr("transform", (groupObject) => transformString(groupObject.xOffset,0))
+                    .each(function(groupObject) {
+                        var groupSeln = d3.select(this);
+                        var cellClass = "fishItem";
+    
+                        var callouts = [];
+                        if (groupObject.calloutItem) callouts.push(groupObject.calloutItem);
+                        
+                        var pictureCells = groupSeln.selectAll("."+cellClass+",.callout").data(groupObject.cells.concat(callouts), cellItem=>cellItem.isCallout ? "callout" : cellItem.indexInGroup);
+    
+                        // now that fishiness is the norm, disappearing cells shouldn't clutter up the fish zone by taking time to fade out
+                        pictureCells.exit().remove();  // just go
+    
+                        pictureCells.enter().append("g")
+                            .attr("class", cellItem=>cellItem.isCallout ? "callout" : cellClass)
+                            .style("opacity", cellItem=>cellItem.isCallout ? 1 : 0) // will be brought up by spaceBifocally
+                            .append("rect")
+                                .attr("class", "pictureMouseTrap")
+                                .attr("x", cellItem=>-cellItem.width/2)
+                                .attr("y", 0)
+                                .attr("width", (cellItem) => cellItem.width)
+                                .attr("height", cellItem=>cellItem.isCallout ? rowHeight*3 : rowHeight)
+                                .style("stroke", "none")
+                                .style("fill", cellItem=>cellItem.isCallout ? probeFill : "none")
+                                .style("cursor", cellItem=>cellItem.isCallout ? "ew-resize": "pointer")
+                                .style("pointer-events", "all");
+                                
+                        chart.spaceBifocally(groupSeln, groupObject);
+                        
+                        // the spaceBifocally call will have set all fishItems' widths instantly; the positions of their enclosing g elements might be changing in a timed transition
+                        var trans = d3.transition().duration(300).ease(d3.easeLinear);
+                        var immediate = d3.transition().duration(0);
+                        groupSeln.selectAll("."+cellClass+",.callout")
+                            .each(function(cellItem, i, siblingItems) {
+                                var isCallout = cellItem.isCallout;
+                                var seln = d3.select(this), rectSeln = seln.select("rect");
+                                rectSeln.style("fill", cellItem.rowSpec.varName===options.calloutVar && cellItem.dataIndex===options.calloutIndex ? probeFill : "none");
+                                var sizeFactor = isCallout ? 2 : 1;
+                                var width = rectSeln.attr("width"),
+                                    height = rectSeln.attr("height"),
+                                    topMargin = isCallout ? 14 : 3,
+                                    bottomMargin = isCallout ? 10 : 3,
+                                    innerHeight = height-topMargin-bottomMargin,
+                                    leftMargin = isCallout ? 24 : 5,
+                                    rightMargin = isCallout ? 16 : 5,
+                                    innerWidth = Math.max(1, width-leftMargin-rightMargin),
+                                    midX = (leftMargin-rightMargin)/2;
+    
+                                // a callout "cell" takes care of its own positioning, and has special mousemove behaviour
+                                if (isCallout) {
+                                    var baseCellX = 0;
+                                    d3.selectAll(siblingItems).each(function(sibling) {
+                                        if (sibling.dataIndex===cellItem.dataIndex && d3.select(this).attr("class")==="fishItem") {
+                                            // extracting (in this case) the x translation from the transform http://stackoverflow.com/questions/38224875/replacing-d3-transform-in-d3-v4
+                                            baseCellX = this.transform.baseVal[0].matrix.e; }
+                                        });
+                                    seln
+                                        .attr("transform", transformString(baseCellX, rowHeight-1));
+                                    rectSeln
+                                        .on("mouseout", function(cellItem) {
+    //console.log("out of callout");
+                                            scheduleEvent("probe", 200, ()=>{
+                                                refreshTable({}, 0);
+                                                chart.resetBinHighlight();
+                                                })
+                                            })
+                                        .on("mousemove", function(cellItem) {
+                                            if (!contextVar) return; // e.g., when context has been cancelled, and row is fading away
+                                            var x = d3.mouse(this)[0];            
+                                            scheduleEvent("probe", 0, function() {
+                                                var index = xStep === 0 ? 0 : Math.round((x-xStart)/xStep);
+                                                index = Math.max(0, Math.min(index, numVerts-1));
+                                                var contextIndex = vertices[index].contextIndex;
+                                                //chart.resetBinHighlight();
+                                                refreshTable({ focusVar: contextVar, focusIndex: contextIndex, dataFocusIndex: cellItem.dataIndex, calloutVar: cellItem.rowSpec.varName, calloutIndex: cellItem.dataIndex, binHighlight: null }, 0);
+                                                chart.highlightBinNumber(cellItem.dataIndex, contextIndex);
+                                                });
+                                            })
+                                        .on("click", function(cellItem) {
+                                            if (options.focusIndex) {
+                                                var vn = contextVar, index = options.focusIndex;
+                                                varDefs[vn].main = varDefs[vn].extra[index];
+                                                var newOptions = lively.lang.obj.clone(options);
+                                                newOptions.force = true;
+                                                scheduleEvent("probe", 0, ()=>{
+                                                    refreshTable(newOptions, 250);
+                                                    });
+                                            }
+                                            })
+                                }
+    
+                                var vals = cellItem.values;
+                                if (vals.length===0) {
+                                    seln.selectAll("*").remove();
+                                } else {
+                                    var nonNulls = vals.filter(v=>v!==null);
+                                    var vertices = [], labels = [];
+                                    var yMid=topMargin+innerHeight*0.5;
+                                    var isNumeric = nonNulls.some(v=>typeof v === "number");
+                                    if (isNumeric) {
+                                        var ex = d3.extent(nonNulls), mid=(ex[0]+ex[1])/2;
+                                        function yForVal(val) { return yMid-innerHeight*(maxRange==0 ? 0 : (val-mid)/maxRange) }
+                                        vals.forEach(function(v, i) {
+                                            if (v!==null) vertices.push({ y: yForVal(v), contextIndex: i });
+                                            });
+                                        if (isCallout) {
+                                            var nums = ex[0]==ex[1] ? [ex[0]] : ex;
+                                            labels = nums.map(n=>({ text: stringyValue(n, cellItem.rowSpec.varName), y: yForVal(n) }));
+                                            if (labels.length===2) {
+                                                var yGap = labels[0].y - labels[1].y;
+                                                if (yGap<10) {
+                                                    var adj = (10-yGap)/2;
+                                                    labels[0].y += adj;
+                                                    labels[1].y -= adj;
+                                                }
+                                            }
+                                        }
+                                    } else if (nonNulls.some(v=>typeof v === "boolean")) {
+                                        var yOffset=2;
+                                        vals.forEach(function(v, i) {
+                                            if (v!==null) vertices.push({ y: yMid+(v ? -yOffset : yOffset), contextIndex: i });
+                                            });
+                                    } else if (nonNulls.some(v=>typeof v === "string")) {
+                                        var allStrings = lively.lang.arr.uniq(nonNulls);
+                                        allStrings.sort();
+                                        var ex = allStrings.length-1, yFactor=ex===0 ? 0 : Math.min(4, innerHeight/ex);
+                                        vals.forEach(function(v, i) {
+                                            if (v!==null) {
+                                                var si = allStrings.indexOf(v); // we assume tiny collections
+                                                vertices.push({ y: yMid+yFactor*(si-ex/2), contextIndex: i });
+                                            }
+                                            });
+                                    } else if (nonNulls.some(v=>v.hasOwnProperty("collection") || lively.lang.obj.isArray(v))) {
+                                        var stringyVals = vals.map(arr=>arr===null ? null : JSON.stringify(arr.collection ? arr.collection : arr));
+                                        var uniqueStrings = lively.lang.arr.uniq(stringyVals);
+                                        var ex = uniqueStrings.length-1, yFactor=ex===0 ? 0 : Math.min(4, innerHeight/ex);
+                                        stringyVals.forEach(function(v, i) {
+                                            if (v!==null) {
+                                                var si = uniqueStrings.indexOf(v); // we assume tiny collections
+                                                vertices.push({ y: yMid-yFactor*(si-ex/2), contextIndex: i });
+                                            }
+                                            });
+                                    }
+                                    var numVerts = vertices.length, xStep = numVerts <= 1 ? 0 : Math.min(innerWidth/(numVerts-1), 6*sizeFactor);
+                                    var xStart = midX - (numVerts-1)*0.5*xStep; 
+                                    vertices.forEach(function(vert, i) {
+                                        vert.x = xStart + i*xStep;
+                                        });
+                                    var animate = !(isCallout || options.hasOwnProperty("focusIndex"));
+                                    if (isNumeric) {
+                                        var paths = seln.selectAll("path").data([vertices]);
+                                        paths.enter().append("path")
+                                            .attr("class", "spark")
+                                            .attr("d", d3.line().x(p=>p.x).y(p=>p.y))
+                                            .style("stroke", "green") // was highlighting ? "black" : "green"
+                                            .style("stroke-width", sizeFactor)
+                                            .style("fill", "none")
+                                            .style("pointer-events", "none")
+                                          .merge(paths)
+                                            .interrupt()
+                                            .transition(animate ? trans : immediate)
+                                            .attr("d", d3.line().x(p=>p.x).y(p=>p.y));
+                                    } else seln.selectAll("path").remove();
+                                    
+                                    var dots = isNumeric ? [] : vertices.map(vert=>({ point: vert, reason: "base" }));
+                                    var highlightVertex = highlighting && vertices.find(vert=>vert.contextIndex===highlightIndex);;
+                                    if (highlightVertex) dots.push({point: highlightVertex, reason: "highlight"});
+                                    var primaryVertex = vertices.find(vert=>vert.contextIndex===primaryIndex);
+                                    if (primaryVertex) dots.push({point: primaryVertex, reason: "primary"});
+                                    
+                                    var readouts = (isCallout && options.hasOwnProperty("focusIndex")) ? [stringyValue(vals[options.focusIndex], rowVar)] : [];
+                                    var texts = seln.selectAll("text.readout").data(readouts);
+                                    texts.exit().remove();
+                                    texts.enter().append("text")
+                                      .merge(texts)
+                                        .attr("class", "readout")
+                                        .attr("x", 0)
+                                        .attr("y", 2)
+                                        .style("fill", d3.hcl(73,100,75).darker(0.5))
+                                        .style("font-size", (fontHeight)+"px")
+                                        .style("font-weight", "bold")
+                                        .style("dominant-baseline", "hanging")
+                                        .style("text-anchor", "middle")
                                         .style("pointer-events", "none")
-                                      .merge(paths)
+                                        .style('-webkit-user-select','none')
+                                        .text(String);
+    
+                                    var texts = seln.selectAll("text.sparkLabel").data(labels);
+                                    texts.exit().remove();
+                                    texts.enter().append("text")
+                                      .merge(texts)
+                                        .attr("class", "sparkLabel")
+                                        .attr("x", 4-width/2)
+                                        .attr("y", label=>label.y)
+                                        .style("font-size", (fontHeight-4)+"px")
+                                        .style("dominant-baseline", "middle")
+                                        .style("pointer-events", "none")
+                                        .style('-webkit-user-select','none')
+                                        .text(label=>label.text);
+    
+                                    var circles = seln.selectAll("circle").data(dots);
+                                    circles.exit().remove();
+                                    circles.enter().append("circle")
+                                        .attr("cx", dotItem=>dotItem.point.x)
+                                        .attr("cy", dotItem=>dotItem.point.y)
+                                      .merge(circles)
+                                        .attr("r", dotItem=>dotItem.reason==="base" ? sizeFactor : 1.5*sizeFactor)
+                                        .style("fill", dotItem=>dotItem.reason==="highlight" ? "black" : (dotItem.reason==="primary" ? "blue" : "green"))
+                                        .style("stroke-width", 0)
+                                        .style("pointer-events", "none")
                                         .interrupt()
                                         .transition(animate ? trans : immediate)
-                                        .attr("d", d3.line().x(p=>p.x).y(p=>p.y));
-                                } else seln.selectAll("path").remove();
-                                
-                                var dots = isNumeric ? [] : vertices.map(vert=>({ point: vert, reason: "base" }));
-                                var highlightVertex = highlighting && vertices.find(vert=>vert.contextIndex===highlightIndex);;
-                                if (highlightVertex) dots.push({point: highlightVertex, reason: "highlight"});
-                                var primaryVertex = vertices.find(vert=>vert.contextIndex===primaryIndex);
-                                if (primaryVertex) dots.push({point: primaryVertex, reason: "primary"});
-                                
-                                var readouts = (isCallout && options.hasOwnProperty("focusIndex")) ? [stringyValue(vals[options.focusIndex], rowVar)] : [];
-                                var texts = seln.selectAll("text.readout").data(readouts);
-                                texts.exit().remove();
-                                texts.enter().append("text")
-                                  .merge(texts)
-                                    .attr("class", "readout")
-                                    .attr("x", 0)
-                                    .attr("y", 2)
-                                    .style("fill", d3.hcl(73,100,75).darker(0.5))
-                                    .style("font-size", (fontHeight)+"px")
-                                    .style("font-weight", "bold")
-                                    .style("dominant-baseline", "hanging")
-                                    .style("text-anchor", "middle")
-                                    .style("pointer-events", "none")
-                                    .style('-webkit-user-select','none')
-                                    .text(String);
-
-                                var texts = seln.selectAll("text.sparkLabel").data(labels);
-                                texts.exit().remove();
-                                texts.enter().append("text")
-                                  .merge(texts)
-                                    .attr("class", "sparkLabel")
-                                    .attr("x", 4-width/2)
-                                    .attr("y", label=>label.y)
-                                    .style("font-size", (fontHeight-4)+"px")
-                                    .style("dominant-baseline", "middle")
-                                    .style("pointer-events", "none")
-                                    .style('-webkit-user-select','none')
-                                    .text(label=>label.text);
-
-                                var circles = seln.selectAll("circle").data(dots);
-                                circles.exit().remove();
-                                circles.enter().append("circle")
-                                    .attr("cx", dotItem=>dotItem.point.x)
-                                    .attr("cy", dotItem=>dotItem.point.y)
-                                  .merge(circles)
-                                    .attr("r", dotItem=>dotItem.reason==="base" ? sizeFactor : 1.5*sizeFactor)
-                                    .style("fill", dotItem=>dotItem.reason==="highlight" ? "black" : (dotItem.reason==="primary" ? "blue" : "green"))
-                                    .style("stroke-width", 0)
-                                    .style("pointer-events", "none")
-                                    .interrupt()
-                                    .transition(animate ? trans : immediate)
-                                    .attr("cx", dotItem=>dotItem.point.x)
-                                    .attr("cy", dotItem=>dotItem.point.y);
-
-                            }
-                            });
+                                        .attr("cx", dotItem=>dotItem.point.x)
+                                        .attr("cy", dotItem=>dotItem.point.y);
+    
+                                }
+                                });
+                    });
+    
                 });
 
-            });
-        
+            // somewhat-hack: if there's a cell callout, bring its parent row to the top of all row groups
+            tableGroup.select(".callout").each(function(cellItem) {
+                var node = this, seln, elemClass;
+                while (node=node.parentNode,
+                        (elemClass=(seln=d3.select(node)).attr("class")) !=="row"
+                            && elemClass !== "defunctRow"
+                        ) {}
+                if (elemClass!=="defunctRow") seln.raise();
+                });
+        }
+
         if (options.hasOwnProperty("binHighlight")) {
             if (options.binHighlight===null) chart.resetBinHighlight();
             else chart.highlightBinNumber(options.binHighlight);
         }
         
-        // somewhat-hack: if there's a cell callout, bring its parent row to the top of all row groups
-        tableGroup.select(".callout").each(function(cellItem) {
-            var node = this, seln, elemClass;
-            while (node=node.parentNode,
-                    (elemClass=(seln=d3.select(node)).attr("class")) !=="row"
-                        && elemClass !== "defunctRow"
-                    ) {}
-            if (elemClass!=="defunctRow") seln.raise();
-            });
-
         runDeferred(duration || 0);
     }
     this.refreshTable = refreshTable;
@@ -1213,15 +1215,25 @@ if (groupObject.focusIndex==-1) console.log("can't find focus value in def:",var
     	group.selectAll("rect.context").style("opacity", chart.contextOpacity);
     }
     
-    this.drawTriangleControl(lively.pt(-100,0), lively.lang.fun.throttle(opacityHandler, 100));
-    if (tableOptions.noDensity!==true) {
-        this.drawDensityControl(lively.pt(480, 25), ()=>refreshTable({}, 250));
+    if (tableOptions.noTriangle!==true) this.drawTriangleControl(lively.pt(-100,0), lively.lang.fun.throttle(opacityHandler, 100));
+    if (tableOptions.noDensity!==true) this.drawDensityControl(lively.pt(480, tableOptions.noVisibleTable ? 45 : 25), ()=>refreshTable({}, 250));
+    if (tableOptions.widthControl) {
+        var widthValues = varDefs.width.extra; // array of stringy expressions
+        var valueIndex = widthValues.indexOf(varDefs.width.main);
+        this.drawBinWidthControl(lively.pt(190, 33), direction=>{
+            var desiredIndex = valueIndex + direction;
+            if (desiredIndex < 0 || desiredIndex >= widthValues.length) return;
+            valueIndex = desiredIndex;
+            varDefs.width.main = widthValues[valueIndex];
+            refreshTable({ force: true }, 0);
+            });
+    }
+    if (tableOptions.sweepControl) {
+        this.drawSweepControl(lively.pt(0, 45), ()=>toggleContextSpec("offset"));
     }
     
-//this.drawBalls(data);  now assumed to have been handled earlier
-//this.drawPins(data);  nah
+    
     refreshTable({ force: true, binHighlight: null }, 0);  // force refresh
-
 };
 
 chartObject.computeG=function computeG(nBins) {
@@ -1530,6 +1542,49 @@ chartObject.drawBins=function drawBins(useDensity, rangeMax, primaryBins, contex
 	    tickDefs.push({ x: legendX, y: -heightScale(v), dx: tickLength, dy: 0 });
 	    });
     this.drawBinAnnotations(histGroup, { x: legendX, y: 0 }, heightScale(lastValue), tickDefs, labelDefs, true);  // instant
+};
+
+chartObject.drawBinWidthControl=function drawBinWidthControl(offset, handler) {
+    // goes into histGroup
+    var chart=this;
+
+    var histGroupOrigin = this.histOrigin;
+    
+    var switchSize = 36, switchColour = "#444";  // dark grey
+
+    this.histGroup
+        .append("rect")
+        .attr("class", "switch")
+        .attr("x", offset.x)
+        .attr("y", offset.y)
+        .attr("width", switchSize)
+        .attr("height", switchSize)
+        .style("border-width", 1)
+        .style("stroke", switchColour)
+        .style("fill", "none")
+        .style("pointer-events", "all")
+        //.each(function() { showState(this) })
+        .on("mousewheel", ()=>{
+            d3.event.preventDefault();  // every time
+            throttledHandleWheel(d3.event);  // only now and again
+            });
+
+    function handleWheel(evt) {
+        var direction = evt.wheelDelta > 0 ? 1 : -1;
+        handler(direction);
+    }
+    var throttledHandleWheel = lively.lang.fun.throttle(handleWheel, 150);
+        
+	this.histGroup
+	    .append("text")
+		.attr("class", "switchLabel")
+		.attr("x", offset.x+switchSize+8)
+		.attr("y", offset.y+switchSize/2)
+		.style("font-size", "14px")
+		.style("dominant-baseline", "middle")
+        .style("-webkit-user-select","none")
+        .style("fill", switchColour)
+        .text("change widths (scroll inside box)")        
 };
 
 chartObject.drawBreakValues=function drawBreakValues(options) {
@@ -2040,7 +2095,7 @@ chartObject.drawDataName=function drawDataName() {
 
     var fontSize = 22;
     var plotOrigin = this.plotOrigin;
-    var listHeight = this.valueListHeight, valueListX = plotOrigin.x+this.valueListOrigin.x, valueListTop = plotOrigin.y+this.valueListOrigin.y, labelCentre = valueListX/2, labelY = valueListTop-20;
+    var listHeight = this.valueListHeight, valueListX = plotOrigin.x+this.valueListOrigin.x, valueListTop = plotOrigin.y+this.valueListOrigin.y, labelCentre = this.visMaxExtent.x/2, labelY = valueListTop-20;
 
     chart.chartGroup.selectAll("text.dataname").remove();
     chart.chartGroup.append("text")
@@ -2060,7 +2115,7 @@ chartObject.drawDataSwitch=function drawDataSwitch() {
     var chart=this;
 
     // draw in data group (i.e., relative to plotOrigin)
-    var stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance, switchY = binBase + 80, centreX = this.numberLineWidth/2, itemWidth = 150, itemSep = 20, fontSize = 16, buttonHeight = fontSize+4;
+    var stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance, switchY = binBase + 80, centreX = this.numberLineWidth/2, itemWidth = 150, itemSep = 20, fontSize = 16, buttonHeight = fontSize+8;
 
     function transformString(x, y) { return "translate("+x+", "+y+")" }
 
@@ -2081,7 +2136,7 @@ chartObject.drawDataSwitch=function drawDataSwitch() {
                 .attr("y", -buttonHeight/2)
                 .attr("width", itemWidth)
                 .attr("height", buttonHeight)
-                .style("fill", "lightgrey")
+                .style("fill", "#e6830f")
                 .style("fill-opacity", 0.2)
                 .style("stroke", "green")
                 .style("stroke-width", 1)
@@ -2314,6 +2369,49 @@ chartObject.drawRDefaultBinning=function drawRDefaultBinning(options) {
     }
 
     this.dropBallsIntoBins(valueSetDefs, options);
+};
+
+chartObject.drawSweepControl=function drawSweepControl(offset, handler) {
+    // goes into histGroup
+    var chart=this;
+
+    var histGroupOrigin = this.histOrigin;
+    
+    var switchSize = 12, switchColour = "#444";  // dark grey
+
+    var sweepActive = false;
+
+    this.histGroup
+        .append("rect")
+        .attr("class", "switch")
+        .attr("x", offset.x)
+        .attr("y", offset.y)
+        .attr("width", switchSize)
+        .attr("height", switchSize)
+        .style("border-width", 1)
+        .style("stroke", switchColour)
+        .style("fill", switchColour)
+        .each(function() { showState(this) })
+        .on("click", function(d) {
+            sweepActive = !sweepActive;
+            showState(this);
+            handler(sweepActive);
+        });
+    
+    function showState(node) {
+        d3.select(node).style("fill-opacity", sweepActive ? 1 : 0)
+    }
+
+	this.histGroup
+	    .append("text")
+		.attr("class", "switchLabel")
+		.attr("x", offset.x+switchSize+8)
+		.attr("y", offset.y+switchSize/2)
+		.style("font-size", "14px")
+		.style("dominant-baseline", "middle")
+        .style("-webkit-user-select","none")
+        .style("fill", switchColour)
+        .text("sweep bin offsets")        
 };
 
 chartObject.drawTriangleControl=function drawTriangleControl(offset, handler) {
@@ -3305,202 +3403,9 @@ chartObject.init=function init(options) {
     this.loadData(options.dataset, ()=>this.buildTable(options.definitions, tableOptions));
 };
 
-chartObject.initChartSubgroups=function initChartSubgroups() {
-
-    this.stopTimer();
-    this.chartGroup.selectAll("*").remove();
-
-    var plotOrigin = this.plotOrigin = lively.pt(185, 525);
-    var commandListOrigin = this.commandListOrigin = lively.pt(50, 20);
-    
-    // once we've presented the code table
-    var tableOrigin = this.tableOrigin = lively.pt(20, 330);
-    var dataOrigin = this.dataOrigin = lively.pt(270, 150);
-    var histOrigin = this.histOrigin = lively.pt(270, 300);
-
-    this.numberLineWidth = 550;  // between dataMin and dataMax
-    this.fallAfterFlight = 115;  // bottom of flight arcs to number line
-    this.fallIntoBins = 110;     // number line to histogram base line
-
-    // definition of valueListOrigin is relative to plotOrigin
-    var valueListHeight = this.valueListHeight = 310, valueListBottomGap = 60;
-    this.valueListOrigin = lively.pt(620, -valueListHeight-valueListBottomGap-this.fallAfterFlight);
-    this.valueListFontSize = 12;
-    this.valueListEntryHeight = 15;
-    
-    var binFill = d3.color("blue");
-    binFill.opacity = 0.5;
-    this.restingBinFill = binFill.toString();
-    this.contextBinFill = d3.color("darkgreen");
-
-    function transformString(x, y) { return "translate("+x+", "+y+")" }
-
-    // the order of these will become significant if their glyphs start to overlap
-    this.commandGroup = this.chartGroup.append('g')
-		.attr("transform", transformString(commandListOrigin.x, commandListOrigin.y));
-
-	this.demoGroup = this.chartGroup.append('g')
-		.attr("transform", transformString(plotOrigin.x, plotOrigin.y));
-
-	this.histGroup = this.chartGroup.append('g')
-		.attr("transform", transformString(histOrigin.x, histOrigin.y));
-	
-	// data balls along number line.  starts at plotOrigin; later gets shifted to dataOrigin
-	this.dataGroup = this.chartGroup.append('g')
-		.attr("transform", transformString(plotOrigin.x, plotOrigin.y));
-    this.resetDataGroup = function() { this.dataGroup.attr("transform",  transformString(plotOrigin.x, plotOrigin.y)) }
-
-    this.rangeGroup = this.chartGroup.append('g')
-		.attr("transform", transformString(dataOrigin.x, dataOrigin.y));
-
-    this.tableGroup = this.chartGroup.append('g')
-		.attr("transform", transformString(tableOrigin.x, tableOrigin.y));
-		
-    this.clearScenarioZone = function() {
-        this.chartGroup.selectAll("rect.scenariozone,rect.demoScenarioMousetrap,g.groupclone").remove();
-        this.scenarioRecords = [];
-        }
-
-};
-
-chartObject.initChartSubstrates=function initChartSubstrates(divSeln, extent) {
-
-    var width = extent.x, height = extent.y;
-
-    function transformString(x, y) { return "translate("+x+", "+y+")" }
-
-    this.chartSVG = divSeln.append("svg")
-        .attr("tabindex", -1)
-        .style("background-color", "rgb(255,255,255)")
-        .attr("width", width)
-        .attr("height", extent.y)
-        .attr("viewBox", "0 0 "+extent.x+" "+extent.y);
-
-    this.chartGroup = this.chartSVG.append('g')
-        .attr("transform", transformString(0,0));
-
-    this.chartFixedCanvas = divSeln.append("canvas");
-    var context = this.chartFixedCanvas.node().getContext("2d");
-    
-/*
-    // instructions from https://www.html5rocks.com/en/tutorials/canvas/hidpi/
-    // ...which we now ignore.  see the css instead.
-    var devicePixelRatio = window.devicePixelRatio || 1,
-        backingStoreRatio = context.webkitBackingStorePixelRatio ||
-                            context.mozBackingStorePixelRatio ||
-                            context.msBackingStorePixelRatio ||
-                            context.oBackingStorePixelRatio ||
-                            context.backingStorePixelRatio || 1,
-        ratio = devicePixelRatio / backingStoreRatio;
-*/
-    var ratio = 1;  // just deal with it.
-
-    this.chartFixedCanvas
-        .attr("class", "fixed")
-        .attr("width", width*ratio)
-        .attr("height", height*ratio)
-        .style("position", "absolute")
-        .style("left", "0px")
-        .style("top", "0px")
-        //.style("width", width+"px")
-        //.style("height", height+"px")
-        .style("pointer-events", "none");
-    context.scale(ratio, ratio);
-
-    this.chartCanvas = divSeln.append("canvas")
-        .attr("class", "ephemeral")
-        .attr("width", width*ratio)
-        .attr("height", height*ratio)
-        .style("position", "absolute")
-        .style("left", "0px")
-        .style("top", "0px")
-        //.style("width", width+"px")
-        //.style("height", height+"px")
-        .style("pointer-events", "none");
-    this.chartCanvas.node().getContext("2d").scale(ratio, ratio);
-
-    function clearCanvas(canvSeln) {
-        var canvas = canvSeln.node(), context = canvas.getContext("2d");
-        context.clearRect(0, 0, width, height);  // whatever the canvas's scale
-    }
-    this.clearEphemeralCanvas = function() { clearCanvas(this.chartCanvas) }
-    this.clearFixedCanvas = function() { clearCanvas(this.chartFixedCanvas) }
-
-    this.clearMousetraps = function(trapNames) {
-        trapNames.forEach(name=>this.chartGroup.selectAll("."+name+"Mousetrap").remove())
-        }
-
-    this.initChartSubgroups();
-
-};
-
-chartObject.initHistogramArea=function initHistogramArea(options) {
-    // (plus lots of other highlighting experiments in unusedBinDiffHighlightFns)
-    var chart=this;
-    var instant = !!(options && options.instant);
+chartObject.initBinBehaviour=function initBinBehaviour() {
+    var chart = this;
     var binsAreDraggable = chart.binsAreDraggable;
-
-    chart.clearDataRanges = function() { chart.rangeGroup.selectAll("text.binEnd").remove() }
-    chart.clearDataBalls = function() { chart.dataGroup.selectAll("circle.ball").remove() }
-
-    chart.clearDataRanges();
-    chart.clearDataBalls();
-
-    this.stripeOffset = 0; // @@ striping not actually used at the moment
-
-    function transformString(x, y) { return "translate("+x+", "+y+")" }
-    var colourScale = this.colourScale;
-
-    // see if the dataGroup needs to be shifted
-    var dataGroup = this.dataGroup, dataGroupNode = dataGroup.node(), dataOrigin = this.dataOrigin, desiredLoc = dataOrigin;
-    // NB: this code assumes we're using the same transformString format everywhere
-    var oldTrans = dataGroup.attr("transform"), newTrans = transformString(desiredLoc.x, desiredLoc.y);
-    if (oldTrans===newTrans) instant = true; // @@ even if caller didn't think so
-    var eezer = d3.easeQuadInOut, interpolator = d3.interpolateTransformSvg(oldTrans, newTrans), easedTransform = t=>interpolator(eezer(t));
-
-    var tableGroup = this.tableGroup;
-    tableGroup.style("opacity", 1e-6);
-
-    var histGroup = this.histGroup;
-    histGroup.style("opacity", 1e-6);
-
-    this.drawNumberLine();  // make sure it's there
-    this.drawBalls(this.data);
-    var newBalls = dataGroup.selectAll("circle.ball");
-    newBalls.style("opacity", 1e-6);
-    
-    var oldBalls = dataGroup.selectAll("circle.settled,circle.dropped");
-    oldBalls.style("fill", def=>colourScale(def.value, 1));
-
-    var moveTime = 1500, fadeTime = 2000, totalTime = moveTime+fadeTime;
-    if (instant) {
-        drawForElapsedTime(totalTime);
-    } else {
-        this.startTimer({
-            tick: elapsed=>{
-                drawForElapsedTime(elapsed);
-                if (elapsed >= totalTime) {
-                    chart.stopTimer(false);
-//console.log("finished");
-                }
-                },
-            forceToEnd: ()=>drawForElapsedTime(totalTime)
-            })
-    }
-
-    function drawForElapsedTime(elapsed) {
-        // update transform even after moveTime, because we might only be called once
-        var moveRatio = Math.min(1, elapsed/moveTime);
-        dataGroup.attr("transform", easedTransform(moveRatio));
-
-        if (elapsed > moveTime) {
-            var fadeRatio = Math.min(1, (elapsed-moveTime)/fadeTime);
-            tableGroup.style("opacity", fadeRatio);
-            newBalls.style("opacity", fadeRatio);
-            histGroup.style("opacity", fadeRatio);
-            oldBalls.style("opacity", 1-fadeRatio);
-        }
-    }
 
     this.histGroup.selectAll("*").remove();
 
@@ -3779,6 +3684,253 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
         
     }
     
+};
+
+chartObject.initChartSubgroups=function initChartSubgroups() {
+
+    this.stopTimer();
+    this.chartGroup.selectAll("*").remove();
+
+    var plotOrigin = this.plotOrigin = lively.pt(185, 525);
+    var commandListOrigin = this.commandListOrigin = lively.pt(50, 15);
+    
+    this.numberLineWidth = 550;  // between dataMin and dataMax
+    this.fallAfterFlight = 115;  // bottom of flight arcs to number line
+    this.fallIntoBins = 110;     // number line to histogram base line
+
+    // definition of valueListOrigin is relative to plotOrigin
+    var valueListHeight = this.valueListHeight = 310, valueListBottomGap = 60;
+    this.valueListOrigin = lively.pt(620, -valueListHeight-valueListBottomGap-this.fallAfterFlight);
+    this.valueListFontSize = 12;
+    this.valueListEntryHeight = 15;
+    
+    // once we've presented the code table
+    var tableOrigin = this.tableOrigin = lively.pt(10, 330);
+    var dataOrigin = this.dataOrigin = lively.pt(270, 150);
+    var histOrigin = this.histOrigin = lively.pt(270, 300);
+
+    var binFill = d3.color("blue");
+    binFill.opacity = 0.8;
+    this.restingBinFill = binFill.toString();
+    this.contextBinFill = d3.color("darkgreen");
+    
+    // final stages - no table
+    this.nakedHistOrigin = lively.pt(200, 400);
+
+    function transformString(x, y) { return "translate("+x+", "+y+")" }
+
+    // the order of these will become significant if their glyphs start to overlap
+    this.commandGroup = this.chartGroup.append('g')
+		.attr("transform", transformString(commandListOrigin.x, commandListOrigin.y));
+
+	this.demoGroup = this.chartGroup.append('g')
+		.attr("transform", transformString(plotOrigin.x, plotOrigin.y));
+
+	this.histGroup = this.chartGroup.append('g')
+		.attr("transform", transformString(histOrigin.x, histOrigin.y));
+	
+	// data balls along number line.  starts at plotOrigin; later gets shifted to dataOrigin
+	this.dataGroup = this.chartGroup.append('g')
+		.attr("transform", transformString(plotOrigin.x, plotOrigin.y));
+    this.resetDataGroup = function() { this.dataGroup.attr("transform",  transformString(plotOrigin.x, plotOrigin.y)) }
+
+    this.rangeGroup = this.chartGroup.append('g')
+		.attr("transform", transformString(dataOrigin.x, dataOrigin.y));
+
+    this.tableGroup = this.chartGroup.append('g')
+		.attr("transform", transformString(tableOrigin.x, tableOrigin.y));
+		
+    this.clearScenarioZone = function() {
+        this.chartGroup.selectAll("rect.scenariozone,rect.demoScenarioMousetrap,g.groupclone").remove();
+        this.scenarioRecords = [];
+        }
+
+};
+
+chartObject.initChartSubstrates=function initChartSubstrates(divSeln, extent) {
+
+    var width = extent.x, height = extent.y;
+
+    function transformString(x, y) { return "translate("+x+", "+y+")" }
+
+    this.chartSVG = divSeln.append("svg")
+        .attr("tabindex", -1)
+        .style("background-color", "rgb(255,248,230)")
+        .attr("width", width)
+        .attr("height", extent.y)
+        .attr("viewBox", "0 0 "+extent.x+" "+extent.y);
+
+    this.chartGroup = this.chartSVG.append('g')
+        .attr("transform", transformString(0,0));
+
+    this.chartFixedCanvas = divSeln.append("canvas");
+    var context = this.chartFixedCanvas.node().getContext("2d");
+    
+/*
+    // instructions from https://www.html5rocks.com/en/tutorials/canvas/hidpi/
+    // ...which we now ignore.  see the css instead.
+    var devicePixelRatio = window.devicePixelRatio || 1,
+        backingStoreRatio = context.webkitBackingStorePixelRatio ||
+                            context.mozBackingStorePixelRatio ||
+                            context.msBackingStorePixelRatio ||
+                            context.oBackingStorePixelRatio ||
+                            context.backingStorePixelRatio || 1,
+        ratio = devicePixelRatio / backingStoreRatio;
+*/
+    var ratio = 1;  // just deal with it.
+
+    this.chartFixedCanvas
+        .attr("class", "fixed")
+        .attr("width", width*ratio)
+        .attr("height", height*ratio)
+        .style("position", "absolute")
+        .style("left", "0px")
+        .style("top", "0px")
+        //.style("width", width+"px")
+        //.style("height", height+"px")
+        .style("pointer-events", "none");
+    context.scale(ratio, ratio);
+
+    this.chartCanvas = divSeln.append("canvas")
+        .attr("class", "ephemeral")
+        .attr("width", width*ratio)
+        .attr("height", height*ratio)
+        .style("position", "absolute")
+        .style("left", "0px")
+        .style("top", "0px")
+        //.style("width", width+"px")
+        //.style("height", height+"px")
+        .style("pointer-events", "none");
+    this.chartCanvas.node().getContext("2d").scale(ratio, ratio);
+
+    function clearCanvas(canvSeln) {
+        var canvas = canvSeln.node(), context = canvas.getContext("2d");
+        context.clearRect(0, 0, width, height);  // whatever the canvas's scale
+    }
+    this.clearEphemeralCanvas = function() { clearCanvas(this.chartCanvas) }
+    this.clearFixedCanvas = function() { clearCanvas(this.chartFixedCanvas) }
+
+    this.clearMousetraps = function(trapNames) {
+        trapNames.forEach(name=>this.chartGroup.selectAll("."+name+"Mousetrap").remove())
+        }
+
+    this.initChartSubgroups();
+
+};
+
+chartObject.initHistogramArea=function initHistogramArea(options) {
+    // (plus lots of other highlighting experiments in unusedBinDiffHighlightFns)
+    var chart=this;
+    var instant = !!(options && options.instant);
+
+    chart.clearDataRanges = function() { chart.rangeGroup.selectAll("text").remove() }
+    chart.clearDataBalls = function() { chart.dataGroup.selectAll("circle.ball").remove() }
+
+    chart.clearDataRanges();
+    chart.clearDataBalls();
+
+    this.stripeOffset = 0;
+
+    function transformString(x, y) { return "translate("+x+", "+y+")" }
+    var colourScale = this.colourScale;
+
+    // see if the dataGroup needs to be shifted
+    var dataGroup = this.dataGroup, dataGroupNode = dataGroup.node(), dataOrigin = this.dataOrigin, desiredLoc = dataOrigin;
+    // NB: this code assumes we're using the same transformString format everywhere
+    var oldTrans = dataGroup.attr("transform"), newTrans = transformString(desiredLoc.x, desiredLoc.y);
+    if (oldTrans===newTrans) instant = true; // @@ even if caller didn't think so
+    var eezer = d3.easeQuadInOut, interpolator = d3.interpolateTransformSvg(oldTrans, newTrans), easedTransform = t=>interpolator(eezer(t));
+
+    var tableGroup = this.tableGroup;
+    tableGroup.style("opacity", 1e-6);
+
+    var histGroup = this.histGroup;
+    histGroup.style("opacity", 1e-6);
+
+    this.drawNumberLine();  // make sure it's there
+    this.drawBalls(this.data);
+    var newBalls = dataGroup.selectAll("circle.ball");
+    newBalls.style("opacity", 1e-6);
+    
+    var oldBalls = dataGroup.selectAll("circle.settled,circle.dropped");
+    oldBalls.style("fill", def=>colourScale(def.value, 1));
+
+    var moveTime = 1500, fadeTime = 2000, totalTime = moveTime+fadeTime;
+    if (instant) {
+        drawForElapsedTime(totalTime);
+    } else {
+        this.startTimer({
+            tick: elapsed=>{
+                drawForElapsedTime(elapsed);
+                if (elapsed >= totalTime) {
+                    chart.stopTimer(false);
+//console.log("finished");
+                }
+                },
+            forceToEnd: ()=>drawForElapsedTime(totalTime)
+            })
+    }
+
+    function drawForElapsedTime(elapsed) {
+        // update transform even after moveTime, because we might only be called once
+        var moveRatio = Math.min(1, elapsed/moveTime);
+        dataGroup.attr("transform", easedTransform(moveRatio));
+
+        if (elapsed > moveTime) {
+            var fadeRatio = Math.min(1, (elapsed-moveTime)/fadeTime);
+            tableGroup.style("opacity", fadeRatio);
+            newBalls.style("opacity", fadeRatio);
+            histGroup.style("opacity", fadeRatio);
+            oldBalls.style("opacity", 1-fadeRatio);
+        }
+    }
+    
+    this.initBinBehaviour();
+};
+
+chartObject.initNakedHistogram=function initNakedHistogram(options) {
+    var chart=this;
+    var instant = !!(options && options.instant);
+
+    chart.rangeGroup.selectAll("text").remove();
+    chart.dataGroup.selectAll("circle.ball,line.numberline").remove()
+
+    function transformString(x, y) { return "translate("+x+", "+y+")" }
+
+    // see if the histGroup needs to be shifted
+    var histGroup = this.histGroup, histGroupNode = histGroup.node(), desiredLoc = this.nakedHistOrigin;
+    // NB: this code assumes we're using the same transformString format everywhere
+    var oldTrans = histGroup.attr("transform"), newTrans = transformString(desiredLoc.x, desiredLoc.y);
+    //if (oldTrans===newTrans) instant = true; // @@ even if caller didn't think so
+    var eezer = d3.easeQuadInOut, interpolator = d3.interpolateTransformSvg(oldTrans, newTrans), easedTransform = t=>interpolator(eezer(t));
+
+    var tableGroup = this.tableGroup;
+    tableGroup.style("opacity", 0);
+
+    var moveTime = 750, totalTime = moveTime;
+    if (instant) {
+        drawForElapsedTime(totalTime);
+    } else {
+        this.startTimer({
+            tick: elapsed=>{
+                drawForElapsedTime(elapsed);
+                if (elapsed >= totalTime) {
+                    chart.stopTimer(false);
+//console.log("finished");
+                }
+                },
+            forceToEnd: ()=>drawForElapsedTime(totalTime)
+            })
+    }
+
+    function drawForElapsedTime(elapsed) {
+        // update transform even after moveTime, because we might only be called once
+        var moveRatio = Math.min(1, elapsed/moveTime);
+        histGroup.attr("transform", easedTransform(moveRatio));
+    }
+    
+    this.primaryOpacity = 0.5;
+    this.initBinBehaviour();
 };
 
 chartObject.initScrolliness=function initScrolliness(options) {
@@ -4084,7 +4236,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             // for now, no margin taken into account.
             // the div will be resized, if necessary, by the scroller object.
             //var extent = { x: width + margin.left + margin.right, y: height + margin.top + margin.bottom };
-            divSeln.style("width", extent.x+"px").style("height", extent.y+"px").style("border", "1px solid blue");
+            divSeln.style("width", extent.x+"px").style("height", extent.y+"px");
             chartObj[initFnName].call(chartObj, divSeln, extent);
         };
     

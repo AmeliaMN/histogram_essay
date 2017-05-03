@@ -56,11 +56,16 @@
       /* top: 30px; */
       z-index: 1;
       margin-left: 0;
-
-      /* override the bootstrap setting (border-box), so innards don't overlap the border */
+      /* override the bootstrap setting (border-box), so innards don't overlap a border */
   -webkit-box-sizing: content-box;
      -moz-box-sizing: content-box;
           box-sizing: content-box;
-
+    }
+    
+    svg * {
+      /* override the bootstrap setting (border-box), so innards don't overlap a border */
+  -webkit-box-sizing: content-box;
+     -moz-box-sizing: content-box;
+          box-sizing: content-box;
     }
 

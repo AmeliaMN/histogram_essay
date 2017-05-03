@@ -228,7 +228,7 @@ function scrollStepDefs(ch) {
                 var binRounding = chart.dataBinDecimals;
                 return [
                     { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
-                    { name: "offset", main: "0.00", extra: lively.lang.arr.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
+                    { name: "offset", main: "0.0", extra: lively.lang.arr.range(-1,0.001,0.1).map(n=>n.toFixed(1)), rounding: 1 },
                     { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
                         { style: "normal", text: "dataMin+width*offset" },
@@ -274,7 +274,7 @@ function scrollStepDefs(ch) {
                 var binRounding = chart.dataBinDecimals;
                 return [
                     { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
-                    { name: "offset", main: "0.00", extra: lively.lang.arr.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
+                    { name: "offset", main: "0.0", extra: lively.lang.arr.range(-1,0.001,0.1).map(n=>n.toFixed(1)), rounding: 1 },
                     { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
                         { style: "normal", text: "dataMin+width*offset" },
@@ -337,14 +337,15 @@ function scrollStepDefs(ch) {
             }
         },
 
-        { // temporary postamble.  just repeat previous section.
-        command: "...and breathe.",
-        activate: chart=>{
+        { // have a histogram without the table
+        replayPoint: true,
+        command: "just the histogram",
+        activate: (chart, prevRendered, targetStep, thisStep)=>{
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
                 return [
                     { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
-                    { name: "offset", main: "0.00", extra: lively.lang.arr.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
+                    { name: "offset", main: "0.0", extra: lively.lang.arr.range(-1,0.001,0.1).map(n=>n.toFixed(1)), rounding: 1 },
                     { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
                         { style: "normal", text: "dataMin+width*offset" },
@@ -363,35 +364,10 @@ function scrollStepDefs(ch) {
                             { style: "italic", text: "all but first of ", colour: "grey" },
                             { style: "normal", text: "breaks" }
                         ] },
-                    { name: "open", main: '"R"', extra: ['"L"', '"R"'] },
-                    { name: "leftTests", main: 'open=="L" && i!=0 ? ">" : ">="', styled: [
-                        { style: "italic", text: "if ", colour: "grey" },
-                        { style: "normal", text: "open" },
-                        { style: "normal", text: " = " },
-                        { style: "normal", text: '"L"' },
-                        { style: "italic", text: " and ", colour: "grey" },
-                        { style: "italic", text: "not first bin" },
-                        { style: "italic", text: " then ", colour: "grey" },
-                        { style: "normal", text: '">"' },
-                        { style: "italic", text: " else ", colour: "grey" },
-                        { style: "normal", text: '">="' }
-                        ] },
-                    { name: "rightTests", main: 'open=="R" && i!=iMax ? "<" : "<="', styled: [
-                        { style: "italic", text: "if ", colour: "grey" },
-                        { style: "normal", text: "open" },
-                        { style: "normal", text: " = " },
-                        { style: "normal", text: '"R"' },
-                        { style: "italic", text: " and ", colour: "grey" },
-                        { style: "italic", text: "not last bin" },
-                        { style: "italic", text: " then ", colour: "grey" },
-                        { style: "normal", text: '"<"' },
-                        { style: "italic", text: " else ", colour: "grey" },
-                        { style: "normal", text: '"<="' }
-                        ] },
-                    { name: "bins", main: "FILTER(data, lefts, rights, leftTests, rightTests)", reduce: true, rounding: binRounding,
+                    { name: "bins", main: "FILTER(data, lefts, rights)", reduce: true, rounding: binRounding,
                         styled: [
                             { style: "italic", text: "portion items based on ", colour: "grey" },
-                            { style: "normal", text: "lefts, rights, leftTests, rightTests" }
+                            { style: "normal", text: "lefts, rights" }
                         ]},
                     { name: "counts", main: "COUNT(bins)",
                         styled: [
@@ -400,10 +376,15 @@ function scrollStepDefs(ch) {
                         ]}
                     ];
             }
+
+            if (prevRendered === null) { // fill in the elements that we need to be there
+                chart.drawDataName();
+                chart.drawDataSwitch();
+            }
     
             chart.binsAreDraggable = true;
-            chart.initHistogramArea({ instant: true });
-            chart.buildTable(definitions(), {});
+            chart.initNakedHistogram({ instant: prevRendered===null });
+            chart.buildTable(definitions(), { noVisibleTable: true, noTriangle: true, widthControl: true, sweepControl: true });
             }
         }
 
