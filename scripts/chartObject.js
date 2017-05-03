@@ -2167,6 +2167,8 @@ chartObject.drawDataSwitch=function drawDataSwitch() {
     }
 //console.log("decorate with "+chart.dataName);    
     decorateSwitches();
+    
+    this.dataSwitchShown = true;
 };
 
 chartObject.drawDensityControl=function drawDensityControl(offset, handler) {

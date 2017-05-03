@@ -75,7 +75,6 @@ function scrollStepDefs(ch) {
         update: (chart, progress)=>{
             if (progress > 0.25 && !chart.dataSwitchShown) {
                 chart.drawDataSwitch();
-                chart.dataSwitchShown = true;
             }
             if (progress > 0.25 && chart.maximumScrolledIndex===3) { // @@ HACK
                 var dataName = chart.dataName;
@@ -101,7 +100,6 @@ function scrollStepDefs(ch) {
         activate: (chart, prevRendered, targetStep, thisStep)=>{
             if (!chart.dataSwitchShown) {  // force showing of data switch if user scrolled too quickly
                 chart.drawDataSwitch();
-                chart.dataSwitchShown = true;
             }
             chart.stopTimer(true);  // force completion of ball stacks
             var options = targetStep===thisStep ? undefined : { instant: true };
