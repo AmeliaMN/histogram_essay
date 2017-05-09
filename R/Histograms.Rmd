@@ -34,8 +34,8 @@ data(diamonds)
 
 ```{r, eval=FALSE}
 manipulate(
-  ggplot(diamonds) + geom_histogram(aes(x=price),bins = binnum, center=centering, closed=ifelse(side==TRUE, "right", "left")),
-  binnum = slider(100,300), # also try binnum = slider(100,300)
+  ggplot(minidiamonds) + geom_histogram(aes(x=price),bins = binnum, center=centering, closed=ifelse(side==TRUE, "right", "left")),
+  binnum = slider(30,100), # also try binnum = slider(100,300)
   centering = slider(0, 1, 0.5),
   side = checkbox(TRUE, "Right open")
 )
@@ -74,8 +74,27 @@ Getting into the ~50 bin range helps show the integer values of this variable.
 
 ```{r}
 ggplot(diamonds) + geom_histogram(aes(x=carat, y = ..density..), bins=15, col='red')
-ggplot(diamonds) + geom_histogram(aes(x=carat), bins=15, col='red')
+ggplot(diamonds) + geom_histogram(aes(x=carat), bins=15, col='green')
 ggplot(diamonds) + geom_histogram(aes(x=carat, y = ..density..), binwidth=0.16, col='red') + geom_histogram(aes(x=carat, y = ..density..), binwidth=0.32, col='green')
 table(cut(diamonds$carat, breaks=15))
 table(cut(diamonds$carat, breaks=15))/(53940*0.33)
+```
+
+
+### Playing with marathon finishing time data
+
+```{r, message=FALSE, warning=FALSE}
+library(readr)
+library(dplyr)
+master_marathon <- read_csv("~/Downloads/master_marathon.csv")
+master_marathon <- master_marathon %>%
+  mutate(hours = chiptime/60)
+nyc_marathon <- master_marathon %>% 
+  filter(marathon == "New York City Marathon", year == 2013)
+p1 <- ggplot(nyc_marathon, aes(x=hours, y=(..count..)/50062))  
+p1 + geom_histogram(bins=130, fill="grey70") + theme_classic()+ geom_vline(xintercept=seq(2, 7, by=0.25), color="white",size=0.25) +ylab("") +scale_x_continuous(breaks=seq(from=2, to=7, by=0.5), labels = c("2:00", "2:30", "3:00", "3:30", "4:00", "4:30", "5:00", "5:30", "6:00","6:30", "7:00"),limits = c(2,6.75),name = "")+scale_y_continuous(breaks=seq(from=0, to=0.02, by=0.01))
+```
+
+```{r}
+
 ```
