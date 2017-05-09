@@ -183,8 +183,8 @@ function scrollStepDefs(ch) {
                             { style: "normal", text: "breaks" }
                         ] },
 { name: "open", main: '"L"', noDisplay: true },
-{ name: "leftTests", main: 'i===0 ? ">=" : ">"', noDisplay: true },
-{ name: "rightTests", main: '"<=" || i', noDisplay: true }, // hack: mention i to get an array
+{ name: "leftTests", main: 'i===0 ? "≥" : ">"', noDisplay: true },
+{ name: "rightTests", main: '"≤" || i', noDisplay: true }, // hack: mention i to get an array
                     { name: "bins", main: "FILTER(data, lefts, rights, leftTests, rightTests, open)", reduce: true, rounding: binRounding,
                         styled: [
                             { style: "italic", text: "portion items based on ", colour: "grey" },
@@ -255,8 +255,8 @@ function scrollStepDefs(ch) {
                             { style: "normal", text: "breaks" }
                         ] },
 { name: "open", main: '"L"', noDisplay: true },
-{ name: "leftTests", main: 'i===0 ? ">=" : ">"', noDisplay: true },
-{ name: "rightTests", main: '"<=" || i', noDisplay: true }, // hack: mention i to get an array
+{ name: "leftTests", main: 'i===0 ? "≥" : ">"', noDisplay: true },
+{ name: "rightTests", main: '"≤" || i', noDisplay: true }, // hack: mention i to get an array
                         { name: "bins", main: "FILTER(data, lefts, rights, leftTests, rightTests, open)", reduce: true, rounding: binRounding,
                         styled: [
                             { style: "italic", text: "portion items based on ", colour: "grey" },
@@ -304,7 +304,7 @@ function scrollStepDefs(ch) {
                             { style: "normal", text: "breaks" }
                         ] },
                     { name: "open", main: '"L"', extra: ['"L"', '"R"'] },
-                    { name: "leftTests", main: 'open=="L" && i!=0 ? ">" : ">="', styled: [
+                    { name: "leftTests", main: 'open=="L" && i!=0 ? ">" : "≥"', styled: [
                         { style: "italic", text: "if ", colour: "grey" },
                         { style: "normal", text: "open" },
                         { style: "normal", text: " = " },
@@ -314,9 +314,9 @@ function scrollStepDefs(ch) {
                         { style: "italic", text: " then ", colour: "grey" },
                         { style: "normal", text: '">"' },
                         { style: "italic", text: " else ", colour: "grey" },
-                        { style: "normal", text: '">="' }
+                        { style: "normal", text: '"≥"' }
                         ] },
-                    { name: "rightTests", main: 'open=="R" && i!=iMax ? "<" : "<="', styled: [
+                    { name: "rightTests", main: 'open=="R" && i!=iMax ? "<" : "≤"', styled: [
                         { style: "italic", text: "if ", colour: "grey" },
                         { style: "normal", text: "open" },
                         { style: "normal", text: " = " },
@@ -326,7 +326,7 @@ function scrollStepDefs(ch) {
                         { style: "italic", text: " then ", colour: "grey" },
                         { style: "normal", text: '"<"' },
                         { style: "italic", text: " else ", colour: "grey" },
-                        { style: "normal", text: '"<="' }
+                        { style: "normal", text: '"≤"' }
                         ] },
                     { name: "bins", main: "FILTER(data, lefts, rights, leftTests, rightTests, open)", reduce: true, rounding: binRounding,
                         styled: [
@@ -374,8 +374,8 @@ function scrollStepDefs(ch) {
                             { style: "italic", text: "all but first of ", colour: "grey" },
                             { style: "normal", text: "breaks" }
                         ] },
-{ name: "leftTests", main: 'i===0 ? ">=" : ">"', noDisplay: true },
-{ name: "rightTests", main: '"<=" || i', noDisplay: true }, // hack: mention i to get an array
+{ name: "leftTests", main: 'i===0 ? "≥" : ">"', noDisplay: true },
+{ name: "rightTests", main: '"≤" || i', noDisplay: true }, // hack: mention i to get an array
                     { name: "bins", main: "FILTER(data, lefts, rights, leftTests, rightTests)", reduce: true, rounding: binRounding,
                         styled: [
                             { style: "italic", text: "portion items based on ", colour: "grey" },

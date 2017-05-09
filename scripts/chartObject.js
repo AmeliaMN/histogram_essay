@@ -201,8 +201,8 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         function ALL_BUT_LAST(array) { return array.slice(0, -1) }
         function PAIRS(array) { return lively.lang.arr.range(1,array.length-1).map(i=>[quantize(array[i-1]), quantize(array[i])]) }
         function FILTER(data, lefts, rights, leftTests, rightTests, open) {
-            var leftFns = { ">": (left, v)=>v>left, ">=": (left, v)=>v>=left };
-            var rightFns = { "<": (right, v)=>v<right, "<=": (right, v)=>v<=right };
+            var leftFns = { ">": (left, v)=>v>left, "≥": (left, v)=>v>=left };
+            var rightFns = { "<": (right, v)=>v<right, "≤": (right, v)=>v<=right };
             return lefts.map((left, i)=>{
                 var right = rights[i];
                 var subset = FILTER_FN(data, v=> leftFns[leftTests[i]](left, v) && rightFns[rightTests[i]](right, v));
@@ -777,7 +777,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                 } else {
                     var startOffset = 12;
                     var val = stringyValue(rowItem.data, rowVar);
-                    rowCellGroups.push({ category: "data", xOffset: edges[2]+startOffset, cells: [{ rowSpec: rowItem, text: val, x: 0, isContext: isHighlightContext }] });
+                    rowCellGroups.push({ category: "data", xOffset: edges[2]+startOffset, cells: [{ rowSpec: rowItem, text: val, weight: "bold", x: 0, isContext: isHighlightContext }] });
                 }
     
                 var cellGroups = rowSeln.selectAll(".cellGroup").data(rowCellGroups, rcg=>rcg.category);
@@ -828,6 +828,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                     .attr("class", groupObject.category+"TextCell")
                                     .style("fill", cellItem=>cellItem.fill || "black")
                                     .style("font-size", (isHighlightContext ? fontHeight-4 : fontHeight)+"px")
+                                    .style("font-weight", cellItem=>cellItem.weight || "normal")
                                     .style("dominant-baseline", "hanging")
                                     .style("text-anchor", cellItem.anchor || "start")
                                     .style("opacity", groupObject.isFishy ? 0.2 : 1)
