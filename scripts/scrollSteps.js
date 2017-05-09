@@ -33,6 +33,9 @@ function scrollStepDefs(ch) {
     ch.useDensity = false;
     ch.triangleSetting = { x: 50, y: 50 };
     
+    var baseDatasets = ["mpg", "nba", "faithful" ];
+    var laterDatasets = ["mpg", "nba", "faithful", "diamonds", "marathons" ];
+    
     var stepDefs = [
         { // draw value pool
         command: "gather data items",
@@ -42,15 +45,15 @@ function scrollStepDefs(ch) {
             delete chart.highlightValueIndices;
             delete chart.binsAreDraggable;
             
+            if (chart.dataSwitchShown) chart.drawDataSwitch(baseDatasets);
             chart.drawDataName();
-            if (chart.dataSwitchShown) chart.drawDataSwitch();
             chart.drawValueList({ stage: 0 });
         }
         },
     
         { // move values across to list
         command: "sort items into list",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
+        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
             var options = targetStep===thisStep ? undefined : { stage: 1 };
             chart.drawValueList(options);
             }
@@ -58,7 +61,7 @@ function scrollStepDefs(ch) {
         
         { // draw a number line
         command: "draw a number line",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
+        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
             chart.stopTimer(true);  // force completion of value list
             var options = targetStep===thisStep ? undefined : { instant: true };
             chart.drawColouredNumberLine(options);
@@ -67,14 +70,14 @@ function scrollStepDefs(ch) {
         
         { // fly the values down to stacks on the number line
         command: "place items on number line",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
+        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
             chart.stopTimer(true);  // force completion of number line
             var options = targetStep===thisStep ? undefined : { instant: true };
             chart.flyBalls(options);
             },
         update: (chart, progress)=>{
             if (progress > 0.25 && !chart.dataSwitchShown) {
-                chart.drawDataSwitch();
+                chart.drawDataSwitch(baseDatasets);
             }
             if (progress > 0.25 && chart.maximumScrolledIndex===3) { // @@ HACK
                 var dataName = chart.dataName;
@@ -83,7 +86,7 @@ function scrollStepDefs(ch) {
                 if (dataName !== chart.dataName) {
                     chart.stopTimer();
                     chart.loadData(dataName);
-                    chart.drawDataSwitch();
+                    chart.drawDataSwitch(baseDatasets);
                     chart.clearDemoBalls();
                     chart.clearEphemeralCanvas();
                     chart.clearFixedCanvas();
@@ -97,9 +100,9 @@ function scrollStepDefs(ch) {
 
         { // drop the balls through to build up bins
         command: "portion items into bins",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
+        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
             if (!chart.dataSwitchShown) {  // force showing of data switch if user scrolled too quickly
-                chart.drawDataSwitch();
+                chart.drawDataSwitch(baseDatasets);
             }
             chart.stopTimer(true);  // force completion of ball stacks
             var options = targetStep===thisStep ? undefined : { instant: true };
@@ -109,7 +112,7 @@ function scrollStepDefs(ch) {
 
         { // show the break values
         command: "show bin-break values",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
+        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
             chart.stopTimer(true);
             var options = targetStep===thisStep ? undefined : { instant: true };
             chart.drawBreakValues(options);
@@ -118,7 +121,7 @@ function scrollStepDefs(ch) {
 
         { // move the bins through a sweep of offsets (relative to dataMin)
         command: "fiddle with bin alignment",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
+        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
             chart.stopTimer(true);
             chart.scenarioRecords = [];
             if (targetStep === thisStep) {
@@ -136,7 +139,7 @@ function scrollStepDefs(ch) {
         
         { // move the bins through a sweep of widths (1.0 down to 0.5 of R default)
         command: "fiddle with bin width",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
+        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
             chart.stopTimer();
             chart.clearScenarioZone();
             if (targetStep === thisStep) {
@@ -154,8 +157,9 @@ function scrollStepDefs(ch) {
         
         { // bring in the table...
         replayPoint: true,
+        label: "firstTable",
         command: "show basic calculation",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
+        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
                 return [
@@ -178,7 +182,10 @@ function scrollStepDefs(ch) {
                             { style: "italic", text: "all but first of ", colour: "grey" },
                             { style: "normal", text: "breaks" }
                         ] },
-                    { name: "bins", main: "FILTER(data, lefts, rights)", reduce: true, rounding: binRounding,
+{ name: "open", main: '"L"', noDisplay: true },
+{ name: "leftTests", main: 'i===0 ? ">=" : ">"', noDisplay: true },
+{ name: "rightTests", main: '"<=" || i', noDisplay: true }, // hack: mention i to get an array
+                    { name: "bins", main: "FILTER(data, lefts, rights, leftTests, rightTests, open)", reduce: true, rounding: binRounding,
                         styled: [
                             { style: "italic", text: "portion items based on ", colour: "grey" },
                             { style: "normal", text: "lefts, rights" }
@@ -202,9 +209,11 @@ function scrollStepDefs(ch) {
                 chart.clearDemoBins();
                 chart.clearFixedCanvas();
                 chart.clearEphemeralCanvas();
+                // if we're landing here, keep the balls for now
+                if (targetStep !== thisStep) chart.clearDemoBalls();
             } else { // if not, fill in the elements that we need to be there
                 chart.drawDataName();
-                chart.drawDataSwitch();
+                chart.drawDataSwitch(baseDatasets);
             }
             
             if (targetStep === thisStep) {
@@ -217,7 +226,7 @@ function scrollStepDefs(ch) {
         
         { // more detail...
         command: "add bin offset",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
+        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
             chart.stopTimer(true);  // make sure dataGroup reaches its target location
 
             if (targetStep !== thisStep) return;
@@ -245,7 +254,10 @@ function scrollStepDefs(ch) {
                             { style: "italic", text: "all but first of ", colour: "grey" },
                             { style: "normal", text: "breaks" }
                         ] },
-                    { name: "bins", main: "FILTER(data, lefts, rights)", reduce: true, rounding: binRounding,
+{ name: "open", main: '"L"', noDisplay: true },
+{ name: "leftTests", main: 'i===0 ? ">=" : ">"', noDisplay: true },
+{ name: "rightTests", main: '"<=" || i', noDisplay: true }, // hack: mention i to get an array
+                        { name: "bins", main: "FILTER(data, lefts, rights, leftTests, rightTests, open)", reduce: true, rounding: binRounding,
                         styled: [
                             { style: "italic", text: "portion items based on ", colour: "grey" },
                             { style: "normal", text: "lefts, rights" }
@@ -266,7 +278,7 @@ function scrollStepDefs(ch) {
         
         { // and open/closed...
         command: "add bin openness",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
+        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
             if (targetStep !== thisStep) return;
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
@@ -291,7 +303,7 @@ function scrollStepDefs(ch) {
                             { style: "italic", text: "all but first of ", colour: "grey" },
                             { style: "normal", text: "breaks" }
                         ] },
-                    { name: "open", main: '"R"', extra: ['"L"', '"R"'] },
+                    { name: "open", main: '"L"', extra: ['"L"', '"R"'] },
                     { name: "leftTests", main: 'open=="L" && i!=0 ? ">" : ">="', styled: [
                         { style: "italic", text: "if ", colour: "grey" },
                         { style: "normal", text: "open" },
@@ -338,11 +350,11 @@ function scrollStepDefs(ch) {
         { // have a histogram without the table
         replayPoint: true,
         command: "just the histogram",
-        activate: (chart, prevRendered, targetStep, thisStep)=>{
+        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
                 return [
-                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
+                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(150,10,-1).map(val=>(lively.lang.num.roundTo(chart.dataRange/val, chart.dataBinQuantum)).toFixed(binRounding))), rounding: binRounding },
                     { name: "offset", main: "0.0", extra: lively.lang.arr.range(-1,0.001,0.1).map(n=>n.toFixed(1)), rounding: 1 },
                     { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
@@ -362,7 +374,9 @@ function scrollStepDefs(ch) {
                             { style: "italic", text: "all but first of ", colour: "grey" },
                             { style: "normal", text: "breaks" }
                         ] },
-                    { name: "bins", main: "FILTER(data, lefts, rights)", reduce: true, rounding: binRounding,
+{ name: "leftTests", main: 'i===0 ? ">=" : ">"', noDisplay: true },
+{ name: "rightTests", main: '"<=" || i', noDisplay: true }, // hack: mention i to get an array
+                    { name: "bins", main: "FILTER(data, lefts, rights, leftTests, rightTests)", reduce: true, rounding: binRounding,
                         styled: [
                             { style: "italic", text: "portion items based on ", colour: "grey" },
                             { style: "normal", text: "lefts, rights" }
@@ -377,12 +391,13 @@ function scrollStepDefs(ch) {
 
             if (prevRendered === null) { // fill in the elements that we need to be there
                 chart.drawDataName();
-                chart.drawDataSwitch();
             }
+
+            chart.drawDataSwitch(laterDatasets);
     
             chart.binsAreDraggable = true;
-            chart.initNakedHistogram({ instant: prevRendered===null });
-            chart.buildTable(definitions(), { noVisibleTable: true, noTriangle: true, widthControl: true, sweepControl: true });
+            chart.initNakedHistogram({ instant: prevRendered===null || originStep<stepIndex("firstTable") });
+            chart.buildTable(definitions(), { noVisibleTable: true, noDensity: true, widthControl: true, sweepControl: true, extraAxisValues: true });
             }
         }
 
