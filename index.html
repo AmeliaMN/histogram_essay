@@ -7,11 +7,11 @@
 
     <meta name="author" content="Aran Lunzer and Amelia McNamara">
     <title>Exploring Histograms</title>
-    <link rel="stylesheet" href="dist/font-awesome/css/font-awesome.min.css">
-    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <!--<link rel="stylesheet" href="dist/font-awesome/css/font-awesome.min.css"> -->
+   <!-- <link href="dist/css/bootstrap.min.css" rel="stylesheet"> -->
     <link href="styles/my.css" rel="stylesheet">
     <link href="styles/scrolly.css" rel="stylesheet">
-    <link rel="alternate" type="application/rss+xml" title="{{ site.name }}" href="{{ site.baseurl }}/blog/feed.xml">
+   <!-- <link rel="alternate" type="application/rss+xml" title="{{ site.name }}" href="{{ site.baseurl }}/blog/feed.xml"> -->
 
     <style>@import 'https://fonts.googleapis.com/css?family=Raleway:100,300';</style>
     
@@ -79,21 +79,14 @@ function getVis() { return window.scrollyVis }
 
 
 <div class="container">
-	<div class="row">
-	<div class="col-lg-12">
 		<h1 id="top">What's so hard about histograms?</h1>	
 		<p class="lead">Histograms are a way to summarize a numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
+      
+    <p><i>April 2017: Please note the "alpha release" designation; this is a work in progress.  The interactive parts have so far been tested mainly on Chrome.</i></p>
         
-        <p><i>April 2017: Please note the "alpha release" designation; this is a work in progress.  The interactive parts have so far been tested mainly on Chrome.</i></p>
-        
-	</div>
-    </div>
 
 
-<div class="row">&nbsp;</div>
-<div class="row">
 	<h2>Exploratory data analysis</h2>
-	<div class="col-md-8">
 		
 		<p>When thinking about data, it is often useful to produce plots of variables in one- and two-dimensions, a process which is called <a href="https://en.wikipedia.org/wiki/Exploratory_data_analysis">Exploratory Data Analysis</a>, or EDA. EDA was the brainchild of John Tukey in the 1960s, and has become even more powerful with the rise of better computer graphics.</p>
 
@@ -105,16 +98,11 @@ function getVis() { return window.scrollyVis }
 		
 
 
-		</div>
-<div class="col-md-4">
-	<a class="thumbnail" href="https://smile.amazon.com/Exploratory-Data-Analysis-John-Tukey/dp/0201076160?sa-no-redirect=1"><img  src="img/EDA.jpg" height="500" width="400" alt="EDA book"/></a>
-	</div>
-</div>
 
 
-	<div class="row">
+
 		<h2>Visualizing the distribution of a categorical variable</h2>
-	<div class="col-md-8">
+
 
     <p>When a variable is <a href="#" data-toggle="tooltip" title="(Meaning it only has a few possible discrete values)">categorical</a>, the way to view the distribution of one variable is a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (also known as a bar graph). Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>.</p>
 
@@ -127,35 +115,25 @@ function getVis() { return window.scrollyVis }
     
 		
 
-		
-	</div>
-	<div class="col-md-4">
+	
 		<a class="thumbnail" href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/"><img src="img/hickey-ross-tags-1.png" class="img-responsive" alt="Bob Ross paintings containing the named elements"/></a>
 
 		
-	</div>
-</div>
-<div class="row">&nbsp;</div>
-<div class="row">
+
   <h2>Visualizing the distribution of a numeric variable</h2>
-	<div class="col-lg-8">
 		<p>When a variable is numeric, there are a <a href="#" data-toggle="tooltip" title="Including boxplots, stem and leaf plots, and density plots">a variety of ways</a> to visualize the distribution, but the most common method is probably the histogram.</p>
     <p>For example, Justin Wolfers of The Upshot produced a histogram to visualize the finishing times of 10 million marathon finishers.</p>
 
     <p>At first glance, this looks simple enough. We bin data into a set of discrete bins, then count how many values fall into each of the bins to aggregate the data. But, as we look closer we realize that there are actually many choices the data analyst needs to make in order to create a histogram, and the choices have big consequences on the resulting distribution!</p>
 
 		
-	</div>
-	<div class="col-lg-4">
+
 		<a class="thumbnail" href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=0"><img src="img/0422-ups-marathon-945-1.png", class="img-responsive" alt="Marathon finishing times"/></a>
-	</div>
-</div>
 
-<div class="row">&nbsp;</div>
 
-<div class="row">
+
   <h2>Building a histogram</h2>
-</div>
+
 
 <div id="scrolly">
 <div id="sections">
@@ -299,32 +277,6 @@ function getVis() { return window.scrollyVis }
     <!-- /container -->
 
 
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="dist/js/jquery.min.js"></script>
-    <script src="dist/js/bootstrap.min.js"></script>
-    <!-- <script src="dist/js/Repo.js/repo.js"></script> -->
-    <script type="text/javascript">
-	$('.tooltip-test').tooltip()
-	$(function () {
-  		$('[data-toggle="tooltip"]').tooltip()
-	})
-	$('#collapseOne').collapse("hide");
-	
-	$('.more').click(function(){
-    	$(this).text(function(i,old){
-        	return old=='read less' ?  'read more' : 'read less';
-    	});
-    	$(this).blur();
-	});
-	$('.code').click(function(){
-    	$(this).text(function(i,old){
-        	return old=='hide code' ?  'view code' : 'hide code';
-    	});
-    	$(this).blur();
-	});
-	</script>
 
 <div id="extra-space"></div>
 
