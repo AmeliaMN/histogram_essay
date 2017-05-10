@@ -458,8 +458,14 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         lastRefresh = options;
 //console.log("refresh:", lastRefresh);
 
-        if (!contextVar) chart.recordBinState("primary"); // for later highlight
+        if (contextVar) {
+            chart.histGroup.select("g.fader").style("opacity", 1);
+        } else {
+            chart.histGroup.select("g.fader").style("opacity", 0);
 
+            chart.recordBinState("primary"); // for later highlight
+        }
+        
         function deriveBins(result, scenario) {
             var drawableBins = [];
 
@@ -1213,25 +1219,28 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         chart.triangleSetting = { x: xp, y: yp };
         var x = xp*0.01, y = yp*0.01;
         chart.primaryOpacity = y;
-        chart.contextOpacity = x;
+        chart.contextOpacity = x*0.8; // fudge
 //console.log(xp, yp, chart.primaryOpacity, chart.contextOpacity)
     	group.selectAll("rect.primary").style("opacity", chart.primaryOpacity);
     	group.selectAll("rect.context").style("opacity", chart.contextOpacity);
     }
     
-    if (tableOptions.noFader!==true) this.drawFaderControl(lively.pt(30, tableOptions.noVisibleTable ? 60 : 40), lively.lang.fun.throttle(opacityHandler, 100));
+    if (tableOptions.noFader!==true) {
+        this.drawFaderControl(lively.pt(250, tableOptions.noVisibleTable ? 60 : 40), lively.lang.fun.throttle(opacityHandler, 100));
+        group.select("g.fader").style("opacity", 0);
+    }
     if (tableOptions.noDensity!==true) this.drawDensityControl(lively.pt(480, tableOptions.noVisibleTable ? 45 : 25), ()=>refreshTable({}, 250));
     if (tableOptions.widthControl) {
         var widthValues = varDefs.width.extra; // array of stringy expressions
         var valueIndex = widthValues.indexOf(varDefs.width.main);
-        this.drawBinWidthControl(lively.pt(300, 33), widthValues, valueIndex, newValue=>{
+        this.drawBinWidthControl(lively.pt(400, 33), widthValues, valueIndex, newValue=>{
             varDefs.width.main = newValue;
             delete chart.estimatedBinMax;
             refreshTable({ force: true }, 0);
             });
     }
     if (tableOptions.sweepControl) {
-        this.drawSweepControl(lively.pt(125, 45), ()=>toggleContextSpec("offset"));
+        this.drawSweepControl(lively.pt(0, 45), ()=>toggleContextSpec("offset"));
     }
     
     
@@ -1473,13 +1482,14 @@ chartObject.drawBins=function drawBins(primaryBins, contextBins, options) {
     function transformString(x, y) { return "translate("+x+", "+y+")" }
 
 	function showBins(binData, binClass, fillColour) {
-	    // binClass is "primary" or "context"
+	    // binClass is "primary", "context", or "contextOutline"
 	    // binData can be empty!
-	    var isContext = binClass==="context";
+	    var classIndex = ["primary", "context", "contextOutline"].indexOf(binClass);
+	    //var isPrimary = binClass==="primary", isContext = binClass==="context";
     	var rects = binGroup.selectAll("rect."+binClass).data(binData, binItem=>binItem.dataIndex);
     	rects.exit().remove();
     	var preWidth;
-    	if (rects.size()) preWidth = +(d3.select(rects.nodes()[0]).attr("width"));
+    	if (binClass==="primary" && rects.size()) preWidth = +(rects.nodes()[0].getAttribute("width"));
     	var rectsE = rects.enter().append("rect")
     	    .attr("class", binClass+" bin");
        	rects = rects.merge(rectsE);
@@ -1489,22 +1499,19 @@ chartObject.drawBins=function drawBins(primaryBins, contextBins, options) {
             .attr("width", binItem=>xScale(binItem.max)-xScale(binItem.min))
 			.attr("height", binItem=>heightScale(useDensity ? binItem.values.length/(chart.data.length*(binItem.max-binItem.min)) : binItem.values.length))
 			.style("fill", fillColour)
-    	    .style("stroke", isContext ? "black" : "blue")
+    	    .style("stroke", ["blue", "none", "black"][classIndex])
     	    //.style("fill-opacity", isContext ? 0.15 : 1)
-    	    .style("stroke-width", binItem=>isContext
-    	                                    ? (binItem.scenario===highlight ? 1 : 0)
-    	                                    : (contextBins.length ? 1 : 0.5))
-    	    .style("stroke-opacity", binItem=>isContext
-                        	                ? (binItem.scenario===highlight ? 1 : 0)
-                        	                : 1)
-            .style("opacity", isContext ? chart.contextOpacity : chart.primaryOpacity)
-            .attr("pointer-events", isContext ? "none" : "all")
+    	    .style("stroke-width", [ contextBins.length ? 1 : 0.5, 0, 1 ][classIndex])
+    	    .style("stroke-opacity", [ 1, 0, 1 ][classIndex])
+            .style("opacity", [ contextBins.length ? chart.primaryOpacity : 0.5, chart.contextOpacity, chart.primaryOpacity ][classIndex])
+            .attr("pointer-events", [ "all", "none", "none" ][classIndex])
 			.style("cursor", chart.binsAreDraggable ? "ew-resize" : "pointer")
-			.each(function(binItem) {
-			    if (!isContext || binItem.scenario===highlight) d3.select(this).raise();
+			.each(function() {
+			    if (binClass==="primary" || binClass==="contextOutline") d3.select(this).raise();
     			});
         if (preWidth) {
-            var postWidth = +(d3.select(rects.nodes()[0]).attr("width"));
+            // if widths of the primary bins have changed, reset any balls' odd/even annotation (so they can't be used this time around)
+            var postWidth = +(rects.nodes()[0].getAttribute("width"));
             if (lively.lang.num.roundTo(postWidth, 0.1)!==lively.lang.num.roundTo(preWidth, 0.1)) {
 //console.log("resetting odd/evens", preWidth, postWidth);
                 chart.dataGroup.selectAll("circle.ball")
@@ -1542,10 +1549,12 @@ chartObject.drawBins=function drawBins(primaryBins, contextBins, options) {
 	contextBins.forEach(function(binCollection) {
 	    allContext = allContext.concat(binCollection);
     	});
+    var outlineContext = allContext.filter(binItem=>binItem.scenario===highlight);
     var contextColour = this.contextBinFill;
     contextColour.opacity = 0.15;
 	showBins(allContext, "context", contextColour.toString());
     showBins(primaryBins, "primary", allContext.length ? "none" : this.restingBinFill);
+    showBins(outlineContext, "contextOutline", "none");
 
 	var extraLabelSpacing = 9; 
 	var legendX = xScale(this.dataMax)+40, lineLegendY = 12;
@@ -2344,7 +2353,9 @@ chartObject.drawFaderControl=function drawFaderControl(offset, handler) {
     var radius = 10;
     var offsetX = offset.x, offsetY = offset.y-radius; // of bottom-left corner rel to bottom-left of histogram area
 
-    this.histGroup
+    var faderGroup = this.histGroup.append("g").attr("class", "fader");
+    
+    faderGroup
         .append('path')
         .attr('d', "M0 "+(radius)+" A"+radius+" "+radius+" 0, 0, 1, 0 "+(-radius)+" L"+baseLength+" "+(-radius)+" A"+radius+" "+radius+" 0, 0, 1, "+baseLength+" "+radius+" Z")
 		.attr('stroke','gray')
@@ -2354,7 +2365,7 @@ chartObject.drawFaderControl=function drawFaderControl(offset, handler) {
 
     function drawKnob(xPercent) {
         var centreX = offsetX+(baseLength*xPercent/100);
-        var knobSeln = chart.histGroup.selectAll("circle.faderKnob").data([0]);
+        var knobSeln = faderGroup.selectAll("circle.faderKnob").data([0]);
         knobSeln.enter().append("circle")
             .attr("class", "faderKnob")
             .attr("cy", offsetY)
@@ -2370,7 +2381,7 @@ chartObject.drawFaderControl=function drawFaderControl(offset, handler) {
             .attr("cx", centreX);
 
         // NB: an svg arc can't have coincident start and end points (because there would be an infinite number of full circles matching the parameters).  so here we always keep the end angles a tiny fraction below 2pi.  see https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
-        var indicatorSeln = chart.histGroup.selectAll("path.fadeIndicator").data([
+        var indicatorSeln = faderGroup.selectAll("path.fadeIndicator").data([
             { colour: "green", start: 0, end: xPercent*Math.PI*1.999/100, large: xPercent<50 ? 0 : 1 },
             { colour: "blue", start: xPercent*Math.PI*2/100, end: Math.PI*1.999, large: xPercent<50 ? 1 : 0 }
             ]);
@@ -3883,8 +3894,8 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     
     // once we've presented the code table
     var tableOrigin = this.tableOrigin = lively.pt(10, 335);
-    var dataOrigin = this.dataOrigin = lively.pt(270, 150);
-    var histOrigin = this.histOrigin = lively.pt(270, 305);
+    var dataOrigin = this.dataOrigin = lively.pt(270, 135);
+    var histOrigin = this.histOrigin = lively.pt(270, 290);
 
     var binFill = d3.color("blue");
     binFill.opacity = 0.8;
