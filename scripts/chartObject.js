@@ -1224,11 +1224,8 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
     if (tableOptions.widthControl) {
         var widthValues = varDefs.width.extra; // array of stringy expressions
         var valueIndex = widthValues.indexOf(varDefs.width.main);
-        this.drawBinWidthControl(lively.pt(300, 33), direction=>{
-            var desiredIndex = valueIndex + direction;
-            if (desiredIndex < 0 || desiredIndex >= widthValues.length) return;
-            valueIndex = desiredIndex;
-            varDefs.width.main = widthValues[valueIndex];
+        this.drawBinWidthControl(lively.pt(300, 33), widthValues, valueIndex, newValue=>{
+            varDefs.width.main = newValue;
             delete chart.estimatedBinMax;
             refreshTable({ force: true }, 0);
             });
@@ -1395,6 +1392,7 @@ chartObject.drawBinAnnotations=function drawBinAnnotations(group, axisOrigin, ax
 	    .attr("class", "histLabel")
 	    .style("font-size", "10px")
 	    .style("fill", "grey")
+		.style("pointer-events", "none")
         .style("-webkit-user-select","none")
         .each(function(def) {
             var seln = d3.select(this);
@@ -1580,17 +1578,17 @@ chartObject.drawBins=function drawBins(primaryBins, contextBins, options) {
     this.drawBinAnnotations(histGroup, { x: legendX, y: 0 }, heightScale(lastValue), tickDefs, labelDefs, true);  // instant
 };
 
-chartObject.drawBinWidthControl=function drawBinWidthControl(offset, handler) {
+chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray, initialIndex, handler) {
     // goes into histGroup
     var chart=this;
 
-    var histGroupOrigin = this.histOrigin;
-    
-    var switchSize = 36, switchColour = "#444";  // dark grey
+    var switchSize = 36, stepSize = 8, switchColour = "#444", readoutColour = "black";
+    var switchGroup = this.histGroup.append("g").attr("class", "switchGroup");
 
-    this.histGroup
+    var valueIndex = initialIndex;
+
+    var switchRect = switchGroup
         .append("rect")
-        .attr("class", "switch")
         .attr("x", offset.x)
         .attr("y", offset.y)
         .attr("width", switchSize)
@@ -1598,9 +1596,90 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, handler) {
         .style("border-width", 1)
         .style("stroke", switchColour)
         .style("fill", "none")
+        .style("pointer-events", "none")
+        .attr("stroke-dasharray", "2 4");
+        
+    var switchReadout = switchGroup
+	    .append("text")
+		.attr("class", "readout")
+		.attr("x", offset.x+switchSize/2)
+		.attr("y", offset.y+switchSize/2)
+		.style("font-size", "14px")
+		.style("text-anchor", "middle")
+		.style("dominant-baseline", "central")
+		.style("pointer-events", "none")
+        .style("-webkit-user-select","none")
+        .style("fill", readoutColour);
+
+    var minMaxIndicator = switchGroup
+	    .append("text")
+		.attr("class", "minmax")
+		.attr("x", offset.x+switchSize/2)
+		.attr("y", offset.y+switchSize*0.8)
+		.style("font-size", "8px")
+		.style("text-anchor", "middle")
+		.style("dominant-baseline", "central")
+		.style("pointer-events", "none")
+        .style("-webkit-user-select","none")
+        .style("fill", readoutColour);
+        
+    function updateReadout() {
+        switchReadout
+            .interrupt()
+            .text(valueArray[valueIndex])
+            .style("fill", "red")
+            .transition()
+            .duration(1000)
+            .style("fill", readoutColour);
+        minMaxIndicator
+            .text(valueIndex===0 ? "(MIN)" : (valueIndex===valueArray.length-1 ? "(MAX)" : ""))
+    }
+    updateReadout();
+
+    var dragRect = switchGroup
+        .append("rect")
+        .attr("class", "draggable")
+        .attr("x", offset.x)
+        .attr("y", offset.y)
+        .attr("width", switchSize)
+        .attr("height", switchSize)
+        .style("fill", "none")
         .style("pointer-events", "all")
-        .attr("stroke-dasharray", "2 4")
-        .style("cursor", "crosshair")
+        .style("cursor", "col-resize")
+//.style("stroke", "green")
+        .on("mousedown", function() {
+            // low-rent drag capability, as shown in https://bl.ocks.org/mbostock/4198499
+            var startPt = d3.mouse(this), startIndex = valueIndex, dragOffset = { x: startPt[0]-offset.x, y: startPt[1]-offset.y };
+              //.classed("active", true);
+            
+            var w = d3.select(window)
+                .on("mousemove", ()=>{
+                    var pt = d3.mouse(switchRect.node());
+                    dragRect.attr("x", pt[0]-dragOffset.x).attr("y", pt[1]-dragOffset.y); // every time
+                    throttledMove(pt);  // in a controlled manner
+                    })
+                .on("mouseup", mouseup);
+            
+            d3.event.preventDefault(); // maybe not needed.  whatevs.
+            
+            function mousemove(pt) {
+                var xDelta = pt[0]-startPt[0];
+                var newIndex = Math.max(0, Math.min(valueArray.length-1, startIndex + Math.floor(xDelta/stepSize)));
+                if (newIndex !== valueIndex) {
+                    valueIndex = newIndex;
+                    updateReadout();
+                    handler(valueArray[valueIndex])
+                }
+            }
+            var throttledMove = lively.lang.fun.throttle(mousemove, 100);
+
+            function mouseup() {
+                w.on("mousemove", null).on("mouseup", null);
+                dragRect.attr("x", offset.x).attr("y", offset.y);
+            }   
+            });
+            
+/*        
         .on("mousewheel", ()=>{
             d3.event.preventDefault();  // every time
             throttledHandleWheel(d3.event);  // only now and again
@@ -1611,17 +1690,19 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, handler) {
         handler(direction);
     }
     var throttledHandleWheel = lively.lang.fun.throttle(handleWheel, 150);
-        
-	this.histGroup
+*/
+
+	switchGroup
 	    .append("text")
 		.attr("class", "switchLabel")
 		.attr("x", offset.x+switchSize+8)
 		.attr("y", offset.y+switchSize/2)
 		.style("font-size", "14px")
-		.style("dominant-baseline", "middle")
+		.style("dominant-baseline", "central")
+		.style("pointer-events", "none")
         .style("-webkit-user-select","none")
         .style("fill", switchColour)
-        .text("change bin widths (scroll inside this box)")        
+        .text("bin width (drag to change)")        
 };
 
 chartObject.drawBreakValues=function drawBreakValues(options) {
@@ -2525,7 +2606,8 @@ chartObject.drawSweepControl=function drawSweepControl(offset, handler) {
 		.attr("x", offset.x+switchSize+8)
 		.attr("y", offset.y+switchSize/2)
 		.style("font-size", "14px")
-		.style("dominant-baseline", "middle")
+		.style("dominant-baseline", "central")
+		.style("pointer-events", "none")
         .style("-webkit-user-select","none")
         .style("fill", switchColour)
         .text("sweep bin offsets")        
@@ -4499,7 +4581,7 @@ chartObject.loadData=function loadData(dataset, thenDo) {
     // this.loadData("faithful")
     // this.data.length
     // other possibly useful datasets at http://people.stern.nyu.edu/jsimonof/Casebook/Data/ASCII/
-    var rawData = [], quantum = 1, binQuantum, units = "";
+    var rawData = [], quantum = 1, binQuantum, units = "", minBins = 8, maxBins = 50;
     var chart=this;
     function recordData() {
         chart.dataName = dataset;
@@ -4518,6 +4600,9 @@ chartObject.loadData=function loadData(dataset, thenDo) {
         chart.dataDecimals = quantum >= 1 ? 0 : (quantum >= 0.1 ? 1 : 2);
         chart.dataBinDecimals = chart.dataBinQuantum >= 1 ? 0 : (quantum >= 0.1 ? 1 : 2);
         delete chart.poolValueEntries;
+        // may 2017: for now, these are only used in the last stage of the essay
+        chart.minBinsOverRange = minBins;
+        chart.maxBinsOverRange = maxBins;
         chart.scenarioRecords = [];
 
         // quick hack to support an efficient bag-like collection for the data
@@ -4579,6 +4664,9 @@ chartObject.loadData=function loadData(dataset, thenDo) {
             d3.csv("data/sampled-marathon-times.csv", row=>Number(row.x), function(d) {
                 rawData=d;
                 quantum=0.001;
+                binQuantum = 0.02;
+                minBins = 15;
+                maxBins = 150;
                 units = "(hours)";
                 recordData();
                 });
@@ -4588,6 +4676,9 @@ chartObject.loadData=function loadData(dataset, thenDo) {
             d3.csv("data/sampled-diamonds-price-small.csv", row=>Number(row.x), function(d) {
                 rawData=d;
                 quantum=1;
+                binQuantum = 5;
+                minBins = 15;
+                maxBins = 45;
                 units = "($)";
                 recordData();
                 });

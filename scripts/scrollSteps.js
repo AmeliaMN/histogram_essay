@@ -354,7 +354,7 @@ function scrollStepDefs(ch) {
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
                 return [
-                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(150,10,-1).map(val=>(lively.lang.num.roundTo(chart.dataRange/val, chart.dataBinQuantum)).toFixed(binRounding))), rounding: binRounding },
+                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/chart.minBinsOverRange, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(chart.maxBinsOverRange,chart.minBinsOverRange,-1).map(val=>(lively.lang.num.roundTo(chart.dataRange/val, chart.dataBinQuantum)).toFixed(binRounding))), rounding: binRounding },
                     { name: "offset", main: "0.0", extra: lively.lang.arr.range(-1,0.001,0.1).map(n=>n.toFixed(1)), rounding: 1 },
                     { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
