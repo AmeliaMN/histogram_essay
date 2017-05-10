@@ -2238,9 +2238,10 @@ chartObject.drawDataName=function drawDataName() {
     
 };
 
-chartObject.drawDataSwitch=function drawDataSwitch(datasets) {
+chartObject.drawDataSwitch=function drawDataSwitch() {
     var chart=this;
     
+    var datasets = this.datasetsForSwitching;
     if (datasets.indexOf(this.dataName)===-1) {
         this.loadData(datasets[0]); // ...which should be synchronous
     }
@@ -2272,13 +2273,7 @@ chartObject.drawDataSwitch=function drawDataSwitch(datasets) {
                 .style("stroke-width", 1)
                 .style("stroke-opacity", 1e-6)
                 .style("cursor", "pointer")
-                .on("click", def=>{
-//console.log(def.dataName);
-                    chart.loadData(def.dataName, ()=>{
-                        decorateSwitches();
-                        chart.replaySteps();
-                        });
-                    });
+                .on("click", def=>chart.switchDataset(def.dataName));
 
             seln
                 .append("text")
@@ -2299,6 +2294,14 @@ chartObject.drawDataSwitch=function drawDataSwitch(datasets) {
             .style("stroke-opacity", def=>def.dataName===chart.dataName ? 1 : 0);
     }
     decorateSwitches();
+
+    // NB: method switchDataset accesses privateSwitchDataset, calling drawDataSwitch to initialise it if necessary
+    chart.privateSwitchDataset = function(dataName) {
+        this.loadData(dataName, ()=>{
+            decorateSwitches();
+            this.replaySteps();
+            });
+    }
     
     this.dataSwitchShown = true;
 };
@@ -4986,6 +4989,11 @@ chartObject.stopTimer=function stopTimer(forceToEnd) {
     if (spec.forceToEnd && forceToEnd) spec.forceToEnd();
 
     delete this.timerInfo;
+};
+
+chartObject.switchDataset=function switchDataset(dataName) {
+    if (!this.dataSwitchShown) this.drawDataSwitch();
+    this.privateSwitchDataset(dataName);
 };
 
     return chartObject;

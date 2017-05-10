@@ -69,3 +69,8 @@
           box-sizing: content-box;
     }
 
+    .VisControlLink {  /* link style from Bret Victor's "Ladder of Abstraction" essay */
+        color: rgb(68, 102, 255);
+        cursor: pointer;
+        border-bottom: 1px dashed rgb(68, 102, 255);
+    }

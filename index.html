@@ -43,8 +43,13 @@ function chartDefs() { return [
             dataset: "mpg"
         };
         ch.initScrolliness(options);
+
+        window.scrollyVis = ch;
         }
     ] }
+
+function getVis() { return window.scrollyVis }
+
 </script>
 </head>
 
@@ -80,6 +85,7 @@ function chartDefs() { return [
 		<p class="lead">Histograms are a way to summarize a numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
         
         <p><i>April 2017: Please note the "alpha release" designation; this is a work in progress.  The interactive parts have so far been tested mainly on Chrome.</i></p>
+        
 	</div>
     </div>
 
@@ -169,9 +175,9 @@ function chartDefs() { return [
     <div class="title">Add data to the number line</div>
     <p>Now, we want to show each item as a dot at the appropriate point along the number line.  Here we draw a path connecting each item's position in the list to its position on the line, to highlight how adjacent items in the list will end up close or far apart on the number line depending on their values.</p>
     
-    <p>In the first sample dataset ("mpg"), there are&mdash;by chance&mdash;no two items having exactly the same value. We have some other datasets available.  At an opposite extreme from "mpg" is "nba", a dataset comprising the ages of 105 NBA athletes.  Because ages are rounded to whole years, there end up being multiple items (i.e., multiple athletes) with the same age value.  We show repeated values by <b>stacking</b> them on top of each other on the number line.<p>
+    <p>In the first sample dataset ("mpg"), there are&mdash;by chance&mdash;no two items having exactly the same value. We have some other datasets available.  At an opposite extreme from "mpg" is "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">nba</span>", a dataset comprising the ages of 105 NBA athletes.  Because ages are rounded to whole years, there end up being multiple items (i.e., multiple athletes) with the same age value.  We show repeated values by <b>stacking</b> them on top of each other on the number line.<p>
     
-    <p>A third example dataset is "faithful", a dataset of 272 timings (in seconds) between eruptions of the Old Faithful geyser in Yellowstone National Park.  Again, this dataset turns out to have some values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are being rounded to integers.  If the timings were measured to multiple decimal places (fanciful though that would be, for something as vague as an eruption onset), this dataset would almost certainly have no duplicates.  This is why counting items over a <i>range</i> of values&mdash;which is what histograms are all about&mdash;is useful in the first place.<p>
+    <p>A third example dataset is "<span class="VisControlLink" onclick="getVis().switchDataset('faithful')">faithful</span>", a dataset of 272 timings (in seconds) between eruptions of the Old Faithful geyser in Yellowstone National Park.  Again, this dataset turns out to have some values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are being rounded to integers.  If the timings were measured to multiple decimal places (fanciful though that would be, for something as vague as an eruption onset), this dataset would almost certainly have no duplicates.  This is why counting items over a <i>range</i> of values&mdash;which is what histograms are all about&mdash;is useful in the first place.<p>
     
     <p>The buttons at the bottom of the visualisation allow you to switch between these datasets at any stage of the essay.<p>
   </section>

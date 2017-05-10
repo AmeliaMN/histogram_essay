@@ -45,7 +45,8 @@ function scrollStepDefs(ch) {
             delete chart.highlightValueIndices;
             delete chart.binsAreDraggable;
             
-            if (chart.dataSwitchShown) chart.drawDataSwitch(baseDatasets);
+            chart.datasetsForSwitching = baseDatasets;
+            if (chart.dataSwitchShown) chart.drawDataSwitch();
             chart.drawDataName();
             chart.drawValueList({ stage: 0 });
         }
@@ -77,7 +78,7 @@ function scrollStepDefs(ch) {
             },
         update: (chart, progress)=>{
             if (progress > 0.25 && !chart.dataSwitchShown) {
-                chart.drawDataSwitch(baseDatasets);
+                chart.drawDataSwitch();
             }
             if (progress > 0.25 && chart.maximumScrolledIndex===3) { // @@ HACK
                 var dataName = chart.dataName;
@@ -86,7 +87,7 @@ function scrollStepDefs(ch) {
                 if (dataName !== chart.dataName) {
                     chart.stopTimer();
                     chart.loadData(dataName);
-                    chart.drawDataSwitch(baseDatasets);
+                    chart.drawDataSwitch();
                     chart.clearDemoBalls();
                     chart.clearEphemeralCanvas();
                     chart.clearFixedCanvas();
@@ -102,7 +103,7 @@ function scrollStepDefs(ch) {
         command: "portion items into bins",
         activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
             if (!chart.dataSwitchShown) {  // force showing of data switch if user scrolled too quickly
-                chart.drawDataSwitch(baseDatasets);
+                chart.drawDataSwitch();
             }
             chart.stopTimer(true);  // force completion of ball stacks
             var options = targetStep===thisStep ? undefined : { instant: true };
@@ -213,7 +214,7 @@ function scrollStepDefs(ch) {
                 if (targetStep !== thisStep) chart.clearDemoBalls();
             } else { // if not, fill in the elements that we need to be there
                 chart.drawDataName();
-                chart.drawDataSwitch(baseDatasets);
+                chart.drawDataSwitch();
             }
             
             if (targetStep === thisStep) {
@@ -393,7 +394,8 @@ function scrollStepDefs(ch) {
                 chart.drawDataName();
             }
 
-            chart.drawDataSwitch(laterDatasets);
+            chart.datasetsForSwitching = laterDatasets;
+            chart.drawDataSwitch();
     
             chart.binsAreDraggable = true;
             chart.initNakedHistogram({ instant: prevRendered===null || originStep<stepIndex("firstTable") });
