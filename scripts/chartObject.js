@@ -2321,6 +2321,7 @@ chartObject.drawDensityControl=function drawDensityControl(offset, handler) {
     this.histGroup
         .append("rect")
         .attr("class", "switch")
+        .attr("id", "densitySwitch")
         .attr("x", offset.x)
         .attr("y", offset.y)
         .attr("width", switchSize)
