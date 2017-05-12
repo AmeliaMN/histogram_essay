@@ -4188,7 +4188,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             // call resize.
             d3.select(window)
               .on('scroll.scroller', throttledPosition)  // ael added throttles
-              .on('resize.scroller', throttledResize);
+              .on('resize.scroller', debouncedResize);
             
             // hack to get resize (and hence position)
             // to be called once for
@@ -4212,27 +4212,34 @@ chartObject.initScrolliness=function initScrolliness(options) {
         function resize() {
             // ael: first figure out what size we're going to give the text and vis.
 
-            // to be going on with: vis gets height of window, up to its visMaxExtent.y, unless the proportionally scaled width would leave less than textMinWidth for the text column.
+            // we rely on the page's base css to define the width of #scrolly.
+            // vis gets height of window, up to its visMaxExtent.y, unless the proportionally scaled width would leave less than textMinWidth for the text column.
             // i.e., subject to the min vis extent, we want the vis to be the smaller of:
-            //    leaving width of at least textMinWidth
-            //    fitting into the window height
+            //    leaving width of at least textMinWidth (which includes a narrow gutter, specified as #sections.margin-right)
+            //    fitting into the window height.
             
-            var heightMargin = navHeight+50, widthMargin = 100;  // @@ somewhat arbitrary
-
+            var heightMargin = navHeight+50;
+            var divWidth = d3.select("#scrolly").node().getBoundingClientRect().width;
+//console.log("divWidth:",divWidth);
+            d3.select("#sections").style("padding-left", "0px");
             var visRatio = visMaxExtent.x / visMaxExtent.y;
+            var visMinWidth = Math.max(visMinExtent.x, visRatio*visMinExtent.y);
             
-            var textLimitedMaxWidth = window.innerWidth - widthMargin - textMinWidth;
+            var textLimitedMaxWidth = divWidth - textMinWidth;
             var heightLimitedMaxWidth = visRatio * (window.innerHeight - heightMargin);
-            var visWidth = Math.max(visMinExtent.x, Math.min(visMaxExtent.x, Math.min(textLimitedMaxWidth, heightLimitedMaxWidth)));
+            var visWidth = Math.max(visMinWidth, Math.min(visMaxExtent.x, Math.min(textLimitedMaxWidth, heightLimitedMaxWidth)));
             var visHeight = visWidth / visRatio;
-            var textWidth = Math.max(textMinWidth, Math.min(textMaxWidth, window.innerWidth - widthMargin - visWidth));
+            var textWidth = Math.max(textMinWidth, Math.min(textMaxWidth, divWidth - visWidth));
 
             textWidth = textWidth | 0;
-            d3.select("#sections").style("width", textWidth+"px");  // shouldn't need to know name
+            d3.select("#sections").style("width", textWidth+"px");
             visWidth = visWidth | 0;
             visHeight = visHeight | 0;
             visSeln.style("width", visWidth+"px").style("height", visHeight+"px");
 
+            var marginNeeded = (divWidth - visWidth - textWidth)/2;
+            d3.select("#sections").style("padding-left", Math.max(0, marginNeeded)+"px");
+            
             dispatch.call('size', this, { x: visWidth, y: visHeight });
 
             var lastSection = sections.nodes()[sections.size()-1];
@@ -4255,16 +4262,17 @@ chartObject.initScrolliness=function initScrolliness(options) {
                 var lastSectionHeight = lastSection.getBoundingClientRect().height;
                 var stepMarginBottom = 150; // **tied to scrolly.css**
                 var paddingNeeded = Math.max(0, visHeight - lastSectionHeight - switchPos - stepMarginBottom + 20);
-                d3.select(lastSection).style("padding-bottom", paddingNeeded+"px");
-                    
-                var extraSpaceNeeded = Math.max(0, window.innerHeight - visHeight - navHeight - 75); // fudge
-                d3.select("#extra-space").style("height", extraSpaceNeeded+"px");
+                d3.select(lastSection).style("padding-bottom", Math.max(0, paddingNeeded)+"px");
+                
+                // make sure the last line appears at the bottom of the window
+                var extraSpaceNeeded = Math.max(0, window.innerHeight - visHeight - navHeight - 30); // fudge
+                d3.select("#extra-space").style("height", Math.max(0, extraSpaceNeeded)+"px");
                 
                 position();
                 }, 250);
         }
-        var throttledResize = lively.lang.fun.throttle(resize, 500);
-        
+        var debouncedResize = lively.lang.fun.debounce(500, resize);
+
         /**
         * position - get user's current position.
         * if user has scrolled to new section,
@@ -4361,11 +4369,11 @@ chartObject.initScrolliness=function initScrolliness(options) {
         };
 
         // ael added        
-        scroll.visExtents = function(min, max, textMin, textMax) {
-            visMinExtent = min;
-            visMaxExtent = max;
-            textMinWidth = textMin;
-            textMaxWidth = textMax;
+        scroll.setVisExtents = function(options) {
+            visMinExtent = options.visMinExtent;
+            visMaxExtent = options.visExtent;
+            textMinWidth = options.textMinWidth;
+            textMaxWidth = options.textMaxWidth;
             
             return scroll;
         }
@@ -4531,7 +4539,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
     // now set up the scroll functionality on the outer div
     var scroll = scroller()
         .container(d3.select('#scrolly'))
-        .visExtents(options.visMinExtent, options.visExtent, options.textMinWidth, options.textMaxWidth);
+        .setVisExtents(options);
     
     chart.maximumScrolledIndex = -1; // ael - HACK
 

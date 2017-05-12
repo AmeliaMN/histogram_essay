@@ -1,10 +1,21 @@
 
-    /* disabling Bootstrap responsiveness */
     .container {
-        width: 970px;
-        max-width: none !important;
+        /* width: 970px; */
+        min-width: 880px;
         margin-left: 30px;
         margin-right: 30px;
+    }
+
+    #intro {
+        min-width: 820px;
+        max-width: 1000px;
+        margin: auto;
+    }
+
+    #scrolly {
+        min-width: 820px;
+        max-width: 1500px;
+        margin: auto;
     }
 
     body * { outline: none !important }
@@ -73,4 +84,63 @@
         color: rgb(68, 102, 255);
         cursor: pointer;
         border-bottom: 1px dashed rgb(68, 102, 255);
+    }
+    
+
+    /* bits and pieces copied from Bootstrap */
+
+    .container > .navbar-header,
+    .container-fluid > .navbar-header,
+    .container > .navbar-collapse,
+    .container-fluid > .navbar-collapse {
+      margin-right: -15px;
+      margin-left: -15px;
+    }
+
+    .navbar-brand {
+      float: left;
+      padding: 15px 15px;
+      font-size: 18px;
+      line-height: 20px;
+      text-decoration: none;
+    }
+
+    .navbar-brand:hover,
+    .navbar-brand:focus {
+      text-decoration: none;
+    }
+
+    .thumbnail > img,
+    .thumbnail a > img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+    }
+
+    .thumbnail {
+      display: block;
+      padding: 4px;
+      margin-bottom: 20px;
+      line-height: 1.42857143;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      -webkit-transition: border .2s ease-in-out;
+           -o-transition: border .2s ease-in-out;
+              transition: border .2s ease-in-out;
+    }
+
+    .thumbnail > img,
+    .thumbnail a > img {
+      margin-right: auto;
+      margin-left: auto;
+    }
+    a.thumbnail:hover,
+    a.thumbnail:focus,
+    a.thumbnail.active {
+      border-color: #337ab7;
+    }
+    .thumbnail .caption {
+      padding: 9px;
+      color: #333;
     }

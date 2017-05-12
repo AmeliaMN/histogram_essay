@@ -213,8 +213,9 @@ function scrollStepDefs(ch) {
                 // if we're landing here, keep the balls for now
                 if (targetStep !== thisStep) chart.clearDemoBalls();
             } else { // if not, fill in the elements that we need to be there
-                chart.drawDataName();
+                chart.datasetsForSwitching = baseDatasets;
                 chart.drawDataSwitch();
+                chart.drawDataName();
             }
             
             if (targetStep === thisStep) {

@@ -78,7 +78,9 @@ function getVis() { return window.scrollyVis }
     </nav>
 
 
-<div class="container">
+<div class="container"> <!-- holds intro and scrolly parts.  fixed margins -->
+
+<div id="intro">
 		<h1 id="top">What's so hard about histograms?</h1>	
 		<p class="lead">Histograms are a way to summarize a numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
       
@@ -103,6 +105,9 @@ function getVis() { return window.scrollyVis }
 
 		<h2>Visualizing the distribution of a categorical variable</h2>
 
+<div>
+
+		<a class="thumbnail" style="float: right; margin: 0px 0px 15px 15px;" href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/"><img width="300px" src="img/hickey-ross-tags-1.png" class="img-responsive" alt="Bob Ross paintings containing the named elements"/></a>
 
     <p>When a variable is <a href="#" data-toggle="tooltip" title="(Meaning it only has a few possible discrete values)">categorical</a>, the way to view the distribution of one variable is a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (also known as a bar graph). Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>.</p>
 
@@ -113,30 +118,30 @@ function getVis() { return window.scrollyVis }
     <blockquote><p>There’s a strand of the data viz world that argues that everything could be a bar chart. That’s possibly true but also possibly a world without joy.</p>
       <p>-<a href="https://hbr.org/2013/03/power-of-visualizations-aha-moment">Amanda Cox</a>, The Upshot. </p></blockquote>
     
-		
-
-	
-		<a class="thumbnail" href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/"><img src="img/hickey-ross-tags-1.png" class="img-responsive" alt="Bob Ross paintings containing the named elements"/></a>
-
-		
+</div>
+<br style="clear:both" />
 
   <h2>Visualizing the distribution of a numeric variable</h2>
+  
+<div>
+
+		<a class="thumbnail" style="float: right; margin: 0px 0px 15px 15px;" href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=0"><img width="300px" src="img/0422-ups-marathon-945-1.png", class="img-responsive" alt="Marathon finishing times"/></a>
+
 		<p>When a variable is numeric, there are a <a href="#" data-toggle="tooltip" title="Including boxplots, stem and leaf plots, and density plots">a variety of ways</a> to visualize the distribution, but the most common method is probably the histogram.</p>
     <p>For example, Justin Wolfers of The Upshot produced a histogram to visualize the finishing times of 10 million marathon finishers.</p>
 
     <p>At first glance, this looks simple enough. We bin data into a set of discrete bins, then count how many values fall into each of the bins to aggregate the data. But, as we look closer we realize that there are actually many choices the data analyst needs to make in order to create a histogram, and the choices have big consequences on the resulting distribution!</p>
 
-		
+</div>
+<br style="clear:both" />
 
-		<a class="thumbnail" href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=0"><img src="img/0422-ups-marathon-945-1.png", class="img-responsive" alt="Marathon finishing times"/></a>
-
-
-
-  <h2>Building a histogram</h2>
-
+</div>  <!-- end of #intro -->
 
 <div id="scrolly">
+
 <div id="sections">
+<h2>Building a histogram</h2>
+
   <section class="step">
     <div class="title">Gather your data</div>
     The first step in building a histogram is to find some numeric data. We're going to start by considering the fuel mileage from a variety of cars sampled in 1974 (yes, this data is out of date). We can start by considering the dataset as a pool of items, each identified by its value. We can "see" all the data, but it is hard to get the gestalt of the variable. What are some common values? Is there a lot of variation? To answer these questions, we need to sort the data. 
@@ -261,24 +266,16 @@ function getVis() { return window.scrollyVis }
 </div>
 
 </div> <!-- end of #scrolly -->
-</div> <!-- end of .container -->
-
-
-
-
-   <footer>
-      <div class="container">
-<!--        <p class="text-muted credit">Copyright &copy; 2017 Aran Lunzer and Amelia McNamara.</p> -->
-    <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work, by <a href="http://www.vpri.org/html/team_bios/aran_lunzer.htm">Aran Lunzer</a> and <a href="http://www.science.smith.edu/~amcnamara/">Amelia McNamara</a>, is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
-      </div>
-    </footer>
-
-
-    <!-- /container -->
-
-
 
 <div id="extra-space"></div>
+
+<p>
+    <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work, by <a href="http://www.vpri.org/html/team_bios/aran_lunzer.htm">Aran Lunzer</a> and <a href="http://www.science.smith.edu/~amcnamara/">Amelia McNamara</a>, is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+
+<br />
+</p>
+
+</div> <!-- end of .container -->
 
   </body>
 </html>
