@@ -192,8 +192,8 @@ function getVis() { return window.scrollyVis }
     <div class="title">Unmasking the magic</div>
     <p>So far, we have only let you vary one parameter or another. However, there are interactions between parameters that can affect the shape of the distribution, and ways in which visualizing more of the parameter space can increase your knowlege of the distribution. This section allows you to see the "code" associated with our histogram creation.</p>
 
-    <p>Try mousing over the values in the <b>width</b> row of the table to see a variety of histograms with different bin widths. 
-    <p>The green square at the left side of the row will allow you to see a "sweep" of parameter values, creating a cloud of transparent histograms with slightly different bin widths. Turning on a sweep adds additional rows to the table. Try mousing over the table to see more information about how the heights of bins varies.</p>
+    <p>Try mousing over the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#width-extraGroup')" onmouseout="getVis().hoverOut()">values in the <b>width</b> row</span> of the table to see a variety of histograms with different bin widths. 
+    <p>The <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#width-extraToggle')" onmouseout="getVis().hoverOut()">green square</span> at the left side of the row will allow you to see a "sweep" of parameter values, creating a cloud of transparent histograms with slightly different bin widths. Turning on a sweep adds additional rows to the table. Try mousing over the table to see more information about how the heights of bins varies.</p>
 
     <p>Because broader bins generally capture more items, and narrower bins fewer, it can sometimes be hard to compare between histograms with different bin widths. One solution is to plot the histogram as <b>densities</b> rather than as counts. Use the radio button to toggle this option. Notice that the shape of the histogram does not change, but the labels on the axis do. Now you can more easily compare the shapes of histograms with different bin widths.</p>
 

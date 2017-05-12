@@ -617,6 +617,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                         if (rowItem.hasExtras) {
                             seln.append("rect")
                                 .attr("class", "extraToggle")
+                                .attr("id", rowItem.varName+"-extraToggle")
                                 .attr("x", edges[1])
                                 .attr("y", (rowHeight-boxSize)/2-2)
                                 .attr("width", boxSize)
@@ -687,6 +688,8 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                     else if (!lively.lang.obj.isArray(rowItem.expr)) cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 0, styledText: rowItem.styledExpr});
                     else {
                         if (rowItem.hasExtras) {
+                            groupObject.id = rowItem.varName+"-extraGroup";
+                            
                             if (options.focusVar===rowVar) groupObject.focusIndex = groupObject.indexToHighlight = options.focusIndex;
                             else {
                                 var varDef = varDefs[rowVar];
@@ -795,7 +798,8 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                     .each(function(groupObject) {
                         var groupSeln = d3.select(this);
                         var cellClass = groupObject.isFishy ? "fishItem" : "cellItem";
-    
+                        if (groupObject.id) groupSeln.attr("id", groupObject.id);
+                        
                         var cells = groupSeln.selectAll("."+cellClass).data(groupObject.cells, cellItem=>cellItem.indexInGroup);
                         
                         cells.exit()
@@ -3556,6 +3560,29 @@ chartObject.generateRanges=function generateRanges(binWidthPct, binOffsetPct) {
   return ranges;
 };
 
+chartObject.hoverOver=function hoverOver(path) {
+    var hoveredElem = d3.select(path);
+    var elemRect = hoveredElem.node().getBoundingClientRect(), outset = 4;
+    var svgRect = this.chartSVG.node().getBoundingClientRect();
+    var ratio = this.sizeRatio;
+    var fullSizeLeft = (elemRect.left-svgRect.left)/ratio, fullSizeTop = (elemRect.top-svgRect.top)/ratio, fullSizeWidth = elemRect.width/ratio, fullSizeHeight = elemRect.height/ratio;
+    this.chartSVG.select("rect.highlighter").remove();
+    this.chartSVG.append("rect")
+        .attr("class", "highlighter")
+        .attr("x", fullSizeLeft-outset)
+        .attr("y", fullSizeTop-outset)
+        .attr("width", fullSizeWidth+2*outset)
+        .attr("height", fullSizeHeight+2*outset)
+        .style("fill", "none")
+        .style("pointer-events", "none")
+        .style("stroke-width", outset-2)
+        .style("stroke", "red");
+};
+
+chartObject.hoverOut=function hoverOut() {
+    this.chartSVG.select("rect.highlighter").remove();
+};
+
 chartObject.init=function init(options) {
     var tableOptions = {};
     if (options.hasOwnProperty("noDensity")) tableOptions.noDensity = options.noDensity;
@@ -4804,6 +4831,7 @@ chartObject.resizeChartSubstrates=function resizeChartSubstrates(divSeln, newExt
     this.chartSVG.attr("width", newExtent.x).attr("height", newExtent.y);
 
     var ratio = newExtent.x/this.visMaxExtent.x;
+    this.sizeRatio = ratio;
 
     var canvas = this.chartCanvas.node(), context = canvas.getContext("2d");
     canvas.width = newExtent.x;
