@@ -1684,7 +1684,7 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
 
             function mouseup() {
                 w.on("mousemove", null).on("mouseup", null);
-                dragRect.attr("x", offset.x).attr("y", offset.y);
+                dragRect.attr("x", dragRegionOffset.x).attr("y", dragRegionOffset.y);
             }   
             });
             
