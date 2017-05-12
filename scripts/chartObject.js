@@ -1226,21 +1226,21 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
     }
     
     if (tableOptions.noFader!==true) {
-        this.drawFaderControl(lively.pt(250, tableOptions.noVisibleTable ? 60 : 40), lively.lang.fun.throttle(opacityHandler, 100));
+        this.drawFaderControl(lively.pt(260, tableOptions.noVisibleTable ? 70 : 40), lively.lang.fun.throttle(opacityHandler, 100));
         group.select("g.fader").style("opacity", 0);
     }
-    if (tableOptions.noDensity!==true) this.drawDensityControl(lively.pt(480, tableOptions.noVisibleTable ? 45 : 25), ()=>refreshTable({}, 250));
+    if (tableOptions.noDensity!==true) this.drawDensityControl(lively.pt(480, tableOptions.noVisibleTable ? 55 : 25), ()=>refreshTable({}, 250));
     if (tableOptions.widthControl) {
         var widthValues = varDefs.width.extra; // array of stringy expressions
         var valueIndex = widthValues.indexOf(varDefs.width.main);
-        this.drawBinWidthControl(lively.pt(400, 33), widthValues, valueIndex, newValue=>{
+        this.drawBinWidthControl(lively.pt(420, 51), widthValues, valueIndex, newValue=>{
             varDefs.width.main = newValue;
             delete chart.estimatedBinMax;
             refreshTable({ force: true }, 0);
             });
     }
     if (tableOptions.sweepControl) {
-        this.drawSweepControl(lively.pt(0, 45), ()=>toggleContextSpec("offset"));
+        this.drawSweepControl(lively.pt(0, 55), ()=>toggleContextSpec("offset"));
     }
     
     
@@ -1591,17 +1591,17 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
     // goes into histGroup
     var chart=this;
 
-    var switchSize = 36, stepSize = 8, switchColour = "#444", readoutColour = "black";
+    var switchW = 50, switchH = 32, rectOffset = 75, dragRegionOffset = { x: offset.x+rectOffset, y: offset.y }, stepSize = 8, switchColour = "#444", readoutColour = "black";
     var switchGroup = this.histGroup.append("g").attr("class", "switchGroup");
 
     var valueIndex = initialIndex;
 
     var switchRect = switchGroup
         .append("rect")
-        .attr("x", offset.x)
-        .attr("y", offset.y)
-        .attr("width", switchSize)
-        .attr("height", switchSize)
+        .attr("x", dragRegionOffset.x)
+        .attr("y", dragRegionOffset.y)
+        .attr("width", switchW)
+        .attr("height", switchH)
         .style("border-width", 1)
         .style("stroke", switchColour)
         .style("fill", "none")
@@ -1611,8 +1611,8 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
     var switchReadout = switchGroup
 	    .append("text")
 		.attr("class", "readout")
-		.attr("x", offset.x+switchSize/2)
-		.attr("y", offset.y+switchSize/2)
+		.attr("x", dragRegionOffset.x+switchW/2)
+		.attr("y", dragRegionOffset.y+switchH/3)
 		.style("font-size", "14px")
 		.style("text-anchor", "middle")
 		.style("dominant-baseline", "central")
@@ -1623,9 +1623,9 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
     var minMaxIndicator = switchGroup
 	    .append("text")
 		.attr("class", "minmax")
-		.attr("x", offset.x+switchSize/2)
-		.attr("y", offset.y+switchSize*0.8)
-		.style("font-size", "8px")
+		.attr("x", dragRegionOffset.x+switchW/2)
+		.attr("y", dragRegionOffset.y+switchH*0.75)
+		.style("font-size", "9px")
 		.style("text-anchor", "middle")
 		.style("dominant-baseline", "central")
 		.style("pointer-events", "none")
@@ -1648,10 +1648,10 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
     var dragRect = switchGroup
         .append("rect")
         .attr("class", "draggable")
-        .attr("x", offset.x)
-        .attr("y", offset.y)
-        .attr("width", switchSize)
-        .attr("height", switchSize)
+        .attr("x", dragRegionOffset.x)
+        .attr("y", dragRegionOffset.y)
+        .attr("width", switchW)
+        .attr("height", switchH)
         .style("fill", "none")
         .style("pointer-events", "all")
         .style("cursor", "col-resize")
@@ -1688,30 +1688,30 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
             }   
             });
             
-/*        
-        .on("mousewheel", ()=>{
-            d3.event.preventDefault();  // every time
-            throttledHandleWheel(d3.event);  // only now and again
-            });
-
-    function handleWheel(evt) {
-        var direction = evt.wheelDelta > 0 ? 1 : -1;
-        handler(direction);
-    }
-    var throttledHandleWheel = lively.lang.fun.throttle(handleWheel, 150);
-*/
-
 	switchGroup
 	    .append("text")
 		.attr("class", "switchLabel")
-		.attr("x", offset.x+switchSize+8)
-		.attr("y", offset.y+switchSize/2)
+		.attr("x", offset.x)
+		.attr("y", offset.y+switchH/3)
 		.style("font-size", "14px")
 		.style("dominant-baseline", "central")
 		.style("pointer-events", "none")
         .style("-webkit-user-select","none")
         .style("fill", switchColour)
-        .text("bin width (drag to change)")        
+        .text("bin width")        
+
+	switchGroup
+	    .append("text")
+		.attr("class", "switchLabel")
+		.attr("x", offset.x)
+		.attr("y", offset.y+switchH*0.75)
+		.style("font-size", "9px")
+		.style("dominant-baseline", "central")
+		.style("pointer-events", "none")
+        .style("-webkit-user-select","none")
+        .style("fill", switchColour)
+        .text("(drag to change)")
+
 };
 
 chartObject.drawBreakValues=function drawBreakValues(options) {
