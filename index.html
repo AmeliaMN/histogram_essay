@@ -88,47 +88,36 @@ function getVis() { return window.scrollyVis }
         
 
 
-	<h2>Exploratory data analysis</h2>
-		
-		<p>When thinking about data, it is often useful to produce plots of variables in one- and two-dimensions, a process which is called <a href="https://en.wikipedia.org/wiki/Exploratory_data_analysis">Exploratory Data Analysis</a>, or EDA. EDA was the brainchild of John Tukey in the 1960s, and has become even more powerful with the rise of better computer graphics.</p>
+	<h2>Visualizing distributions</h2>
+	<div>	
+		<p>When thinking about data, it is often useful to produce a plots of a variable to better understand the <b>distribution</b> of that variable. The way you visualize a distribution depends on whether the variable of interest is categorical or numeric.</p>
 
-		<p>Often, when considering one variable you are interested in the <b>distribution</b> of that variable. And the way you visualize a distribution depends on whether the variable of interest is categorical or numeric.</p>
+		<h3>Distributions of categorical variables</h3>
+  <a class="thumbnail" style="float: right; margin: 0px 0px 15px 15px;" href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/"><img width="300px" src="img/hickey-ross-tags-1.png" class="img-responsive" alt="Bob Ross paintings containing the named elements"/></a>
+
 
     <p><b>Categorical</b> variables take on only on a few specific values. For example, gender is often reported as a categorical variable, perhaps with categories "male," "female," and "gender non-conforming." Racial categories are another common use of categorical variables.</p>
 
-    <p><b>Numeric</b> variables are measured as numbers. For example, height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables can only take on certain integer values. Continuous variables can take on any value! If you think about the number <a href="https://en.wikipedia.org/wiki/Pi">pi</a>, it is a number with an infinite decimal. Continuous variables don't have to take on such extremely irrational values, they might be numbers like 2.56. </p>
-		
+	
 
+    <p>When a variable is categorical, the way to view the distribution of one variable is known as a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> or bar graph. Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>. The categories for painting elements are discrete choices, so Walt Hickey (the author of the chart) counted up how many paintings contained each element and displayed the <a href="#" data-toggle="tooltip" title="Technically, he really showed the percentages">counts</a>.</p>
 
-
-
-
-		<h2>Visualizing the distribution of a categorical variable</h2>
-
-<div>
-
-		<a class="thumbnail" style="float: right; margin: 0px 0px 15px 15px;" href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/"><img width="300px" src="img/hickey-ross-tags-1.png" class="img-responsive" alt="Bob Ross paintings containing the named elements"/></a>
-
-    <p>When a variable is <a href="#" data-toggle="tooltip" title="(Meaning it only has a few possible discrete values)">categorical</a>, the way to view the distribution of one variable is a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (also known as a bar graph). Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>.</p>
-
-    <p>The categories for painting elements are discrete choices, so Walt Hickey (the author of the chart) counted up how many paintings contained each element and displayed the <a href="#" data-toggle="tooltip" title="Technically, he really showed the percentages">counts</a>.</p>
-
-    <p>Bar charts are nice because they are not parameterized. That is, there aren't many choices for the data analyst to make when creating a bar chart. As we will see, this is not the case for histograms.</p>
+    <p>Bar charts are not parameterized, which reduces the number of choices for the data analyst to make. As we will see, this is not the case for histograms.</p>
     
     <blockquote><p>There’s a strand of the data viz world that argues that everything could be a bar chart. That’s possibly true but also possibly a world without joy.</p>
       <p>-<a href="https://hbr.org/2013/03/power-of-visualizations-aha-moment">Amanda Cox</a>, The Upshot. </p></blockquote>
-    
-</div>
-<br style="clear:both" />
 
-  <h2>Visualizing the distribution of a numeric variable</h2>
+  <h3>Distributions of numeric variables</h3>
   
-<div>
 
-		<a class="thumbnail" style="float: right; margin: 0px 0px 15px 15px;" href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=0"><img width="300px" src="img/0422-ups-marathon-945-1.png", class="img-responsive" alt="Marathon finishing times"/></a>
+  <p><b>Numeric</b> variables are measured as numbers. For example, height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables can only take on certain integer values. Continuous variables can take on any value along the number line.</p>
+
+	
 
 		<p>When a variable is numeric, there are a <a href="#" data-toggle="tooltip" title="Including boxplots, stem and leaf plots, and density plots">a variety of ways</a> to visualize the distribution, but the most common method is probably the histogram.</p>
     <p>For example, Justin Wolfers of The Upshot produced a histogram to visualize the finishing times of 10 million marathon finishers.</p>
+
+      <a class="thumbnail" style="float: right; margin: 0px 0px 15px 15px;" href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=0"><img width="300px" src="img/0422-ups-marathon-945-1.png", class="img-responsive" alt="Marathon finishing times"/></a>
 
     <p>At first glance, this looks simple enough. We bin data into a set of discrete bins, then count how many values fall into each of the bins to aggregate the data. But, as we look closer we realize that there are actually many choices the data analyst needs to make in order to create a histogram, and the choices have big consequences on the resulting distribution!</p>
 
