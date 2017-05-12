@@ -4690,17 +4690,6 @@ chartObject.loadData=function loadData(dataset, thenDo) {
         
         var valueScale = d3.scaleLinear().domain([chart.dataMin, chart.dataMax]);
         var colourInterpolator = d3.interpolateHcl("#5086FE", "#FD2EA7");
-            // richer blue to shockinger pink d3.interpolateHcl("#6D9CFF", "#FF64BF");
-            // light blue to shocking pink d3.interpolateHcl("#42A3FB", "#FD67B9")
-            // richer green to gold d3.interpolateHcl("#04B568", "#DA8D1F")
-            // light green to gold d3.interpolateHcl("#2BEB5F", "#FBC52C");
-            // light blue via turquoise to gold d3.interpolateHcl("#3AE2DD", "#FBC52C");
-            // green to orange: d3.interpolateHcl("#54843F", "#C95332");
-            // d3.interpolateRgb("blue", "red");
-            
-            // juggle using colour picker at http://tristen.ca/hcl-picker/#/hcl/6/0.92/6D9CFF/FF64BF
-            // test for impact of colour blindness at http://www.color-blindness.com/coblis-color-blindness-simulator/
-            // commonest being Deuteranomaly, according to https://nei.nih.gov/health/color_blindness/facts_about
         chart.colourScale = function(val, opacity) { var c = d3.color(colourInterpolator(valueScale(val))); c.opacity = opacity; return c.toString() };
 
         chart.drawDataName();
@@ -4710,7 +4699,7 @@ chartObject.loadData=function loadData(dataset, thenDo) {
 
     switch(dataset) {
         case "marathons":
-            // a subset of nyc marathon finishing times
+            // a subset of nyc marathon finishing times.  full dataset available at http://faculty.chicagobooth.edu/george.wu/research/marathon/data.htm
             d3.csv("data/sampled-marathon-times.csv", row=>Number(row.x), function(d) {
                 rawData=d;
                 quantum=0.001;
@@ -4722,7 +4711,7 @@ chartObject.loadData=function loadData(dataset, thenDo) {
                 });
             return;
         case "diamonds":
-            // a subset of prices from the ggplot2 diamonds dataset
+            // a subset of prices from the ggplot2 diamonds dataset http://ggplot2.tidyverse.org/reference/diamonds.html
             d3.csv("data/sampled-diamonds-price-small.csv", row=>Number(row.x), function(d) {
                 rawData=d;
                 quantum=1;
@@ -4733,28 +4722,7 @@ chartObject.loadData=function loadData(dataset, thenDo) {
                 recordData();
                 });
             return;
-        case "diamonds-size":
-            // a sampled subset of the ggplot2 diamonds dataset
-            d3.csv("data/sampled-diamonds-carat.csv", row=>Number(row.x), function(d) {
-                rawData=d;
-                quantum=0.01;
-                units = "(carats)";
-                recordData();
-                });
-            return;
-        case "passengers":
-            // from R sample dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/AirPassengers.html
-            rawData = [112,118,132,129,121,135,148,148,136,119,104,118,115,126,141,135,125,149,170,170,158,133,114,140,145,150,178,163,172,178,199,199,184,162,146,166,171,180,193,181,183,218,230,242,209,191,172,194,196,196,236,235,229,243,264,272,237,211,180,201,204,188,235,227,234,264,302,293,259,229,203,229,242,233,267,269,270,315,364,347,312,274,237,278,284,277,317,313,318,374,413,405,355,306,271,306,315,301,356,348,355,422,465,467,404,347,305,336,340,318,362,348,363,435,491,505,404,359,310,337,360,342,406,396,420,472,548,559,463,407,362,405,417,391,419,461,472,535,622,606,508,461,390,432];
-            quantum=1;
-            break;
-    
-        case "precip":
-          // from R sample dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/precip.html
-            rawData = [67, 54.7, 7, 48.5, 14, 17.2, 20.7, 13, 43.4, 40.2, 38.9, 54.5, 59.8, 48.3, 22.9, 11.5, 34.4, 35.1, 38.7, 30.8, 30.6, 43.1, 56.8, 40.8, 41.8, 42.5, 31, 31.7, 30.2, 25.9, 49.2, 37, 35.9, 15, 30.2, 7.2, 36.2, 45.5, 7.8, 33.4, 36.1, 40.2, 42.7, 42.5, 16.2, 39, 35, 37, 31.4, 37.6, 39.9, 36.2, 42.8, 46.4, 24.7, 49.1, 46, 35.9, 7.8, 48.2, 15.2, 32.5, 44.7, 42.6, 38.8, 17.4, 40.8, 29.1, 14.6, 59.2];
-            quantum = 0.1;
-            units = "(inches)";
-            break;
-          
+
         case "nba":
           // from chatterjee et al 1992-3 nba player ages http://people.stern.nyu.edu/jsimonof/Casebook/Data/ASCII/nba.dat
           rawData = [28, 30, 26, 30, 28, 31, 30, 27, 29, 24, 27, 29, 24, 30, 28, 32, 25, 29, 34, 23, 32, 28, 28, 23, 32, 27, 34, 26, 30, 30, 23, 31, 28, 27, 25, 32, 29, 34, 28, 23, 26, 30, 32, 27, 27, 25, 24, 27, 25, 27, 31, 30, 25, 26, 33, 24, 26, 31, 24, 27, 28, 22, 30, 31, 23, 25, 31, 33, 28, 37, 28, 24, 34, 24, 28, 33, 23, 26, 28, 26, 25, 25, 26, 25, 27, 35, 31, 25, 30, 24, 23, 23, 27, 27, 25, 24, 24, 23, 23, 26, 24, 23, 32, 24, 27];
@@ -4771,28 +4739,13 @@ chartObject.loadData=function loadData(dataset, thenDo) {
             break;
           
         case "mpg":
+        default:
             // mpg entries from the R mtcars dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html
             // FUDGED to remove the identical values (see raw-mpg below for original set) 
             rawData = [21.0, 21.1, 22.8, 21.4, 18.7, 18.1, 14.3, 24.4, 22.9, 19.2, 17.8, 16.4, 17.3, 15.3, 10.4, 10.5, 14.7, 32.4, 30.4, 33.9, 21.5, 15.5, 15.2, 13.3, 19.3, 27.3, 26.0, 30.5, 15.8, 19.7, 15.0, 21.3];
             quantum = 0.1;
             units = "";  // "(mpg)" seems daft
-            break;
       
-        case "raw-mpg":
-            // mpg entries from the R mtcars dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html
-            rawData = [21.0, 21.0, 22.8, 21.4, 18.7, 18.1, 14.3, 24.4, 22.8, 19.2, 17.8, 16.4, 17.3, 15.2, 10.4, 10.4, 14.7, 32.4, 30.4, 33.9, 21.5, 15.5, 15.2, 13.3, 19.2, 27.3, 26.0, 30.4, 15.8, 19.7, 15.0, 21.4];
-            quantum = 0.1;
-            break;
-      
-        case "discoveries":
-        default:
-            // from R sample dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/discoveries.html
-            var counts = [5, 3, 0, 2, 0, 3, 2, 3, 6, 1, 2, 1, 2, 1, 3, 3, 3, 5, 2, 4, 4, 0, 2, 3, 7, 12, 3, 10, 9, 2, 3, 7, 7, 2, 3, 3, 6, 2, 4, 3, 5, 2, 2, 4, 0, 4, 2, 5, 2, 3, 3, 6, 5, 8, 3, 6, 6, 0, 5, 2, 2, 2, 6, 3, 4, 4, 2, 2, 4, 7, 5, 3, 3, 0, 2, 2, 2, 1, 3, 4, 2, 2, 1, 1, 1, 2, 1, 4, 4, 3, 2, 1, 4, 1, 1, 1, 0, 0, 2, 0];
-            for (var i=0; i<counts.length; i++) {
-            var count = counts[i];
-            for (var c=0; c < count; c++) rawData.push(1860+i);
-            }
-            quantum = 1;
     }
       
     recordData();
