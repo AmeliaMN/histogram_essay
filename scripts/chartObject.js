@@ -1658,7 +1658,7 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
 //.style("stroke", "green")
         .on("mousedown", function() {
             // low-rent drag capability, as shown in https://bl.ocks.org/mbostock/4198499
-            var startPt = d3.mouse(this), startIndex = valueIndex, dragOffset = { x: startPt[0]-offset.x, y: startPt[1]-offset.y };
+            var startPt = d3.mouse(this), startIndex = valueIndex, dragOffset = { x: startPt[0]-dragRegionOffset.x, y: startPt[1]-dragRegionOffset.y };
               //.classed("active", true);
             
             var w = d3.select(window)
