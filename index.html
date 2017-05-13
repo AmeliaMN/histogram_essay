@@ -211,9 +211,9 @@ function getVis() { return window.scrollyVis }
 
     <p>It's not both&mdash;because that would mean that the boundary items were being counted twice. In a histogram, each data item must be assigned to exactly one bin.</p>
 
-    <p>So, then: lower or higher? Again, tools to make visualizations will pick a default. In <a href="https://www.r-project.org/">R</a>, the default is "left-open" bins, which means that any items with exactly the value of the bin's left (i.e., lower) limit will <i>not</i> be counted as belonging to that bin.  In <a href="https://stats.stackexchange.com/questions/51551/rounding-when-making-a-histogram">SAS and Stata</a>, the default is right-open. </p>
+    <p>So, then: lower or higher? Again, tools to make visualizations will pick a default. In <a href="https://www.r-project.org/">R</a>, the default is "left-open" bins, which means that any items with exactly the value of the bin's left (i.e., lower) limit will <i>not</i> be counted as belonging to that bin.  In <a href="https://stats.stackexchange.com/questions/51551/rounding-when-making-a-histogram">SAS and Stata</a>, the default is right-open.</p>
 
-    <p>How much of a difference does this choice make?  Just as the impact of bin-boundary position depends on the density of items in the vicinity of the boundaries, the impact of left- or right-openness of a histogram's intervals depends on how many items exactly match the boundary values.</p>
+    <p>How much of a difference does this choice make?  Just as the impact of bin-boundary position depends on the density of items in the vicinity of the boundaries, the impact of left- or right-closedness of a histogram's intervals ("left-closed" is equivalent to "right-open", and vice versa) depends on how many items exactly match the boundary values.</p>
 
     <p>Try switching <b>open</b> from L to R.  Notice how the data points "jump" as they are moved between neighboring bins.</p>
 
