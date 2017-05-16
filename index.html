@@ -19,8 +19,8 @@
     
     <script type="text/javascript" src="dist/js/lively.lang.min.js"></script>
     <script type="text/javascript" src="dist/js/d3.v4.js"></script>
-    <script type="text/javascript" src="scripts/chartObject.js"></script>
-    <script type="text/javascript" src="scripts/scrollSteps.js"></script>
+    <script type="text/javascript" src="scripts/chartObject-es5.js"></script>
+    <script type="text/javascript" src="scripts/scrollSteps-es5.js"></script>
 
 <script>
 window.Global = window;
@@ -29,12 +29,12 @@ lively.pt = function pt(x, y) { return { x:x, y: y } }; // trivial, non-function
 
 // the chartDefs function is expected to return one or more functions, each of which accepts a newly created chartObject and initialises it  
 function startup() {
-    chartDefs().forEach(initFn=>initFn(createChartObject()));
+    chartDefs().forEach(function(initFn) { initFn(createChartObject()) });
 };
 
 function chartDefs() { return [
     // for now, on a scrolly page we only expect a single vis definition.
-    ch=>{
+    function(ch) {
         var options = {
             stepDefinitions: scrollStepDefs(ch),
             visExtent: { x: 900, y: 745 }, // preferred, and max

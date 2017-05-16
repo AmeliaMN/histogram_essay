@@ -192,20 +192,20 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
             return vals;
         }
         function COUNT(arr) { return arr.length }
-        function SUM(arr) { var s=0; arr.forEach(v=>s+=v); return s }
+        function SUM(arr) { var s=0; arr.forEach(function(v) { return s+=v }); return s }
         function FILTER_FN(arr, fn) { return arr.filter(fn) }
         function G(nBins) { return chart.computeG(nBins) }
         function RPrettyBreaks(dataMin, dataMax, n) { return chart.rPretty([dataMin, dataMax], n) }
         function Sturges(data) { return Math.ceil(Math.log(data.length)/Math.log(2))+1 }
         function ALL_BUT_FIRST(array) { return array.slice(1) }
         function ALL_BUT_LAST(array) { return array.slice(0, -1) }
-        function PAIRS(array) { return lively.lang.arr.range(1,array.length-1).map(i=>[quantize(array[i-1]), quantize(array[i])]) }
+        function PAIRS(array) { return lively.lang.arr.range(1,array.length-1).map(function(i) { return [quantize(array[i-1]), quantize(array[i])] }) }
         function FILTER(data, lefts, rights, leftTests, rightTests, open) {
-            var leftFns = { ">": (left, v)=>v>left, "≥": (left, v)=>v>=left };
-            var rightFns = { "<": (right, v)=>v<right, "≤": (right, v)=>v<=right };
-            return lefts.map((left, i)=>{
+            var leftFns = { ">": function(left, v) { return v>left }, "≥": function(left, v) { return v>=left } };
+            var rightFns = { "<": function(right, v) { return v<right }, "≤": function(right, v) { return v<=right } };
+            return lefts.map(function(left, i) {
                 var right = rights[i];
-                var subset = FILTER_FN(data, v=> leftFns[leftTests[i]](left, v) && rightFns[rightTests[i]](right, v));
+                var subset = FILTER_FN(data, function(v) { return leftFns[leftTests[i]](left, v) && rightFns[rightTests[i]](right, v) });
                 subset.stringyValueParts = open==="L" ? [ "⋯", right ] : [ left, "⋯" ];
                 return subset;
                 })
@@ -227,7 +227,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                 replacementTokens = (" "+expr).split(/[\{\}]/);
             }
             function contextualEval() {
-                return eval(replacementTokens ? replacementTokens.map((t,i)=>t.length===0 ? "" : (i&1 ? eval(t) : t)).join("") : expr);
+                return eval(replacementTokens ? replacementTokens.map(function(t,i) { t.length===0 ? "" : (i&1 ? eval(t) : t)}).join("") : expr);
             }
             var varsInvolved = [];
             var iterationsNeeded = 0;
@@ -235,7 +235,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                 var tokens = expr.split(/\\W/); // all contiguous alphanumerics (needs extra slash because of being in a template)
                 if (tokens.indexOf("i")>=0) iterationsNeeded = iterationsInForce;
                 else {
-                    varNames.forEach(vn => {
+                    varNames.forEach(function(vn) {
                         if (tokens.indexOf(vn)>=0) {
                             varsInvolved.push(vn);
                             iterationsNeeded = Math.max(iterationsNeeded, iterations(vn));
@@ -245,16 +245,16 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                 }
             }
             if (iterationsNeeded) {
-                varsInvolved.forEach(vn => { valStore[vn] = eval(vn) });
+                varsInvolved.forEach(function(vn) { valStore[vn] = eval(vn) });
                 var result = [], iMax = iterationsNeeded-1;
                 for (var i=0; i<iterationsNeeded; i++) {
-                    varsInvolved.forEach(vn => {
+                    varsInvolved.forEach(function(vn) {
                       var val = lookup(vn, i);
                       eval(vn+"=val");
                       });
                     result.push(contextualEval());
                 }
-                varsInvolved.forEach(vn => { eval(vn+"=valStore."+vn) });
+                varsInvolved.forEach(function(vn) { eval(vn+"=valStore."+vn) });
                 return result;
             } else {
                 var val = contextualEval();
@@ -262,14 +262,14 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                 return val;
             }
         }
-        ${ orderedVarNames.map(vn => "var "+vn+";").join(" ") };
+        ${ orderedVarNames.map(function(vn) { return "var "+vn+";"}).join(" ") };
         var pre, choiceSortedVars = [];
-        orderedVarNames.forEach(vn=>{
+        orderedVarNames.forEach(function(vn) {
             if (choiceSortedVars.indexOf(vn)===-1) { // not added by a choice sibling
                 if (varDefs[vn].choiceGroup) {
                     var group = choiceGroups[varDefs[vn].choiceGroup], choices = group.choices, chosen = group.chosen;
                     choiceSortedVars.push(chosen);
-                    choices.forEach(cn=>{
+                    choices.forEach(function(cn) {
                         if (cn!==chosen) {
                             choiceSortedVars.push(cn);
                             varExpressions[cn] = varDefs[cn].derivedMain;
@@ -278,11 +278,11 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                 } else choiceSortedVars.push(vn);
             }
             });
-        choiceSortedVars.forEach(vn=>{
+        choiceSortedVars.forEach(function(vn) {
             var val = opts.precomputed && (pre = opts.precomputed[vn]) !== undefined ? pre : iterateIfNeeded(varExpressions[vn], varDefs[vn].reduce);
             eval(vn+"=val");
             });
-        var result = { ${ orderedVarNames.map(vn => vn+": "+vn).join(", ") } };
+        var result = { ${ orderedVarNames.map(function(vn) { return vn+": "+vn }).join(", ") } };
         if (opts.measure) result.measure = iterateIfNeeded(opts.measure, true);
         return result;
     })`);
@@ -1300,27 +1300,6 @@ chartObject.computeG=function computeG(nBins) {
   }
   var g = (2*weightedSum/sum - 1)/anchorPositions;
   return g;
-};
-
-chartObject.defaultDefinitions=function defaultDefinitions() {
-    var binRounding = this.dataRange > 10 ? 1 : 2, totalQuanta = this.dataRange/this.dataQuantum, quantaRange = [ Math.round(totalQuanta/30), Math.round(totalQuanta/10) ];
-    return [
-        { name: "binsOverRange", main: "20", choiceGroup: "widthDefs", default: true, derivedMain: "'~ '+((dataMax-dataMin)/(quantaPerBin*dataQuantum)).toFixed(1)", extra: lively.lang.arr.range(10,40).map(String) },
-        { name: "quantaPerBin", main: String(Math.max(quantaRange[0], Math.min(quantaRange[1], 20))), choiceGroup: "widthDefs", derivedMain: "'~ '+((dataMax-dataMin)/binsOverRange/dataQuantum).toFixed(1)", extra: lively.lang.arr.range.apply([], quantaRange).map(String) },
-//{ name: "gScore", main: "G(binsOverRange)", rounding: 2 },
-        { name: "width", main: choices=>choices.widthDefs==="binsOverRange" ? "(dataMax-dataMin)/binsOverRange" : "dataQuantum*quantaPerBin", rounding: binRounding },
-        { name: "offset", main: "0.00", extra: lively.lang.arr.range(-1,0.001,0.05).map(n=>n.toFixed(2)), rounding: 2 },
-        { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding },
-        { name: "left", main: "allButLast(breaks)", reduce: true, rounding: binRounding },
-        { name: "right", main: "allButFirst(breaks)", reduce: true, rounding: binRounding },
-        { name: "openRight", main: "true", extra: ["false", "true"] },
-        { name: "leftTest", main: 'openRight || i==0 ? ">=" : ">"' },
-        { name: "rightTest", main: 'openRight && i!=iMax ? "<" : "<="' },
-        { name: "bin", main: "FILTER(data, v=>v{leftTest}left && v{rightTest}right)" },
-// diagnostics: (((Math.abs(left-0.3)<0.05) && console.log(left)) || true) &&
-        { name: "count", main: "COUNT(bin)" }
-//{ name: "check", main: "sum(count)==data.length", reduce: true }
-        ];
 };
 
 chartObject.drawBalls=function drawBalls(data) {
