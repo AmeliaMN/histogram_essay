@@ -2214,7 +2214,7 @@ function createChartObject() {
         var imgGroup = this.chartGroup.select("g.handpointer");
         if (imgGroup.empty()) {
             imgGroup = this.chartGroup.append("g").attr("class", "handpointer");
-            imgGroup.append("image").attr("href", this.pointerImageFlipped).attr("x", -26).attr("y", -2).style("pointer-events", "none");
+            imgGroup.append("image").attr("xlink:href", this.pointerImageFlipped).attr("x", -26).attr("y", -2).attr("width", 37).attr("height", 39).style("pointer-events", "none");
             imgGroup.attr("transform", desiredTransform);
             allDone();
         } else {
@@ -3728,7 +3728,7 @@ function createChartObject() {
             return "translate(" + x + ", " + y + ")";
         }
 
-        this.chartSVG = divSeln.append("svg").attr("tabindex", -1).style("background-color", "rgb(255,248,230)").attr("width", width).attr("height", extent.y).attr("viewBox", "0 0 " + extent.x + " " + extent.y);
+        this.chartSVG = divSeln.append("svg").attr("tabindex", -1).attr("xmlns", "http://www.w3.org/2000/svg").attr("xmlns:xlink", "http://www.w3.org/1999/xlink").style("background-color", "rgb(255,248,230)").attr("width", width).attr("height", extent.y).attr("viewBox", "0 0 " + extent.x + " " + extent.y);
 
         this.chartGroup = this.chartSVG.append('g').attr("transform", transformString(0, 0));
 

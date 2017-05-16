@@ -2444,9 +2444,11 @@ this.chartGroup.append("circle")
     if (imgGroup.empty()) {
         imgGroup = this.chartGroup.append("g").attr("class", "handpointer");
         imgGroup.append("image")
-            .attr("href", this.pointerImageFlipped)
+            .attr("xlink:href", this.pointerImageFlipped)
             .attr("x", -26)
             .attr("y", -2)
+            .attr("width", 37)
+            .attr("height", 39)
             .style("pointer-events", "none");
         imgGroup.attr("transform", desiredTransform);
         allDone();
@@ -3988,6 +3990,8 @@ chartObject.initChartSubstrates=function initChartSubstrates(divSeln, extent) {
 
     this.chartSVG = divSeln.append("svg")
         .attr("tabindex", -1)
+        .attr("xmlns", "http://www.w3.org/2000/svg")
+        .attr("xmlns:xlink", "http://www.w3.org/1999/xlink")
         .style("background-color", "rgb(255,248,230)")
         .attr("width", width)
         .attr("height", extent.y)
