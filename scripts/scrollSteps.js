@@ -39,7 +39,7 @@ function scrollStepDefs(ch) {
     var stepDefs = [
         { // draw value pool
         command: "gather data items",
-        activate: chart=>{
+        activate: function(chart) {
             // things that shouldn't survive a restart
             delete chart.highlightPathIndices;
             delete chart.highlightValueIndices;
@@ -54,7 +54,7 @@ function scrollStepDefs(ch) {
     
         { // move values across to list
         command: "sort items into list",
-        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
+        activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             var options = targetStep===thisStep ? undefined : { stage: 1 };
             chart.drawValueList(options);
             }
@@ -62,7 +62,7 @@ function scrollStepDefs(ch) {
         
         { // draw a number line
         command: "draw a number line",
-        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
+        activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             chart.stopTimer(true);  // force completion of value list
             var options = targetStep===thisStep ? undefined : { instant: true };
             chart.drawColouredNumberLine(options);
@@ -71,12 +71,12 @@ function scrollStepDefs(ch) {
         
         { // fly the values down to stacks on the number line
         command: "place items on number line",
-        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
+        activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             chart.stopTimer(true);  // force completion of number line
             var options = targetStep===thisStep ? undefined : { instant: true };
             chart.flyBalls(options);
             },
-        update: (chart, progress)=>{
+        update: function(chart, progress) {
             if (progress > 0.25 && !chart.dataSwitchShown) {
                 chart.drawDataSwitch();
             }
@@ -101,7 +101,7 @@ function scrollStepDefs(ch) {
 
         { // drop the balls through to build up bins
         command: "portion items into bins",
-        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
+        activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             if (!chart.dataSwitchShown) {  // force showing of data switch if user scrolled too quickly
                 chart.drawDataSwitch();
             }
@@ -113,7 +113,7 @@ function scrollStepDefs(ch) {
 
         { // show the break values
         command: "show bin-break values",
-        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
+        activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             chart.stopTimer(true);
             var options = targetStep===thisStep ? undefined : { instant: true };
             chart.drawBreakValues(options);
@@ -122,7 +122,7 @@ function scrollStepDefs(ch) {
 
         { // move the bins through a sweep of offsets (relative to dataMin)
         command: "fiddle with bin alignment",
-        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
+        activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             chart.stopTimer(true);
             chart.scenarioRecords = [];
             if (targetStep === thisStep) {
@@ -133,14 +133,14 @@ function scrollStepDefs(ch) {
                         chart.drawBreakValues({ instant: true });
                     }
                     );
-                chart.drawCyclingScenarios(v=>"offset = bin width * "+(-v)+"%");
+                chart.drawCyclingScenarios(function(v) { return "offset = bin width * "+(-v)+"%"});
             }
             }
         },
         
         { // move the bins through a sweep of widths (1.0 down to 0.5 of R default)
         command: "fiddle with bin width",
-        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
+        activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             chart.stopTimer();
             chart.clearScenarioZone();
             if (targetStep === thisStep) {
@@ -151,7 +151,7 @@ function scrollStepDefs(ch) {
                         chart.drawBreakValues({ instant: true });
                         }
                     );
-                chart.drawCyclingScenarios(v=>"bin width = "+v+"% of default");
+                chart.drawCyclingScenarios(function(v)  { return "bin width = "+v+"% of default"});
             }
             }
         },
@@ -160,11 +160,11 @@ function scrollStepDefs(ch) {
         replayPoint: true,
         label: "firstTable",
         command: "show basic calculation",
-        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
+        activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
                 return [
-                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
+                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(function(val) { return (chart.dataRange/val).toFixed(binRounding) })), rounding: binRounding },
                     { name: "breaks", main: "RANGE(dataMin, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
                         { style: "normal", text: "dataMin" },
@@ -228,7 +228,7 @@ function scrollStepDefs(ch) {
         
         { // more detail...
         command: "add bin offset",
-        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
+        activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             chart.stopTimer(true);  // make sure dataGroup reaches its target location
 
             if (targetStep !== thisStep) return;
@@ -236,8 +236,8 @@ function scrollStepDefs(ch) {
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
                 return [
-                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
-                    { name: "offset", main: "0.0", extra: lively.lang.arr.range(-1,0.001,0.1).map(n=>n.toFixed(1)), rounding: 1 },
+                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(function(val) { return (chart.dataRange/val).toFixed(binRounding) })), rounding: binRounding },
+                    { name: "offset", main: "0.0", extra: lively.lang.arr.range(-1,0.001,0.1).map(function(n) { return n.toFixed(1)}), rounding: 1 },
                     { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
                         { style: "normal", text: "dataMin+width*offset" },
@@ -280,13 +280,13 @@ function scrollStepDefs(ch) {
         
         { // and open/closed...
         command: "add bin openness",
-        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
+        activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             if (targetStep !== thisStep) return;
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
                 return [
-                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(val=>(chart.dataRange/val).toFixed(binRounding))), rounding: binRounding },
-                    { name: "offset", main: "0.0", extra: lively.lang.arr.range(-1,0.001,0.1).map(n=>n.toFixed(1)), rounding: 1 },
+                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/10, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(25,10,-1).map(function(val) { return (chart.dataRange/val).toFixed(binRounding)})), rounding: binRounding },
+                    { name: "offset", main: "0.0", extra: lively.lang.arr.range(-1,0.001,0.1).map(function(n) { return n.toFixed(1) }), rounding: 1 },
                     { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
                         { style: "normal", text: "dataMin+width*offset" },
@@ -352,12 +352,12 @@ function scrollStepDefs(ch) {
         { // have a histogram without the table
         replayPoint: true,
         command: "just the histogram",
-        activate: (chart, originStep, prevRendered, targetStep, thisStep)=>{
+        activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             function definitions() {
                 var binRounding = chart.dataBinDecimals;
                 return [
-                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/chart.minBinsOverRange, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(chart.maxBinsOverRange,1,-1).map(bins=>(bins===1 ? Math.ceil(chart.dataRange/chart.dataBinQuantum)*chart.dataBinQuantum : lively.lang.num.roundTo(chart.dataRange/bins, chart.dataBinQuantum)).toFixed(binRounding))), rounding: binRounding },
-                    { name: "offset", main: "0.0", extra: lively.lang.arr.range(-1,0.001,0.1).map(n=>n.toFixed(1)), rounding: 1 },
+                    { name: "width", main: lively.lang.num.roundTo(chart.dataRange/chart.minBinsOverRange, chart.dataBinQuantum).toFixed(binRounding), extra: lively.lang.arr.uniq(lively.lang.arr.range(chart.maxBinsOverRange,1,-1).map(function(bins) { return (bins===1 ? Math.ceil(chart.dataRange/chart.dataBinQuantum)*chart.dataBinQuantum : lively.lang.num.roundTo(chart.dataRange/bins, chart.dataBinQuantum)).toFixed(binRounding) })), rounding: binRounding },
+                    { name: "offset", main: "0.0", extra: lively.lang.arr.range(-1,0.001,0.1).map(function(n) { return n.toFixed(1) }), rounding: 1 },
                     { name: "breaks", main: "RANGE(dataMin+offset*width, dataMax+width, width)", rounding: binRounding, styled: [
                         { style: "italic", text: "from ", colour: "grey" },
                         { style: "normal", text: "dataMin+width*offset" },
@@ -406,7 +406,7 @@ function scrollStepDefs(ch) {
 
         ];
         
-    function stepIndex(label) { return stepDefs.findIndex(def=>def.label===label) || 0 }
+    function stepIndex(label) { return stepDefs.findIndex(function(def) { return def.label===label }) || 0 }
     
     return stepDefs;
 }

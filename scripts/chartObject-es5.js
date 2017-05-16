@@ -4076,13 +4076,14 @@ function createChartObject() {
             */
             function position() {
                 var pos = window.pageYOffset - containerStart;
-
+var tw = Number.parseFloat(d3.select("#sections").style("width"));
+console.log(window.pageYOffset, containerStart, "pos: "+pos, "tw: "+tw);
                 // ael added
                 var stickPoint = 20 + navHeight;
                 if (pos < -stickPoint) {
-                    visSeln.style("position", "absolute").style("top", null);
+                    visSeln.style("position", "absolute").style("top", null).style("left", null);
                 } else {
-                    visSeln.style("position", "fixed").style("top", stickPoint + "px");
+                    visSeln.style("position", "fixed").style("top", stickPoint + "px").style("left", tw+"px");
                 }
 
                 var sectionIndex = Math.max(0, d3.bisect(sectionPositions, pos + switchPos) - 1);
