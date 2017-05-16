@@ -3559,6 +3559,8 @@ chartObject.generateRanges=function generateRanges(binWidthPct, binOffsetPct) {
 
 chartObject.hoverOver=function hoverOver(path) {
     var hoveredElem = d3.select(path);
+    if (hoveredElem.size()===0) return; // if replay has been done independently of scroll, the visualisation might not have that element right now
+
     var elemRect = hoveredElem.node().getBoundingClientRect(), outset = 4;
     var svgRect = this.chartSVG.node().getBoundingClientRect();
     var ratio = this.sizeRatio;

@@ -3320,6 +3320,8 @@ function createChartObject() {
 
     chartObject.hoverOver = function hoverOver(path) {
         var hoveredElem = d3.select(path);
+        if (hoveredElem.size() === 0) return; // if replay has been done independently of scroll, the visualisation might not have that element right now
+
         var elemRect = hoveredElem.node().getBoundingClientRect(),
             outset = 4;
         var svgRect = this.chartSVG.node().getBoundingClientRect();
@@ -4076,14 +4078,13 @@ function createChartObject() {
             */
             function position() {
                 var pos = window.pageYOffset - containerStart;
-var tw = Number.parseFloat(d3.select("#sections").style("width"));
-console.log(window.pageYOffset, containerStart, "pos: "+pos, "tw: "+tw);
+
                 // ael added
                 var stickPoint = 20 + navHeight;
                 if (pos < -stickPoint) {
-                    visSeln.style("position", "absolute").style("top", null).style("left", null);
+                    visSeln.style("position", "absolute").style("top", null);
                 } else {
-                    visSeln.style("position", "fixed").style("top", stickPoint + "px").style("left", tw+"px");
+                    visSeln.style("position", "fixed").style("top", stickPoint + "px");
                 }
 
                 var sectionIndex = Math.max(0, d3.bisect(sectionPositions, pos + switchPos) - 1);
