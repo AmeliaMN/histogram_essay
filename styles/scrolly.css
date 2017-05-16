@@ -63,17 +63,9 @@
       position: absolute; /* will change to fixed when scrolled into view */
       z-index: 1;
       margin-left: 0;
-  -webkit-box-sizing: content-box;
-     -moz-box-sizing: content-box;
-          box-sizing: content-box;
+      -webkit-transform: translate3d(0,0,0); <!-- for Safari on iPad; see http://stackoverflow.com/questions/9807620/ipad-safari-scrolling-causes-html-elements-to-disappear-and-reappear-with-a-dela -->
     }
     
-    svg * {
-  -webkit-box-sizing: content-box;
-     -moz-box-sizing: content-box;
-          box-sizing: content-box;
-    }
-
     .VisControlLink {  /* link style from Bret Victor's "Ladder of Abstraction" essay */
         color: rgb(68, 102, 255);
         cursor: pointer;

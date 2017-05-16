@@ -3110,7 +3110,23 @@ function createChartObject() {
             }
         }
 
+        // while we're waiting for canvas ellipse() to be supported more widely, here's a circle-scaling approach from http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
         function drawPath(valueIndex, context) {
+            // caller has to set the lineWidth and strokeStyle
+            var pi = Math.PI;
+            context.save(); // save state
+            context.beginPath();
+
+            context.translate(originX, flightTargetY);
+            context.scale(originX - Math.round(plotOrigin.x + xScale(values[valueIndex])), flightTargetY - originYScale(valueIndex));
+            context.arc(0, 0, 1, -pi / 2, -pi, true);
+
+            context.restore(); // restore to original state before stroking (to avoid scaling the stroke)
+            context.stroke();
+        }
+
+        // simpler call, but not yet widely supported
+        function drawPathWithEllipse(valueIndex, context) {
             // caller has to set the lineWidth and strokeStyle
             var pi = Math.PI;
             context.beginPath();
