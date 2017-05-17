@@ -63,7 +63,7 @@
       position: absolute; /* will change to fixed when scrolled into view */
       z-index: 1;
       margin-left: 0;
-      -webkit-transform: translate3d(0,0,0); <!-- for Safari on iPad; see http://stackoverflow.com/questions/9807620/ipad-safari-scrolling-causes-html-elements-to-disappear-and-reappear-with-a-dela -->
+      -webkit-transform: translate3d(0,0,0); /* for Safari on iPad; see http://stackoverflow.com/questions/9807620/ipad-safari-scrolling-causes-html-elements-to-disappear-and-reappear-with-a-dela */
     }
     
     .VisControlLink {  /* link style from Bret Victor's "Ladder of Abstraction" essay */

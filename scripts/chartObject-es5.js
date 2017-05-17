@@ -663,8 +663,8 @@ function createChartObject() {
                     }
 
                     // data columns
+                    var entryWidth = 44;
                     if (lively.lang.obj.isArray(rowItem.data)) {
-                        var entryWidth = 44;
                         var cellGroup = [],
                             groupObject = {
                             category: "data",
@@ -711,9 +711,9 @@ function createChartObject() {
                         });
                         if (cellGroup.length) rowCellGroups.push(groupObject);
                     } else {
-                        var startOffset = 12;
+                        var startOffset = entryWidth / 2;
                         var val = stringyValue(rowItem.data, rowVar);
-                        rowCellGroups.push({ category: "data", xOffset: edges[2] + startOffset, cells: [{ rowSpec: rowItem, text: val, weight: "bold", x: 0, isContext: isHighlightContext }] });
+                        rowCellGroups.push({ category: "data", xOffset: edges[2] + startOffset, cells: [{ rowSpec: rowItem, text: val, anchor: "middle", weight: "bold", x: 0, isContext: isHighlightContext }] });
                     }
 
                     var cellGroups = rowSeln.selectAll(".cellGroup").data(rowCellGroups, function (rcg) {
@@ -3181,17 +3181,7 @@ function createChartObject() {
             });
         }
 
-        //var lastTime = 0;
         function flyAll(elapsed) {
-            /* show frame rate
-            context.font = "12px Arial";
-            context.fillStyle = "black";
-            context.fillText(String((elapsed-lastTime)|0), plotOrigin.x, plotOrigin.y+20);
-            lastTime=elapsed;
-            */
-            //if (elapsed-lastTime > 20) diffs.push({d: (elapsed-lastTime) | 0, at: Date.now()-start });
-            //lastTime=elapsed;
-            //var eezer = d3.easeLinear; //d3.easePolyOut.exponent(1.5);
             context.fillStyle = "black";
             var twoPi = Math.PI * 2; // performance.
             var nextPlottable = [];
@@ -3266,7 +3256,9 @@ function createChartObject() {
                 }
             });
             plottableValues = nextPlottable;
-            var balls = chart.dataGroup.selectAll("circle.settled").data(settledBalls);
+            var balls = chart.dataGroup.selectAll("circle.settled").data(settledBalls, function (d) {
+                return d.valueIndex;
+            });
             balls.enter().append("circle").attr("class", "settled").attr("cx", function (d) {
                 return d.x;
             }).attr("cy", function (d) {
