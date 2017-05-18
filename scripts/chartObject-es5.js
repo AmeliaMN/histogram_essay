@@ -1655,8 +1655,8 @@ function createChartObject() {
             return transformString(0, itemHeight * i);
         }).each(function (def, i) {
             var seln = d3.select(this);
-            seln.append("text").attr("x", buttonSize + 6).attr("y", itemHeight / 2).attr("dy", chart.textOffsets.central).style("font-size", fontSize + "px").style("fill", itemColour).style("fill-opacity", 0.4)
-            //.style("dominant-baseline", "central")
+            seln.append("text").attr("x", buttonSize + 6).attr("y", itemHeight / 2).attr("dy", chart.textOffsets.middle).style("font-size", fontSize + "px").style("fill", itemColour).style("fill-opacity", 0.4)
+            //.style("dominant-baseline", "middle")
             .style("text-anchor", "start").style("pointer-events", "none").style('-webkit-user-select', 'none').text(function (def) {
                 return def.command;
             });
@@ -2401,8 +2401,8 @@ function createChartObject() {
             d3.select(node).style("fill-opacity", sweepActive ? 1 : 0);
         }
 
-        this.histGroup.append("text").attr("class", "switchLabel").attr("x", offset.x + switchSize + 8).attr("y", offset.y + switchSize / 2).attr("dy", this.textOffsets.central).style("font-size", "14px")
-        //.style("dominant-baseline", "central")
+        this.histGroup.append("text").attr("class", "switchLabel").attr("x", offset.x + switchSize + 8).attr("y", offset.y + switchSize / 2).attr("dy", this.textOffsets.middle).style("font-size", "14px")
+        //.style("dominant-baseline", "middle")
         .style("pointer-events", "none").style("-webkit-user-select", "none").style("fill", switchColour).text("sweep bin offsets");
     };
 
