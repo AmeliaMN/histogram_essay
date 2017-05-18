@@ -309,9 +309,7 @@ function createChartObject() {
             fontHeight = 13,
             spreadBackground = "#eee"; // d3.hsl(126,0.40,0.9);
         var tableGroup = this.tableGroup;
-        function transformString(x, y) {
-            return "translate(" + x + ", " + y + ")";
-        }
+        var transformString = this.transformString;
         function keyString(d) {
             return d.varName + d.reason;
         }
@@ -752,11 +750,13 @@ function createChartObject() {
                                     if (cellItem.click) cellItem.click(cellItem);
                                 });
                             }
-                            seln.append("text").attr("class", groupObject.category + "TextCell").style("fill", function (cellItem) {
+                            seln.append("text").attr("class", groupObject.category + "TextCell").attr("dy", chart.textOffsets.hanging)
+                            //.style("dominant-baseline", "hanging")
+                            .style("fill", function (cellItem) {
                                 return cellItem.fill || "black";
                             }).style("font-size", (isHighlightContext ? fontHeight - 4 : fontHeight) + "px").style("font-weight", function (cellItem) {
                                 return cellItem.weight || "normal";
-                            }).style("dominant-baseline", "hanging").style("text-anchor", cellItem.anchor || "start").style("opacity", groupObject.isFishy ? 0.2 : 1).style("pointer-events", "none").style("-webkit-user-select", "none");
+                            }).style("text-anchor", cellItem.anchor || "start").style("opacity", groupObject.isFishy ? 0.2 : 1).style("pointer-events", "none").style("-webkit-user-select", "none");
                         });
 
                         if (groupObject.isFishy) chart.spaceBifocally(groupSeln, groupObject);
@@ -770,9 +770,12 @@ function createChartObject() {
                             textSeln.attr("y", isHighlightContext ? 0 : 4); // now redundant?
 
                             if (cellItem.styledText) {
+                                textSeln.attr("dy", chart.textOffsets.hanging);
                                 var spans = textSeln.selectAll("tspan").data(cellItem.styledText);
                                 spans.exit().remove(); // shouldn't happen
-                                spans.enter().append("tspan").style("dominant-baseline", "hanging").merge(spans).style("font-style", function (d) {
+                                spans.enter().append("tspan")
+                                //.style("dominant-baseline", "hanging")
+                                .merge(spans).style("font-style", function (d) {
                                     return d.style;
                                 }).style("fill", function (d) {
                                     return d.colour || "black";
@@ -1089,13 +1092,17 @@ function createChartObject() {
                                 var readouts = isCallout && options.hasOwnProperty("focusIndex") ? [stringyValue(vals[options.focusIndex], rowVar)] : [];
                                 var texts = seln.selectAll("text.readout").data(readouts);
                                 texts.exit().remove();
-                                texts.enter().append("text").merge(texts).attr("class", "readout").attr("x", 0).attr("y", 2).style("fill", d3.hcl(73, 100, 75).darker(0.5)).style("font-size", fontHeight + "px").style("font-weight", "bold").style("dominant-baseline", "hanging").style("text-anchor", "middle").style("pointer-events", "none").style('-webkit-user-select', 'none').text(String);
+                                texts.enter().append("text").merge(texts).attr("class", "readout").attr("x", 0).attr("y", 2).attr("dy", chart.textOffsets.hanging).style("fill", d3.hcl(73, 100, 75).darker(0.5)).style("font-size", fontHeight + "px").style("font-weight", "bold")
+                                //.style("dominant-baseline", "hanging")
+                                .style("text-anchor", "middle").style("pointer-events", "none").style('-webkit-user-select', 'none').text(String);
 
                                 var texts = seln.selectAll("text.sparkLabel").data(labels);
                                 texts.exit().remove();
                                 texts.enter().append("text").merge(texts).attr("class", "sparkLabel").attr("x", 4 - width / 2).attr("y", function (label) {
                                     return label.y;
-                                }).style("font-size", fontHeight - 4 + "px").style("dominant-baseline", "middle").style("pointer-events", "none").style('-webkit-user-select', 'none').text(function (label) {
+                                }).attr("dy", chart.textOffsets.middle).style("font-size", fontHeight - 4 + "px")
+                                //.style("dominant-baseline", "middle")
+                                .style("pointer-events", "none").style('-webkit-user-select', 'none').text(function (label) {
                                     return label.text;
                                 });
 
@@ -1306,6 +1313,7 @@ function createChartObject() {
     };
 
     chartObject.drawBinAnnotations = function drawBinAnnotations(group, axisOrigin, axisHeight, tickDefs, labelDefs, instant) {
+        var chart = this;
         var axisX = axisOrigin.x,
             axisBase = axisOrigin.y;
 
@@ -1320,11 +1328,13 @@ function createChartObject() {
             return d.x;
         }).attr("y", function (d) {
             return axisBase + d.y;
+        }).attr("dy", function (d) {
+            return chart.textOffsets[d.baseline || "central"];
         }).style("text-anchor", function (d) {
             return d.anchor || "start";
-        }).style("dominant-baseline", function (d) {
-            return d.baseline || "central";
-        }).each(function (def) {
+        })
+        //.style("dominant-baseline", d=>d.baseline || "central")
+        .each(function (def) {
             var seln = d3.select(this);
             if (def.highlightOnChange && seln.text() !== def.text) {
                 seln.style("fill", "red").transition().duration(1000).style("fill", "grey");
@@ -1386,9 +1396,7 @@ function createChartObject() {
         };
         var histGroup = this.histGroup,
             binGroup = histGroup.select(".binGroup");
-        function transformString(x, y) {
-            return "translate(" + x + ", " + y + ")";
-        }
+        var transformString = this.transformString;
 
         function showBins(binData, binClass, fillColour) {
             // binClass is "primary", "context", or "contextOutline"
@@ -1513,9 +1521,13 @@ function createChartObject() {
 
         var switchRect = switchGroup.append("rect").attr("x", dragRegionOffset.x).attr("y", dragRegionOffset.y).attr("width", switchW).attr("height", switchH).style("border-width", 1).style("stroke", switchColour).style("fill", "none").style("pointer-events", "none").attr("stroke-dasharray", "2 4");
 
-        var switchReadout = switchGroup.append("text").attr("class", "readout").attr("x", dragRegionOffset.x + switchW / 2).attr("y", dragRegionOffset.y + switchH / 3).style("font-size", "14px").style("text-anchor", "middle").style("dominant-baseline", "central").style("pointer-events", "none").style("-webkit-user-select", "none").style("fill", readoutColour);
+        var switchReadout = switchGroup.append("text").attr("class", "readout").attr("x", dragRegionOffset.x + switchW / 2).attr("y", dragRegionOffset.y + switchH / 3).attr("dy", this.textOffsets.central).style("font-size", "14px").style("text-anchor", "middle")
+        //.style("dominant-baseline", "central")
+        .style("pointer-events", "none").style("-webkit-user-select", "none").style("fill", readoutColour);
 
-        var minMaxIndicator = switchGroup.append("text").attr("class", "minmax").attr("x", dragRegionOffset.x + switchW / 2).attr("y", dragRegionOffset.y + switchH * 0.75).style("font-size", "9px").style("text-anchor", "middle").style("dominant-baseline", "central").style("pointer-events", "none").style("-webkit-user-select", "none").style("fill", readoutColour);
+        var minMaxIndicator = switchGroup.append("text").attr("class", "minmax").attr("x", dragRegionOffset.x + switchW / 2).attr("y", dragRegionOffset.y + switchH * 0.75).attr("dy", this.textOffsets.central).style("font-size", "9px").style("text-anchor", "middle")
+        //.style("dominant-baseline", "central")
+        .style("pointer-events", "none").style("-webkit-user-select", "none").style("fill", readoutColour);
 
         function updateReadout() {
             switchReadout.interrupt().text(valueArray[valueIndex]).style("fill", "red").transition().duration(1000).style("fill", readoutColour);
@@ -1557,9 +1569,13 @@ function createChartObject() {
             }
         });
 
-        switchGroup.append("text").attr("class", "switchLabel").attr("x", offset.x).attr("y", offset.y + switchH / 3).style("font-size", "14px").style("dominant-baseline", "central").style("pointer-events", "none").style("-webkit-user-select", "none").style("fill", switchColour).text("bin width");
+        switchGroup.append("text").attr("class", "switchLabel").attr("x", offset.x).attr("y", offset.y + switchH / 3).attr("dy", this.textOffsets.central).style("font-size", "14px")
+        //.style("dominant-baseline", "central")
+        .style("pointer-events", "none").style("-webkit-user-select", "none").style("fill", switchColour).text("bin width");
 
-        switchGroup.append("text").attr("class", "switchLabel").attr("x", offset.x).attr("y", offset.y + switchH * 0.75).style("font-size", "9px").style("dominant-baseline", "central").style("pointer-events", "none").style("-webkit-user-select", "none").style("fill", switchColour).text("(drag to change)");
+        switchGroup.append("text").attr("class", "switchLabel").attr("x", offset.x).attr("y", offset.y + switchH * 0.75).attr("dy", this.textOffsets.central).style("font-size", "9px")
+        //.style("dominant-baseline", "central")
+        .style("pointer-events", "none").style("-webkit-user-select", "none").style("fill", switchColour).text("(drag to change)");
     };
 
     chartObject.drawBreakValues = function drawBreakValues(options) {
@@ -1584,7 +1600,9 @@ function createChartObject() {
             return def.index;
         });
         labels.exit().remove();
-        labels.enter().append("text").attr("class", "binbreak").attr("y", binBase + 10).style("font-size", "12px").style("text-anchor", "middle").style("dominant-baseline", "hanging").style("pointer-events", "none").style("-webkit-user-select", "none").merge(labels).attr("x", function (def) {
+        labels.enter().append("text").attr("class", "binbreak").attr("y", binBase + 10).attr("dy", this.textOffsets.hanging).style("font-size", "12px").style("text-anchor", "middle")
+        //.style("dominant-baseline", "hanging")
+        .style("pointer-events", "none").style("-webkit-user-select", "none").merge(labels).attr("x", function (def) {
             return xScale(def.value);
         }).text(function (def) {
             return def.text;
@@ -1622,9 +1640,7 @@ function createChartObject() {
             itemHeight = 20,
             buttonSize = 16,
             itemColour = "rgb(0, 100, 0)";
-        function transformString(x, y) {
-            return "translate(" + x + ", " + y + ")";
-        }
+        var transformString = this.transformString;
 
         var commandsToDraw = chart.commandList.slice(0, Math.max(current, chart.maximumScrolledIndex) + 1);
         var commandDefs = commandsToDraw.map(function (command, i) {
@@ -1639,7 +1655,9 @@ function createChartObject() {
             return transformString(0, itemHeight * i);
         }).each(function (def, i) {
             var seln = d3.select(this);
-            seln.append("text").attr("x", buttonSize + 6).attr("y", itemHeight / 2).style("font-size", fontSize + "px").style("fill", itemColour).style("fill-opacity", 0.4).style("dominant-baseline", "central").style("text-anchor", "start").style("pointer-events", "none").style('-webkit-user-select', 'none').text(function (def) {
+            seln.append("text").attr("x", buttonSize + 6).attr("y", itemHeight / 2).attr("dy", chart.textOffsets.central).style("font-size", fontSize + "px").style("fill", itemColour).style("fill-opacity", 0.4)
+            //.style("dominant-baseline", "central")
+            .style("text-anchor", "start").style("pointer-events", "none").style('-webkit-user-select', 'none').text(function (def) {
                 return def.command;
             });
 
@@ -1797,7 +1815,9 @@ function createChartObject() {
 
         function updateLabelText(val) {
             var labels = chart.demoGroup.selectAll("text.scenarioLabel").data([labelFn(val)]);
-            labels.enter().append("text").attr("class", "scenarioLabel").attr("x", labelOrigin.x).attr("y", labelOrigin.y).style("font-size", "14px").style("dominant-baseline", "hanging").style("-webkit-user-select", "none").merge(labels).text(String);
+            labels.enter().append("text").attr("class", "scenarioLabel").attr("x", labelOrigin.x).attr("y", labelOrigin.y).attr("dy", chart.textOffsets.central).style("font-size", "14px")
+            //.style("dominant-baseline", "hanging")
+            .style("-webkit-user-select", "none").merge(labels).text(String);
         }
 
         function transitionToNext() {
@@ -2048,7 +2068,9 @@ function createChartObject() {
             labelY = valueListTop - 20;
 
         chart.chartGroup.selectAll("text.dataname").remove();
-        chart.chartGroup.append("text").attr("class", "dataname").attr("x", labelCentre).attr("y", labelY).style("font-size", fontSize + "px").style("dominant-baseline", "hanging").style("text-anchor", "middle").style("pointer-events", "none").style('-webkit-user-select', 'none').text(this.dataName + " " + this.dataUnits);
+        chart.chartGroup.append("text").attr("class", "dataname").attr("x", labelCentre).attr("y", labelY).attr("dy", chart.textOffsets.central).style("font-size", fontSize + "px")
+        //.style("dominant-baseline", "hanging")
+        .style("text-anchor", "middle").style("pointer-events", "none").style('-webkit-user-select', 'none').text(this.dataName + " " + this.dataUnits);
     };
 
     chartObject.drawDataSwitch = function drawDataSwitch() {
@@ -2070,9 +2092,7 @@ function createChartObject() {
             fontSize = 16,
             buttonHeight = fontSize + 8;
 
-        function transformString(x, y) {
-            return "translate(" + x + ", " + y + ")";
-        }
+        var transformString = this.transformString;
 
         var numSwitches = datasets.length;
         var totalWidth = numSwitches * itemWidth + (numSwitches - 1) * itemSep,
@@ -2091,7 +2111,9 @@ function createChartObject() {
                 return chart.switchDataset(def.dataName);
             });
 
-            seln.append("text").attr("x", 0).attr("y", 0).style("font-size", fontSize + "px").style("dominant-baseline", "central").style("text-anchor", "middle").style("pointer-events", "none").style('-webkit-user-select', 'none').text(def.dataName);
+            seln.append("text").attr("x", 0).attr("y", 0).attr("dy", chart.textOffsets.central).style("font-size", fontSize + "px")
+            //.style("dominant-baseline", "central")
+            .style("text-anchor", "middle").style("pointer-events", "none").style('-webkit-user-select', 'none').text(def.dataName);
         }).merge(switchEntries).attr("transform", function (def, i) {
             return transformString(firstX + i * (itemWidth + itemSep), switchY);
         });
@@ -2137,7 +2159,9 @@ function createChartObject() {
             d3.select(node).style("fill-opacity", chart.useDensity ? 1 : 0);
         }
 
-        this.histGroup.append("text").attr("class", "switchLabel").attr("x", offset.x + switchSize + 8).attr("y", offset.y + switchSize / 2).style("font-size", "14px").style("dominant-baseline", "middle").style("-webkit-user-select", "none").style("fill", switchColour).text("plot as densities");
+        this.histGroup.append("text").attr("class", "switchLabel").attr("x", offset.x + switchSize + 8).attr("y", offset.y + switchSize / 2).attr("dy", this.textOffsets.middle).style("font-size", "14px")
+        //.style("dominant-baseline", "middle")
+        .style("-webkit-user-select", "none").style("fill", switchColour).text("plot as densities");
     };
 
     chartObject.drawFaderControl = function drawFaderControl(offset, handler) {
@@ -2377,7 +2401,9 @@ function createChartObject() {
             d3.select(node).style("fill-opacity", sweepActive ? 1 : 0);
         }
 
-        this.histGroup.append("text").attr("class", "switchLabel").attr("x", offset.x + switchSize + 8).attr("y", offset.y + switchSize / 2).style("font-size", "14px").style("dominant-baseline", "central").style("pointer-events", "none").style("-webkit-user-select", "none").style("fill", switchColour).text("sweep bin offsets");
+        this.histGroup.append("text").attr("class", "switchLabel").attr("x", offset.x + switchSize + 8).attr("y", offset.y + switchSize / 2).attr("dy", this.textOffsets.central).style("font-size", "14px")
+        //.style("dominant-baseline", "central")
+        .style("pointer-events", "none").style("-webkit-user-select", "none").style("fill", switchColour).text("sweep bin offsets");
     };
 
     chartObject.drawValueList = function drawValueList(options) {
@@ -2457,9 +2483,7 @@ function createChartObject() {
         var fixedCanvas = this.chartFixedCanvas.node(),
             fixedContext = fixedCanvas.getContext("2d");
 
-        function transformString(x, y) {
-            return "translate(" + x + ", " + y + ")";
-        }
+        var transformString = this.transformString;
 
         var totalTime = moveTime + timeSpread;
         if (stage !== undefined) {
@@ -2564,16 +2588,20 @@ function createChartObject() {
                 focusTexts.exit().remove();
                 focusTexts.enter().append("text").attr("class", "focusItem").attr("x", 0).attr("y", function (d, i) {
                     return focusListTop + focusEntryHeight * i;
-                }).style("dominant-baseline", "central") // numbers are tall, so not "middle"
+                }).attr("dy", chart.textOffsets.central)
+                //.style("dominant-baseline", "central") // numbers are tall, so not "middle"
                 .style("font-size", fontSize + "px").style("-webkit-user-select", "none").merge(focusTexts).attr("y", function (d, i) {
                     return focusListTop + focusEntryHeight * i;
                 }).each(function (d) {
                     var seln = d3.select(this);
                     if (d.multiplier) {
                         seln.text(""); // use only tspans
+                        seln.attr("dy", chart.textOffsets.central);
                         var spans = seln.selectAll("tspan").data([d.text, d.multiplier]);
                         spans.exit().remove(); // shouldn't happen
-                        spans.enter().append("tspan").style("dominant-baseline", "central").style("font-size", function (str, i) {
+                        spans.enter().append("tspan")
+                        //.style("dominant-baseline", "central")
+                        .style("font-size", function (str, i) {
                             return (i === 0 ? fontSize : fontSize - 1) + "px";
                         }).style("fill", function (str, i) {
                             return i === 0 ? colourScale(d.value, 1) : "grey";
@@ -2729,7 +2757,9 @@ function createChartObject() {
             return def.binNum;
         });
         counters.exit().remove();
-        var countersE = counters.enter().append("text").attr("class", "democounter").attr("y", binBase + 8).style("fill", "grey").style("font-size", "11px").style("dominant-baseline", "hanging").style("text-anchor", "middle").style("pointer-events", "none").style("-webkit-user-select", "none");
+        var countersE = counters.enter().append("text").attr("class", "democounter").attr("y", binBase + 8).attr("dy", this.textOffsets.hanging).style("fill", "grey").style("font-size", "11px")
+        //.style("dominant-baseline", "hanging")
+        .style("text-anchor", "middle").style("pointer-events", "none").style("-webkit-user-select", "none");
 
         counters = counters.merge(countersE);
         counters.attr("x", function (def) {
@@ -3094,7 +3124,9 @@ function createChartObject() {
             if (!instant) {
                 var textSeln = chart.chartGroup.select("text.valueLabel");
                 if (textSeln.empty()) {
-                    textSeln = chart.chartGroup.append("text").attr("class", "valueLabel").style("font-size", fontSize + "px").style("dominant-baseline", "central").attr("x", originX + 10);
+                    textSeln = chart.chartGroup.append("text").attr("class", "valueLabel").attr("dy", chart.textOffsets.central).style("font-size", fontSize + "px")
+                    //.style("dominant-baseline", "central")
+                    .attr("x", originX + 10);
                 }
 
                 textSeln.interrupt().datum(def).text(String(val)).style("fill", function (def) {
@@ -3474,7 +3506,9 @@ function createChartObject() {
             chart.histGroup.selectAll("g.binDescriptor").remove();
             var descGroup = chart.histGroup.append("g").attr("class", "binDescriptor").attr("transform", "translate(" + (Number(binSeln.attr("x")) + Number(binSeln.attr("width")) / 2) + "," + (Number(binSeln.attr("y")) + Number(binSeln.attr("height")) + 6 + descFontSize / 2) + ")");
             var text = [String(binItem.min), binItem.minOpen ? "<" : "≤", "x", binItem.maxOpen ? "<" : "≤", String(binItem.max), "(" + binItem.values.length + ")"].join(" ");
-            var descText = descGroup.append("text").attr("x", 0).attr("y", 0).style("fill", "blue").style("pointer-events", "none").style("text-anchor", "middle").style("dominant-baseline", "central").style("font-size", descFontSize + "px").text(text);
+            var descText = descGroup.append("text").attr("x", 0).attr("y", 0).attr("dy", chart.textOffsets.central).style("fill", "blue").style("pointer-events", "none").style("text-anchor", "middle")
+            //.style("dominant-baseline", "central")
+            .style("font-size", descFontSize + "px").text(text);
             var textWidth = descText.node().getComputedTextLength();
             var descRect = descGroup.append("rect").attr("width", textWidth + 12).attr("height", descFontSize + 11).attr("x", -textWidth / 2 - 6).attr("y", -descFontSize / 2 - 5).style("fill", chart.chartSVG.style("background-color")).style("opacity", 1);
             descText.raise();
@@ -3684,9 +3718,7 @@ function createChartObject() {
         // final stages - no table
         this.nakedHistOrigin = lively.pt(200, 400);
 
-        function transformString(x, y) {
-            return "translate(" + x + ", " + y + ")";
-        }
+        var transformString = this.transformString;
 
         // the order of these will become significant if their glyphs start to overlap
         this.commandGroup = this.chartGroup.append('g').attr("transform", transformString(commandListOrigin.x, commandListOrigin.y));
@@ -3716,10 +3748,15 @@ function createChartObject() {
         var width = extent.x,
             height = extent.y;
 
-        function transformString(x, y) {
+        var transformString = this.transformString = function (x, y) {
             return "translate(" + x + ", " + y + ")";
-        }
-
+        };
+        this.textOffsets = {
+            hanging: "0.75em",
+            central: "0.4em",
+            middle: "0.35em"
+        };
+        console.log(this.textOffsets);
         this.chartSVG = divSeln.append("svg").attr("tabindex", -1).attr("xmlns", "http://www.w3.org/2000/svg").attr("xmlns:xlink", "http://www.w3.org/1999/xlink").style("background-color", "rgb(255,248,230)").attr("width", width).attr("height", extent.y).attr("viewBox", "0 0 " + extent.x + " " + extent.y);
 
         this.chartGroup = this.chartSVG.append('g').attr("transform", transformString(0, 0));
@@ -3727,35 +3764,20 @@ function createChartObject() {
         this.chartFixedCanvas = divSeln.append("canvas");
         var context = this.chartFixedCanvas.node().getContext("2d");
 
-        /*
-            // instructions from https://www.html5rocks.com/en/tutorials/canvas/hidpi/
-            // ...which we now ignore.  see the css instead.
-            var devicePixelRatio = window.devicePixelRatio || 1,
-                backingStoreRatio = context.webkitBackingStorePixelRatio ||
-                                    context.mozBackingStorePixelRatio ||
-                                    context.msBackingStorePixelRatio ||
-                                    context.oBackingStorePixelRatio ||
-                                    context.backingStorePixelRatio || 1,
-                ratio = devicePixelRatio / backingStoreRatio;
-        */
-        var ratio = 1; // just deal with it.
-
-        this.chartFixedCanvas.attr("class", "fixed").attr("width", width * ratio).attr("height", height * ratio).style("position", "absolute").style("left", "0px").style("top", "0px")
+        this.chartFixedCanvas.attr("class", "fixed").attr("width", width).attr("height", height).style("position", "absolute").style("left", "0px").style("top", "0px")
         //.style("width", width+"px")
         //.style("height", height+"px")
         .style("pointer-events", "none");
-        context.scale(ratio, ratio);
 
-        this.chartCanvas = divSeln.append("canvas").attr("class", "ephemeral").attr("width", width * ratio).attr("height", height * ratio).style("position", "absolute").style("left", "0px").style("top", "0px")
+        this.chartCanvas = divSeln.append("canvas").attr("class", "ephemeral").attr("width", width).attr("height", height).style("position", "absolute").style("left", "0px").style("top", "0px")
         //.style("width", width+"px")
         //.style("height", height+"px")
         .style("pointer-events", "none");
-        this.chartCanvas.node().getContext("2d").scale(ratio, ratio);
 
         function clearCanvas(canvSeln) {
             var canvas = canvSeln.node(),
                 context = canvas.getContext("2d");
-            context.clearRect(0, 0, width, height); // whatever the canvas's scale
+            context.clearRect(0, 0, width, height);
         }
         this.clearEphemeralCanvas = function () {
             clearCanvas(this.chartCanvas);
@@ -3792,9 +3814,7 @@ function createChartObject() {
 
         this.stripeOffset = 0;
 
-        function transformString(x, y) {
-            return "translate(" + x + ", " + y + ")";
-        }
+        var transformString = this.transformString;
         var colourScale = this.colourScale;
 
         // see if the dataGroup needs to be shifted
@@ -3872,9 +3892,7 @@ function createChartObject() {
         chart.rangeGroup.selectAll("text").remove();
         chart.dataGroup.selectAll("circle.ball,line.numberline").remove();
 
-        function transformString(x, y) {
-            return "translate(" + x + ", " + y + ")";
-        }
+        var transformString = this.transformString;
 
         // see if the histGroup needs to be shifted
         var histGroup = this.histGroup,
@@ -4654,7 +4672,9 @@ function createChartObject() {
             baseFontSize = 12,
             margin = 4 / ratio;
         var scaleIndicator = this.chartSVG.selectAll("text.scaleIndicator").data([ratioPercent]);
-        scaleIndicator.enter().append("text").attr("class", "scaleIndicator").attr("x", this.visMaxExtent.x - margin).attr("y", margin).style("fill", "#aaa").style("dominant-baseline", "hanging").style("text-anchor", "end").style("pointer-events", "none").style('-webkit-user-select', 'none').merge(scaleIndicator).style("font-size", Math.floor(baseFontSize / ratio) + "px").text(function (d) {
+        scaleIndicator.enter().append("text").attr("class", "scaleIndicator").attr("x", this.visMaxExtent.x - margin).attr("y", margin).attr("dy", this.textOffsets.hanging).style("fill", "#aaa")
+        //.style("dominant-baseline", "hanging")
+        .style("text-anchor", "end").style("pointer-events", "none").style('-webkit-user-select', 'none').merge(scaleIndicator).style("font-size", Math.floor(baseFontSize / ratio) + "px").text(function (d) {
             return "(vis scale: " + d + "%)";
         });
 

@@ -365,7 +365,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
     var edges = [ 10, 90, 450, 840 ], boxSize=10, boxGap=boxSize+8;
     var xInset = 20, yInset = 20, rowHeight = 22, fontHeight = 13, spreadBackground="#eee"; // d3.hsl(126,0.40,0.9);
     var tableGroup = this.tableGroup;
-    function transformString(x, y) { return "translate("+x+", "+y+")" }
+    var transformString = this.transformString;
     function keyString(d) { return d.varName+d.reason }
     function showChange(textSeln) {
         textSeln
@@ -836,10 +836,11 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                 }
                                 seln.append("text")
                                     .attr("class", groupObject.category+"TextCell")
+                                    .attr("dy", chart.textOffsets.hanging)
+                                    //.style("dominant-baseline", "hanging")
                                     .style("fill", cellItem=>cellItem.fill || "black")
                                     .style("font-size", (isHighlightContext ? fontHeight-4 : fontHeight)+"px")
                                     .style("font-weight", cellItem=>cellItem.weight || "normal")
-                                    .style("dominant-baseline", "hanging")
                                     .style("text-anchor", cellItem.anchor || "start")
                                     .style("opacity", groupObject.isFishy ? 0.2 : 1)
                                     .style("pointer-events", "none")
@@ -857,10 +858,11 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                 textSeln.attr("y", isHighlightContext ? 0 : 4); // now redundant?
                                 
                                 if (cellItem.styledText) {
+                                    textSeln.attr("dy", chart.textOffsets.hanging)
                                     var spans = textSeln.selectAll("tspan").data(cellItem.styledText);
                                     spans.exit().remove();  // shouldn't happen
                                     spans.enter().append("tspan")
-                                        .style("dominant-baseline", "hanging")
+                                        //.style("dominant-baseline", "hanging")
                                       .merge(spans)
                                         .style("font-style", d=>d.style)
                                         .style("fill", d=>d.colour || "black")
@@ -1154,10 +1156,11 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                         .attr("class", "readout")
                                         .attr("x", 0)
                                         .attr("y", 2)
+                                        .attr("dy", chart.textOffsets.hanging)
                                         .style("fill", d3.hcl(73,100,75).darker(0.5))
                                         .style("font-size", (fontHeight)+"px")
                                         .style("font-weight", "bold")
-                                        .style("dominant-baseline", "hanging")
+                                        //.style("dominant-baseline", "hanging")
                                         .style("text-anchor", "middle")
                                         .style("pointer-events", "none")
                                         .style('-webkit-user-select','none')
@@ -1170,8 +1173,9 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                         .attr("class", "sparkLabel")
                                         .attr("x", 4-width/2)
                                         .attr("y", label=>label.y)
+                                        .attr("dy", chart.textOffsets.middle)
                                         .style("font-size", (fontHeight-4)+"px")
-                                        .style("dominant-baseline", "middle")
+                                        //.style("dominant-baseline", "middle")
                                         .style("pointer-events", "none")
                                         .style('-webkit-user-select','none')
                                         .text(label=>label.text);
@@ -1376,6 +1380,7 @@ chartObject.drawBalls=function drawBalls(data) {
 };
 
 chartObject.drawBinAnnotations=function drawBinAnnotations(group, axisOrigin, axisHeight, tickDefs, labelDefs, instant) {
+    var chart=this;
     var axisX = axisOrigin.x, axisBase = axisOrigin.y;
     
 	var labels = group.selectAll("text.histLabel").data(labelDefs);
@@ -1399,8 +1404,9 @@ chartObject.drawBinAnnotations=function drawBinAnnotations(group, axisOrigin, ax
       .merge(labels)
 	    .attr("x", d=>d.x)
 	    .attr("y", d=>axisBase+d.y)
+        .attr("dy", d=>chart.textOffsets[d.baseline || "central"])
 	    .style("text-anchor", d=>d.anchor || "start")
-        .style("dominant-baseline", d=>d.baseline || "central")
+        //.style("dominant-baseline", d=>d.baseline || "central")
         .each(function(def) {
             var seln = d3.select(this);
             if (def.highlightOnChange && seln.text()!==def.text) {
@@ -1462,8 +1468,8 @@ chartObject.drawBins=function drawBins(primaryBins, contextBins, options) {
 	// if we're drawing a full axis, no need to fill in zero-height bins with a line
     var heightScale = extraAxisAnnotations ? function(val) { return val/rangeMax*maxHeight } : function(val) { return val===0 ? 0.01 : val/rangeMax*maxHeight };
 	var histGroup = this.histGroup, binGroup = histGroup.select(".binGroup");
-    function transformString(x, y) { return "translate("+x+", "+y+")" }
-
+    var transformString = this.transformString;
+    
 	function showBins(binData, binClass, fillColour) {
 	    // binClass is "primary", "context", or "contextOutline"
 	    // binData can be empty!
@@ -1596,9 +1602,10 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
 		.attr("class", "readout")
 		.attr("x", dragRegionOffset.x+switchW/2)
 		.attr("y", dragRegionOffset.y+switchH/3)
+		.attr("dy", this.textOffsets.central)
 		.style("font-size", "14px")
 		.style("text-anchor", "middle")
-		.style("dominant-baseline", "central")
+		//.style("dominant-baseline", "central")
 		.style("pointer-events", "none")
         .style("-webkit-user-select","none")
         .style("fill", readoutColour);
@@ -1608,9 +1615,10 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
 		.attr("class", "minmax")
 		.attr("x", dragRegionOffset.x+switchW/2)
 		.attr("y", dragRegionOffset.y+switchH*0.75)
+		.attr("dy", this.textOffsets.central)
 		.style("font-size", "9px")
 		.style("text-anchor", "middle")
-		.style("dominant-baseline", "central")
+		//.style("dominant-baseline", "central")
 		.style("pointer-events", "none")
         .style("-webkit-user-select","none")
         .style("fill", readoutColour);
@@ -1676,8 +1684,9 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
 		.attr("class", "switchLabel")
 		.attr("x", offset.x)
 		.attr("y", offset.y+switchH/3)
+		.attr("dy", this.textOffsets.central)
 		.style("font-size", "14px")
-		.style("dominant-baseline", "central")
+		//.style("dominant-baseline", "central")
 		.style("pointer-events", "none")
         .style("-webkit-user-select","none")
         .style("fill", switchColour)
@@ -1688,8 +1697,9 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
 		.attr("class", "switchLabel")
 		.attr("x", offset.x)
 		.attr("y", offset.y+switchH*0.75)
+		.attr("dy", this.textOffsets.central)
 		.style("font-size", "9px")
-		.style("dominant-baseline", "central")
+		//.style("dominant-baseline", "central")
 		.style("pointer-events", "none")
         .style("-webkit-user-select","none")
         .style("fill", switchColour)
@@ -1718,9 +1728,10 @@ chartObject.drawBreakValues=function drawBreakValues(options) {
     labels.enter().append("text")
         .attr("class", "binbreak")
         .attr("y", binBase+10)
+        .attr("dy", this.textOffsets.hanging)
         .style("font-size", "12px")
         .style("text-anchor", "middle")
-        .style("dominant-baseline", "hanging")
+        //.style("dominant-baseline", "hanging")
         .style("pointer-events", "none")
         .style("-webkit-user-select","none")
       .merge(labels)
@@ -1765,8 +1776,8 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
     var chart=this;
 //console.log("drawCL:", current);
     var listOrigin = this.commandListOrigin, fontSize = 13, itemHeight = 20, buttonSize = 16, itemColour = "rgb(0, 100, 0)";
-    function transformString(x, y) { return "translate("+x+", "+y+")" }
-
+    var transformString = this.transformString;
+    
     var commandsToDraw = chart.commandList.slice(0, Math.max(current, chart.maximumScrolledIndex)+1);
     var commandDefs = commandsToDraw.map((command, i)=>({ command: command, index: i }));
 
@@ -1781,10 +1792,11 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
                 .append("text")
                 .attr("x", buttonSize+6)
                 .attr("y", itemHeight/2)
+        		.attr("dy", chart.textOffsets.central)
                 .style("font-size", fontSize+"px")
                 .style("fill", itemColour)
                 .style("fill-opacity", 0.4)
-                .style("dominant-baseline", "central")
+                //.style("dominant-baseline", "central")
                 .style("text-anchor", "start")
                 .style("pointer-events", "none")
                 .style('-webkit-user-select','none')
@@ -1954,8 +1966,9 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .attr("class", "scenarioLabel")
             .attr("x", labelOrigin.x)
             .attr("y", labelOrigin.y)
+    		.attr("dy", chart.textOffsets.central)
             .style("font-size", "14px")
-            .style("dominant-baseline", "hanging")
+            //.style("dominant-baseline", "hanging")
             .style("-webkit-user-select","none")
           .merge(labels)
             .text(String);
@@ -2229,8 +2242,9 @@ chartObject.drawDataName=function drawDataName() {
         .attr("class", "dataname")
         .attr("x", labelCentre)
         .attr("y", labelY)
+		.attr("dy", chart.textOffsets.central)
         .style("font-size", fontSize+"px")
-        .style("dominant-baseline", "hanging")
+        //.style("dominant-baseline", "hanging")
         .style("text-anchor", "middle")
         .style("pointer-events", "none")
         .style('-webkit-user-select','none')
@@ -2249,8 +2263,8 @@ chartObject.drawDataSwitch=function drawDataSwitch() {
     // draw in data group (i.e., relative to plotOrigin)
     var stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance, switchY = binBase + 80, centreX = this.numberLineWidth/2, itemWidth = 150, itemSep = 20, fontSize = 16, buttonHeight = fontSize+8;
 
-    function transformString(x, y) { return "translate("+x+", "+y+")" }
-
+    var transformString = this.transformString;
+    
     var numSwitches = datasets.length;
     var totalWidth = numSwitches*itemWidth + (numSwitches-1)*itemSep, firstX = centreX-totalWidth/2+itemWidth/2;
     var switchDefs = datasets.map(dn=>({ dataName: dn })); // @@ anything else?
@@ -2279,8 +2293,9 @@ chartObject.drawDataSwitch=function drawDataSwitch() {
                 .append("text")
                 .attr("x", 0)
                 .attr("y", 0)
+    	    	.attr("dy", chart.textOffsets.central)
                 .style("font-size", fontSize+"px")
-                .style("dominant-baseline", "central")
+                //.style("dominant-baseline", "central")
                 .style("text-anchor", "middle")
                 .style("pointer-events", "none")
                 .style('-webkit-user-select','none')
@@ -2341,8 +2356,9 @@ chartObject.drawDensityControl=function drawDensityControl(offset, handler) {
 		.attr("class", "switchLabel")
 		.attr("x", offset.x+switchSize+8)
 		.attr("y", offset.y+switchSize/2)
+		.attr("dy", this.textOffsets.middle)
 		.style("font-size", "14px")
-		.style("dominant-baseline", "middle")
+		//.style("dominant-baseline", "middle")
         .style("-webkit-user-select","none")
         .style("fill", switchColour)
         .text("plot as densities")        
@@ -2622,8 +2638,9 @@ chartObject.drawSweepControl=function drawSweepControl(offset, handler) {
 		.attr("class", "switchLabel")
 		.attr("x", offset.x+switchSize+8)
 		.attr("y", offset.y+switchSize/2)
+		.attr("dy", this.textOffsets.central)
 		.style("font-size", "14px")
-		.style("dominant-baseline", "central")
+		//.style("dominant-baseline", "central")
 		.style("pointer-events", "none")
         .style("-webkit-user-select","none")
         .style("fill", switchColour)
@@ -2690,7 +2707,7 @@ chartObject.drawValueList=function drawValueList(options) {
 
     var fixedCanvas = this.chartFixedCanvas.node(), fixedContext = fixedCanvas.getContext("2d");
 
-    function transformString(x, y) { return "translate("+x+", "+y+")" }
+    var transformString = this.transformString;
 
     var totalTime = moveTime+timeSpread;    
     if (stage !== undefined) {
@@ -2799,7 +2816,8 @@ chartObject.drawValueList=function drawValueList(options) {
                 .attr("class", "focusItem")
                 .attr("x", 0)
                 .attr("y", (d, i)=>focusListTop+focusEntryHeight*i)
-                .style("dominant-baseline", "central") // numbers are tall, so not "middle"
+        		.attr("dy", chart.textOffsets.central)
+                //.style("dominant-baseline", "central") // numbers are tall, so not "middle"
                 .style("font-size", fontSize+"px")
                 .style("-webkit-user-select","none")
               .merge(focusTexts)
@@ -2808,10 +2826,11 @@ chartObject.drawValueList=function drawValueList(options) {
                     var seln = d3.select(this);
                     if (d.multiplier) {
                         seln.text(""); // use only tspans
+                        seln.attr("dy", chart.textOffsets.central)
                         var spans = seln.selectAll("tspan").data([d.text, d.multiplier]);
                         spans.exit().remove();  // shouldn't happen
                         spans.enter().append("tspan")
-                            .style("dominant-baseline", "central")
+                            //.style("dominant-baseline", "central")
                             .style("font-size", (str, i)=>(i===0 ? fontSize : fontSize-1)+"px")
                             .style("fill", (str, i)=>i===0 ? colourScale(d.value, 1) : "grey")
                           .merge(spans)
@@ -2958,9 +2977,10 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
     var countersE = counters.enter().append("text")
         .attr("class", "democounter")
         .attr("y", binBase+8)
+		.attr("dy", this.textOffsets.hanging)
         .style("fill", "grey")
         .style("font-size", "11px")
-        .style("dominant-baseline", "hanging")
+        //.style("dominant-baseline", "hanging")
         .style("text-anchor", "middle")
         .style("pointer-events", "none")
         .style("-webkit-user-select","none");
@@ -3339,8 +3359,9 @@ chartObject.flyBalls=function flyBalls(options) {
             if (textSeln.empty()) {
                 textSeln = chart.chartGroup.append("text")
                     .attr("class", "valueLabel")
+            		.attr("dy", chart.textOffsets.central)
                     .style("font-size", fontSize+"px")
-                    .style("dominant-baseline", "central")
+                    //.style("dominant-baseline", "central")
                     .attr("x", originX+10)
             }
             
@@ -3730,10 +3751,11 @@ chartObject.initBinBehaviour=function initBinBehaviour() {
         var descText = descGroup.append("text")
             .attr("x", 0)
             .attr("y", 0)
+    		.attr("dy", chart.textOffsets.central)
             .style("fill", "blue")
             .style("pointer-events", "none")
             .style("text-anchor", "middle")
-            .style("dominant-baseline", "central")
+            //.style("dominant-baseline", "central")
             .style("font-size", descFontSize+"px")
             .text(text);
         var textWidth = descText.node().getComputedTextLength();
@@ -3942,7 +3964,7 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     // final stages - no table
     this.nakedHistOrigin = lively.pt(200, 400);
 
-    function transformString(x, y) { return "translate("+x+", "+y+")" }
+    var transformString = this.transformString;
 
     // the order of these will become significant if their glyphs start to overlap
     this.commandGroup = this.chartGroup.append('g')
@@ -3976,8 +3998,13 @@ chartObject.initChartSubstrates=function initChartSubstrates(divSeln, extent) {
 
     var width = extent.x, height = extent.y;
 
-    function transformString(x, y) { return "translate("+x+", "+y+")" }
-
+    var transformString = this.transformString = function(x, y) { return "translate("+x+", "+y+")" }
+    this.textOffsets = {
+        hanging: "0.75em",
+        central: "0.4em",
+        middle: "0.35em"
+    }
+console.log(this.textOffsets);
     this.chartSVG = divSeln.append("svg")
         .attr("tabindex", -1)
         .attr("xmlns", "http://www.w3.org/2000/svg")
@@ -3993,46 +4020,31 @@ chartObject.initChartSubstrates=function initChartSubstrates(divSeln, extent) {
     this.chartFixedCanvas = divSeln.append("canvas");
     var context = this.chartFixedCanvas.node().getContext("2d");
     
-/*
-    // instructions from https://www.html5rocks.com/en/tutorials/canvas/hidpi/
-    // ...which we now ignore.  see the css instead.
-    var devicePixelRatio = window.devicePixelRatio || 1,
-        backingStoreRatio = context.webkitBackingStorePixelRatio ||
-                            context.mozBackingStorePixelRatio ||
-                            context.msBackingStorePixelRatio ||
-                            context.oBackingStorePixelRatio ||
-                            context.backingStorePixelRatio || 1,
-        ratio = devicePixelRatio / backingStoreRatio;
-*/
-    var ratio = 1;  // just deal with it.
-
     this.chartFixedCanvas
         .attr("class", "fixed")
-        .attr("width", width*ratio)
-        .attr("height", height*ratio)
+        .attr("width", width)
+        .attr("height", height)
         .style("position", "absolute")
         .style("left", "0px")
         .style("top", "0px")
         //.style("width", width+"px")
         //.style("height", height+"px")
         .style("pointer-events", "none");
-    context.scale(ratio, ratio);
 
     this.chartCanvas = divSeln.append("canvas")
         .attr("class", "ephemeral")
-        .attr("width", width*ratio)
-        .attr("height", height*ratio)
+        .attr("width", width)
+        .attr("height", height)
         .style("position", "absolute")
         .style("left", "0px")
         .style("top", "0px")
         //.style("width", width+"px")
         //.style("height", height+"px")
         .style("pointer-events", "none");
-    this.chartCanvas.node().getContext("2d").scale(ratio, ratio);
 
     function clearCanvas(canvSeln) {
         var canvas = canvSeln.node(), context = canvas.getContext("2d");
-        context.clearRect(0, 0, width, height);  // whatever the canvas's scale
+        context.clearRect(0, 0, width, height);
     }
     this.clearEphemeralCanvas = function() { clearCanvas(this.chartCanvas) }
     this.clearFixedCanvas = function() { clearCanvas(this.chartFixedCanvas) }
@@ -4058,7 +4070,7 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
 
     this.stripeOffset = 0;
 
-    function transformString(x, y) { return "translate("+x+", "+y+")" }
+    var transformString = this.transformString;
     var colourScale = this.colourScale;
 
     // see if the dataGroup needs to be shifted
@@ -4122,7 +4134,7 @@ chartObject.initNakedHistogram=function initNakedHistogram(options) {
     chart.rangeGroup.selectAll("text").remove();
     chart.dataGroup.selectAll("circle.ball,line.numberline").remove()
 
-    function transformString(x, y) { return "translate("+x+", "+y+")" }
+    var transformString = this.transformString;
 
     // see if the histGroup needs to be shifted
     var histGroup = this.histGroup, histGroupNode = histGroup.node(), desiredLoc = this.nakedHistOrigin;
@@ -4848,8 +4860,9 @@ chartObject.resizeChartSubstrates=function resizeChartSubstrates(divSeln, newExt
         .attr("class", "scaleIndicator")
         .attr("x", this.visMaxExtent.x-margin)
         .attr("y", margin)
+		.attr("dy", this.textOffsets.hanging)
         .style("fill", "#aaa")
-        .style("dominant-baseline", "hanging")
+        //.style("dominant-baseline", "hanging")
         .style("text-anchor", "end")
         .style("pointer-events", "none")
         .style('-webkit-user-select','none')
