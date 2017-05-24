@@ -4004,7 +4004,8 @@ chartObject.initChartSubstrates=function initChartSubstrates(divSeln, extent) {
         central: "0.4em",
         middle: "0.35em"
     }
-console.log(this.textOffsets);
+//console.log(this.textOffsets);
+
     this.chartSVG = divSeln.append("svg")
         .attr("tabindex", -1)
         .attr("xmlns", "http://www.w3.org/2000/svg")
@@ -4207,10 +4208,12 @@ chartObject.initScrolliness=function initScrolliness(options) {
         var sectionPositions = [];
         var currentIndex = -1;  // somewhat redundantly tracked both here and by the stepController
         // y coordinate of
-        var containerStart = 0;
+        var containerTop = 0, containerMaxScroll = 0, visScrollState = null;
         
         var navHeight = d3.select("nav").node().getBoundingClientRect().height;
+        var heightMargin = navHeight+50;
         var switchPos = 200+navHeight;  // how far from the top we switch in a new section
+        var textMargin = 10;  // NB: tied to scrolly.css
 
         var visSeln = null;
         // ael - permissible vis and text extents
@@ -4235,7 +4238,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             // position. When it is resized
             // call resize.
             d3.select(window)
-              .on('scroll.scroller', throttledPosition)  // ael added throttles
+              .on('scroll.scroller', throttledPosition)
               .on('resize.scroller', debouncedResize);
             
             // hack to get resize (and hence position)
@@ -4266,7 +4269,6 @@ chartObject.initScrolliness=function initScrolliness(options) {
             //    leaving width of at least textMinWidth (which includes a narrow gutter, specified as #sections.margin-right)
             //    fitting into the window height.
             
-            var heightMargin = navHeight+50;
             var divWidth = d3.select("#scrolly").node().getBoundingClientRect().width;
 //console.log("divWidth:",divWidth);
             d3.select("#sections").style("padding-left", "0px");
@@ -4280,13 +4282,14 @@ chartObject.initScrolliness=function initScrolliness(options) {
             var textWidth = Math.max(textMinWidth, Math.min(textMaxWidth, divWidth - visWidth));
 
             textWidth = textWidth | 0;
-            d3.select("#sections").style("width", textWidth+"px");
+            d3.select("#sections").style("width", textWidth-textMargin+"px"); // margin is supplementary to width value
             visWidth = visWidth | 0;
             visHeight = visHeight | 0;
             visSeln.style("width", visWidth+"px").style("height", visHeight+"px");
 
-            var marginNeeded = (divWidth - visWidth - textWidth)/2;
-            d3.select("#sections").style("padding-left", Math.max(0, marginNeeded)+"px");
+            var marginNeeded = Math.max(0, Math.floor((divWidth - visWidth - textWidth)/2));
+            d3.select("#sections").style("padding-left", marginNeeded+"px");
+            visSeln.style("padding-right", marginNeeded+"px");
             
             dispatch.call('size', this, { x: visWidth, y: visHeight });
 
@@ -4305,16 +4308,20 @@ chartObject.initScrolliness=function initScrolliness(options) {
                   if (i === 0) startPos = top;
                   sectionPositions.push(top - startPos);
                 });
-                containerStart = container.node().getBoundingClientRect().top + window.pageYOffset;
                 
+                // for the scrolly container, record its top (in page coords) and the max scroll distance during the interactive phase
+                var containerRect = container.node().getBoundingClientRect();
+                containerTop = containerRect.top + window.pageYOffset; // px from top of page
+                containerMaxScroll = containerRect.height - visHeight;
+
+/* no longer needed... unless we switch to having an extremely short last section
                 var lastSectionHeight = lastSection.getBoundingClientRect().height;
                 var stepMarginBottom = 150; // **tied to scrolly.css**
                 var paddingNeeded = Math.max(0, visHeight - lastSectionHeight - switchPos - stepMarginBottom + 20);
-                d3.select(lastSection).style("padding-bottom", Math.max(0, paddingNeeded)+"px");
-                
-                // make sure the last line appears at the bottom of the window
-                var extraSpaceNeeded = Math.max(0, window.innerHeight - visHeight - navHeight - 30); // fudge
-                d3.select("#extra-space").style("height", Math.max(0, extraSpaceNeeded)+"px");
+                d3.select(lastSection).style("padding-bottom", paddingNeeded+"px");
+*/
+
+                visScrollState = null;  // force re-layout
                 
                 position();
                 }, 250);
@@ -4334,16 +4341,22 @@ chartObject.initScrolliness=function initScrolliness(options) {
         * 
         */
         function position() {
-            var pos = window.pageYOffset - containerStart;
-
-            // ael added
-            var stickPoint = 20+navHeight;
-            if (pos < -stickPoint) {
-                visSeln.style("position", "absolute").style("top", null);
-            } else {
-                visSeln.style("position", "fixed").style("top", stickPoint+"px");
-            }
+//console.log("position", Date.now());
+            var pos = window.pageYOffset - containerTop; // pos of top of visible region relative to start of scrolly
             
+            var stickPoint = 20+navHeight, unstickPoint = containerMaxScroll-stickPoint;
+            var newState = pos < -stickPoint ? "before" : (pos > unstickPoint ? "after" : "during");
+            if (newState !== visScrollState) {
+                var isDuring = newState==="during";
+                visSeln
+                    .style("position", isDuring ? "fixed" : null)
+                    .style("float", isDuring ? null : "right")
+                    .style("top", isDuring ? stickPoint+"px" : null)
+                    .style("left", isDuring ? (d3.select("#sections").node().getBoundingClientRect().right+textMargin+1+"px") : null)
+                    .style("padding-top", isDuring ? null : (newState==="before" ? "0px" : (containerMaxScroll+"px")) );
+            visScrollState = newState;
+            }
+
             var sectionIndex = Math.max(0, d3.bisect(sectionPositions, pos+switchPos)-1);
 
             if (currentIndex !== sectionIndex) {
