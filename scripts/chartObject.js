@@ -1779,7 +1779,7 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
     var transformString = this.transformString;
     
     var commandsToDraw = chart.commandList.slice(0, Math.max(current, chart.maximumScrolledIndex)+1);
-    var commandDefs = commandsToDraw.map((command, i)=>({ command: command, index: i }));
+    var commandDefs = commandsToDraw.map((def, i)=>({ command: def.command, replayable: def.replayable, index: i }));
 
     var commandEntries = chart.commandGroup.selectAll("g.command").data(commandDefs, def=>def.index);
     commandEntries.exit().remove();
@@ -1788,42 +1788,49 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
         .attr("transform", (def, i)=>transformString(0, itemHeight*i))
         .each(function(def,i) {
             var seln = d3.select(this);
-            seln
+            var text = seln
                 .append("text")
-                .attr("x", buttonSize+6)
+                .attr("x", 0)
                 .attr("y", itemHeight/2)
         		.attr("dy", chart.textOffsets.middle)
                 .style("font-size", fontSize+"px")
+                .style("font-weight", 600)
                 .style("fill", itemColour)
                 .style("fill-opacity", 0.4)
-                //.style("dominant-baseline", "middle")
                 .style("text-anchor", "start")
                 .style("pointer-events", "none")
                 .style('-webkit-user-select','none')
-                .text(def=>def.command);
+                .text(def.command);
                 
-            seln
-                .append("circle")
-                .attr("class", "replay")
-                .attr("cx", buttonSize/2)
-                .attr("cy", itemHeight/2)
-                .attr("r", buttonSize/2)
-                .style("fill", "green")
-                .style("stroke", "green")
-                .style("stroke-width", 1)
-                .style("cursor", "pointer")
-                .style("pointer-events", "all")
-                .on("click", function(def) { chart.activateStep(def.index) });
+            var boldWidth = text.node().getBBox().width;
+            text.style("font-weight", "normal");
+            text.node().nonBoldSpacing = (boldWidth - text.node().getBBox().width)/def.command.length;
 
-            seln
-                .append("path")
-                .attr("d", d3.symbol().type(d3.symbolTriangle).size(36))
-                .attr("transform", " translate(8 10) rotate(90 0 0)")
-                .style("fill", "white")
-                .style("stroke", "green")
-                .style("stroke-width", 1)
-                .style("pointer-events", "none");
+            if (def.replayable) {
+                var centreX = boldWidth + 6 + buttonSize/2;
 
+                seln
+                    .append("circle")
+                    .attr("class", "replay")
+                    .attr("cx", centreX)
+                    .attr("cy", itemHeight/2)
+                    .attr("r", buttonSize/2)
+                    .style("fill", "green")
+                    .style("stroke", "green")
+                    .style("stroke-width", 1)
+                    .style("cursor", "pointer")
+                    .style("pointer-events", "all")
+                    .on("click", function(def) { chart.jumpToStep(def.index) });
+    
+                seln
+                    .append("path")
+                    .attr("d", d3.symbol().type(d3.symbolTriangle).size(36))
+                    .attr("transform", "translate("+centreX+" 10) rotate(90 0 0)")
+                    .style("fill", "white")
+                    .style("stroke", "green")
+                    .style("stroke-width", 1)
+                    .style("pointer-events", "none");
+                }
 /*
             seln
                 .append("rect")
@@ -1853,7 +1860,8 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
                     .interrupt()
                     .style("fill", isCurrent ? "red" : itemColour)
                     .style("fill-opacity", isFuture ? 0.4 : 1)
-                    .style("font-weight", isCurrent ? "bold" : "normal");
+                    .style("font-weight", isCurrent ? 600 : "normal")
+                    .attr("letter-spacing", isCurrent ? "normal" : textSeln.node().nonBoldSpacing+"px");
                 if (isCurrent) {
                     textSeln.transition()
                         .duration(2000)
@@ -1863,7 +1871,8 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
     }
 
     decorateList();
-    
+    chart.commandGroup.raise();
+
     if (thenDo) thenDo();
 
     var handIndex = this.lastScrolledIndex || 0;
@@ -2238,59 +2247,55 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
         this.loadData(datasets[0]); // ...which needs to be synchronous (as it is, for "mpg")
     }
 
-    if (!this.allowDataSwitch) datasets = [this.dataName];
+    this.datasetsAvailable = Math.min(this.datasetsAvailable, datasets.length);
 
     var chart=this, chartGroup = this.chartGroup, transformString = this.transformString;
 
     var plotOrigin = this.plotOrigin;
-    var itemWidth = 50, itemSep = 30, buttonHeight = 40, imageWidth = 40, imageHeight = 40, topY = this.commandListOrigin.y + buttonHeight/2;
-    var fontSize = 16;
+    var buttonWidth = 50, buttonSep = 30, buttonHeight = 35, imageWidth = 35, imageHeight = 35, buttonMidY = this.commandListOrigin.y + buttonHeight/2;
+    var fontSize = 14;
 
-/*
-    chartGroup.selectAll("text.dataname").remove();
-    chartGroup.append("text")
-        .attr("class", "dataname")
-        .attr("x", labelCentre)
-        .attr("y", labelY)
-		.attr("dy", chart.textOffsets.central)
+    var labelX = this.commandListOrigin.x + 250;
+    var firstButtonX = labelX + buttonWidth/2;
+
+    chartGroup.selectAll("text.datadesc").remove();
+    var descText = chartGroup.append("text")
+        .attr("class", "datadesc")
+        .attr("x", labelX)
+        .attr("y", buttonMidY+buttonHeight/2+10)
+		.attr("dy", chart.textOffsets.hanging)
         .style("font-size", fontSize+"px")
-        //.style("dominant-baseline", "hanging")
-        .style("text-anchor", "middle")
         .style("pointer-events", "none")
-        .style('-webkit-user-select','none')
-        .text(this.dataName+" "+this.dataUnits);
-*/
+        .style('-webkit-user-select','none');
+    descText.append("tspan").text("dataset:");
+    descText.append("tspan").attr("dx", 10).style("fill", "blue").text(this.datasetShortDescriptions[this.dataName].replace(/\<br\/\>/m," "));
 
-//    var numSwitches = datasets.length;
-//    var totalWidth = numSwitches*itemWidth + (numSwitches-1)*itemSep; // centred
-//    var centreX = plotOrigin.x+this.numberLineWidth/2, 
-//    var firstX = centreX-totalWidth/2+itemWidth/2;  // fudge
-
-    var firstX = plotOrigin.x;
-    
-    var switchDefs = datasets.map(dn=>({ dataName: dn })); // @@ anything else?
+    var switchDefs = datasets.slice(0, this.datasetsAvailable).map(dn=>({ dataName: dn }));
 
     var switchEntries = chartGroup.selectAll("g.dataswitch").data(switchDefs, def=>def.dataName);
     switchEntries.exit().remove();
     switchEntries.enter().append("g")
         .attr("class", "dataswitch")
-        .attr("transform", (def, i)=>transformString(firstX+i*(itemWidth+itemSep), topY))
+        .attr("transform", (def, i)=>transformString(firstButtonX+i*(buttonWidth+buttonSep), buttonMidY))
         .style("opacity", 1e-6)
         .each(function(def, i) {
             var seln = d3.select(this);
             seln
                 .append("rect")
-                .attr("x", -itemWidth/2)
+                .attr("x", -buttonWidth/2)
                 .attr("y", -buttonHeight/2)
-                .attr("width", itemWidth)
+                .attr("width", buttonWidth)
                 .attr("height", buttonHeight)
                 .style("fill", "#e6830f")
                 .style("fill-opacity", 0.2)
-                .style("stroke", "green")
+                .style("stroke", "blue")
                 .style("stroke-width", 2)
                 .style("stroke-opacity", 0)
-                .style("cursor", "pointer")
-                .on("click", def=>{ if (chart.allowDataSwitch) chart.switchDataset(def.dataName) });
+                .on("click", def=>{ if (chart.datasetsAvailable > 1) chart.switchDataset(def.dataName) })
+                .on("mouseover", function(def) {
+                    showTip(this, chart.datasetShortDescriptions[def.dataName])
+                    })
+                .on("mouseout", hideTip);
 
             seln
                 .append("image")
@@ -2301,39 +2306,33 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
                 .attr("y", -imageHeight/2 + 5)  // fudge
                 .style("pointer-events", "none");
 
-/*
-            seln
-                .append("text")
-                .attr("x", 0)
-                .attr("y", 0)
-    	    	.attr("dy", chart.textOffsets.central)
-                .style("font-size", fontSize+"px")
-                //.style("dominant-baseline", "central")
-                .style("text-anchor", "middle")
-                .style("pointer-events", "none")
-                .style('-webkit-user-select','none')
-                .text(def.dataName);
-*/
-
             });
 
-/*        
-.each(function(def, i) {
-    var seln = d3.select(this);
-    var oldTransform = seln.attr("transform");
-    var desiredTransform = transformString(firstX+i*(itemWidth+itemSep), topY);
-    if (oldTransform!==desiredTransform) {
-        seln
-            .transition()
-            .duration(1000)
-            .attrTween("transform", ()=>d3.interpolateTransformSvg(oldTransform, desiredTransform));
+    // tooltip code adapted from  http://bl.ocks.org/d3noob/a22c42db65eb00d4e369 
+    function showTip(elem, text) {
+        var box = elem.getBoundingClientRect();
+        var tip = d3.select("div.tooltip");
+        tip.html(text);
+        var tipWidth = Number.parseInt(tip.style("width"));
+        tip        
+            .style("left", box.left + box.width/2 - tipWidth/2 + window.scrollX + "px")
+            .style("top", box.bottom + 1 + window.scrollY + "px");
+        tip.transition()
+            .duration(200)		
+            .style("opacity", 1);		
     }
-    });
-*/
+    function hideTip() {
+        d3.select("div.tooltip")
+            .transition()		
+            .duration(500)		
+            .style("opacity", 0);	
+    };
 
     function decorateSwitches() {
+        var switchingAllowed = chart.datasetsAvailable > 1;
         chartGroup.selectAll("g.dataswitch rect")
-            .style("stroke-opacity", def=>chart.allowDataSwitch && def.dataName===chart.dataName ? 1 : 0);
+            .style("cursor", switchingAllowed ? "pointer" : "default")
+            .style("stroke-opacity", def=>switchingAllowed && def.dataName===chart.dataName ? 1 : 0);
     }
     decorateSwitches();
 
@@ -2472,19 +2471,7 @@ chartObject.drawFaderControl=function drawFaderControl(offset, handler) {
 };
 
 chartObject.drawHandPointer=function drawHandPointer(location, thenDo) {
-    // this.drawHandPointer(lively.pt(70,500))
-
-/* SETUP
-this.chartGroup.selectAll("g.handpointer").remove();
-this.chartGroup.selectAll("circle.test").remove();
-this.chartGroup.append("circle")
-    .attr("class", "test")
-    .attr("cx", location.x)
-    .attr("cy", location.y)
-    .attr("r", 3)
-    .style("fill", "red");
-*/
-
+    // NB: on any replay (in particular, when jumping back in the command sequence), the hand will be erased as part of the reset.  this is why the hand will make a smooth transition into its new position when moving down the essay, but not back up.
     function transformString(x, y, angle) { return "translate("+x+", "+y+") rotate("+angle+")" }
     var desiredTransform = transformString(location.x, location.y, 45);
 
@@ -4090,6 +4077,12 @@ chartObject.initChartSubstrates=function initChartSubstrates(divSeln, extent) {
 
     this.initChartSubgroups();
 
+    // Define a div to act as a tooltip
+    d3.selectAll("div.tooltip").remove();
+    d3.select("body").append("div")	
+        .attr("class", "tooltip")				
+        .style("opacity", 0);
+
 };
 
 chartObject.initHistogramArea=function initHistogramArea(options) {
@@ -4247,6 +4240,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
         var navHeight = d3.select("nav").node().getBoundingClientRect().height;
         var heightMargin = navHeight+50;
         var switchPos = 200+navHeight;  // how far from the top we switch in a new section
+        var stickPoint = 20+navHeight
         var textMargin = 10;  // NB: tied to scrolly.css
 
         var visSeln = null;
@@ -4378,7 +4372,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
 //console.log("position", Date.now());
             var pos = window.pageYOffset - containerTop; // pos of top of visible region relative to start of scrolly
             
-            var stickPoint = 20+navHeight, unstickPoint = containerMaxScroll-stickPoint;
+            var unstickPoint = containerMaxScroll-stickPoint;
             var newState = pos < -stickPoint ? "before" : (pos > unstickPoint ? "after" : "during");
             if (newState !== visScrollState) {
                 var isDuring = newState==="during";
@@ -4474,6 +4468,10 @@ chartObject.initScrolliness=function initScrolliness(options) {
         }
 
         scroll.resetLastIndex = function() { currentIndex = -1 }
+        
+        scroll.sectionTop = function(sectionIndex) {
+            return window.scrollY + sections.nodes()[0].getBoundingClientRect().top + sectionPositions[sectionIndex] - stickPoint;
+        }
 
         return scroll;
     }
@@ -4621,7 +4619,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
     // set up scroll functionality on the #scrolly div - which contains a #sections div for the scrollable text sections, and (typically) a #vis div for the arbitrarily updatable plot
 
     var stepDefs = options.stepDefinitions;
-    chart.commandList = stepDefs.map(def=>def.command);
+    chart.commandList = stepDefs.map(function(def) { return { command: def.command, replayable: !!def.replayable } });
 
     var visSeln = d3.select("#"+options.element);
 
@@ -4644,7 +4642,18 @@ chartObject.initScrolliness=function initScrolliness(options) {
         stepController.activate(index, { replay: true });
         chart.drawCommandList(index);
         }
-        
+    
+    chart.jumpToStep = function(index) {
+        var oldIndex = stepController.activeIndex();
+        var sectionTop = scroll.sectionTop(index);
+        window.scrollTo(0, sectionTop);
+        // force replay iff index hasn't changed
+        if (index===oldIndex) {
+            stepController.activate(index, { replay: true });
+            chart.drawCommandList(index);
+        }
+    }
+    
     // replaying to current position from nearest step tagged "replayPoint" (or 0 if none)
     chart.replaySteps = function() {
         var index = stepController.activeIndex();
@@ -4699,6 +4708,13 @@ chartObject.loadData=function loadData(dataset, thenDo) {
     // this.data.length
     // other possibly useful datasets at http://people.stern.nyu.edu/jsimonof/Casebook/Data/ASCII/
     var rawData = [], quantum = 1, binQuantum, units = "", minBins = 8, maxBins = 50;
+    this.datasetShortDescriptions = {
+        mpg: "fuel consumption (in mpg)<br/>for 32 cars",
+        nba: "age (in years)<br/>for 105 NBA athletes",
+        faithful: "272 records of delay (in seconds)<br/>between eruptions of Old Faithful",
+        diamonds: "price (in US$)<br/>for 1000 diamonds",
+        marathons: "marathon finishing time (in hours)<br/>for 3000 runners"
+    }
     var chart=this;
     function recordData() {
         chart.dataName = dataset;
@@ -4757,17 +4773,6 @@ chartObject.loadData=function loadData(dataset, thenDo) {
         
         var valueScale = d3.scaleLinear().domain([chart.dataMin, chart.dataMax]);
         var colourInterpolator = d3.interpolateHcl("#5086FE", "#FD2EA7");
-            // richer blue to shockinger pink d3.interpolateHcl("#6D9CFF", "#FF64BF");
-            // light blue to shocking pink d3.interpolateHcl("#42A3FB", "#FD67B9")
-            // richer green to gold d3.interpolateHcl("#04B568", "#DA8D1F")
-            // light green to gold d3.interpolateHcl("#2BEB5F", "#FBC52C");
-            // light blue via turquoise to gold d3.interpolateHcl("#3AE2DD", "#FBC52C");
-            // green to orange: d3.interpolateHcl("#54843F", "#C95332");
-            // d3.interpolateRgb("blue", "red");
-            
-            // juggle using colour picker at http://tristen.ca/hcl-picker/#/hcl/6/0.92/6D9CFF/FF64BF
-            // test for impact of colour blindness at http://www.color-blindness.com/coblis-color-blindness-simulator/
-            // commonest being Deuteranomaly, according to https://nei.nih.gov/health/color_blindness/facts_about
         chart.colourScale = function(val, opacity) { var c = d3.color(colourInterpolator(valueScale(val))); c.opacity = opacity; return c.toString() };
 
         if (thenDo) thenDo();
@@ -4782,7 +4787,7 @@ chartObject.loadData=function loadData(dataset, thenDo) {
                 binQuantum = 0.02;
                 minBins = 15;
                 maxBins = 150;
-                units = "(hours)";
+                units = "hours";
                 recordData();
                 });
             return;
@@ -4794,70 +4799,34 @@ chartObject.loadData=function loadData(dataset, thenDo) {
                 binQuantum = 5;
                 minBins = 15;
                 maxBins = 45;
-                units = "($)";
+                units = "$";
                 recordData();
                 });
             return;
-        case "diamonds-size":
-            // a sampled subset of the ggplot2 diamonds dataset
-            d3.csv("data/sampled-diamonds-carat.csv", row=>Number(row.x), function(d) {
-                rawData=d;
-                quantum=0.01;
-                units = "(carats)";
-                recordData();
-                });
-            return;
-        case "passengers":
-            // from R sample dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/AirPassengers.html
-            rawData = [112,118,132,129,121,135,148,148,136,119,104,118,115,126,141,135,125,149,170,170,158,133,114,140,145,150,178,163,172,178,199,199,184,162,146,166,171,180,193,181,183,218,230,242,209,191,172,194,196,196,236,235,229,243,264,272,237,211,180,201,204,188,235,227,234,264,302,293,259,229,203,229,242,233,267,269,270,315,364,347,312,274,237,278,284,277,317,313,318,374,413,405,355,306,271,306,315,301,356,348,355,422,465,467,404,347,305,336,340,318,362,348,363,435,491,505,404,359,310,337,360,342,406,396,420,472,548,559,463,407,362,405,417,391,419,461,472,535,622,606,508,461,390,432];
-            quantum=1;
-            break;
-    
-        case "precip":
-          // from R sample dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/precip.html
-            rawData = [67, 54.7, 7, 48.5, 14, 17.2, 20.7, 13, 43.4, 40.2, 38.9, 54.5, 59.8, 48.3, 22.9, 11.5, 34.4, 35.1, 38.7, 30.8, 30.6, 43.1, 56.8, 40.8, 41.8, 42.5, 31, 31.7, 30.2, 25.9, 49.2, 37, 35.9, 15, 30.2, 7.2, 36.2, 45.5, 7.8, 33.4, 36.1, 40.2, 42.7, 42.5, 16.2, 39, 35, 37, 31.4, 37.6, 39.9, 36.2, 42.8, 46.4, 24.7, 49.1, 46, 35.9, 7.8, 48.2, 15.2, 32.5, 44.7, 42.6, 38.8, 17.4, 40.8, 29.1, 14.6, 59.2];
-            quantum = 0.1;
-            units = "(inches)";
-            break;
-          
+
         case "nba":
-          // from chatterjee et al 1992-3 nba player ages http://people.stern.nyu.edu/jsimonof/Casebook/Data/ASCII/nba.dat
-          rawData = [28, 30, 26, 30, 28, 31, 30, 27, 29, 24, 27, 29, 24, 30, 28, 32, 25, 29, 34, 23, 32, 28, 28, 23, 32, 27, 34, 26, 30, 30, 23, 31, 28, 27, 25, 32, 29, 34, 28, 23, 26, 30, 32, 27, 27, 25, 24, 27, 25, 27, 31, 30, 25, 26, 33, 24, 26, 31, 24, 27, 28, 22, 30, 31, 23, 25, 31, 33, 28, 37, 28, 24, 34, 24, 28, 33, 23, 26, 28, 26, 25, 25, 26, 25, 27, 35, 31, 25, 30, 24, 23, 23, 27, 27, 25, 24, 24, 23, 23, 26, 24, 23, 32, 24, 27];
-          quantum = 1;
-          binQuantum = 0.1;
-          units = "(age, in years)";
-          break;
+            // from chatterjee et al 1992-3 nba player ages http://people.stern.nyu.edu/jsimonof/Casebook/Data/ASCII/nba.dat
+            rawData = [28, 30, 26, 30, 28, 31, 30, 27, 29, 24, 27, 29, 24, 30, 28, 32, 25, 29, 34, 23, 32, 28, 28, 23, 32, 27, 34, 26, 30, 30, 23, 31, 28, 27, 25, 32, 29, 34, 28, 23, 26, 30, 32, 27, 27, 25, 24, 27, 25, 27, 31, 30, 25, 26, 33, 24, 26, 31, 24, 27, 28, 22, 30, 31, 23, 25, 31, 33, 28, 37, 28, 24, 34, 24, 28, 33, 23, 26, 28, 26, 25, 25, 26, 25, 27, 35, 31, 25, 30, 24, 23, 23, 27, 27, 25, 24, 24, 23, 23, 26, 24, 23, 32, 24, 27];
+            quantum = 1;
+            binQuantum = 0.1;
+            units = "years";
+            break;
           
         case "faithful":
-          // eruption times from R sample dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/faithful.html (ne60, adjusted and rounded as described on that page)
-          rawData = [216, 108, 200, 137, 272, 173, 282, 216, 117, 261, 110, 235, 252, 105, 282, 130, 105, 288, 96, 255, 108, 105, 207, 184, 272, 216, 118, 245, 231, 266, 258, 268, 202, 242, 230, 121, 112, 290, 110, 287, 261, 113, 274, 105, 272, 199, 230, 126, 278, 120, 288, 283, 110, 290, 104, 293, 223, 100, 274, 259, 134, 270, 105, 288, 109, 264, 250, 282, 124, 282, 242, 118, 270, 240, 119, 304, 121, 274, 233, 216, 248, 260, 246, 158, 244, 296, 237, 271, 130, 240, 132, 260, 112, 289, 110, 258, 280, 225, 112, 294, 149, 262, 126, 270, 243, 112, 282, 107, 291, 221, 284, 138, 294, 265, 102, 278, 139, 276, 109, 265, 157, 244, 255, 118, 276, 226, 115, 270, 136, 279, 112, 250, 168, 260, 110, 263, 113, 296, 122, 224, 254, 134, 272, 289, 260, 119, 278, 121, 306, 108, 302, 240, 144, 276, 214, 240, 270, 245, 108, 238, 132, 249, 120, 230, 210, 275, 142, 300, 116, 277, 115, 125, 275, 200, 250, 260, 270, 145, 240, 250, 113, 275, 255, 226, 122, 266, 245, 110, 265, 131, 288, 110, 288, 246, 238, 254, 210, 262, 135, 280, 126, 261, 248, 112, 276, 107, 262, 231, 116, 270, 143, 282, 112, 230, 205, 254, 144, 288, 120, 249, 112, 256, 105, 269, 240, 247, 245, 256, 235, 273, 245, 145, 251, 133, 267, 113, 111, 257, 237, 140, 249, 141, 296, 174, 275, 230, 125, 262, 128, 261, 132, 267, 214, 270, 249, 229, 235, 267, 120, 257, 286, 272, 111, 255, 119, 135, 285, 247, 129, 265, 109, 268];
+            // eruption times from R sample dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/faithful.html (ne60, adjusted and rounded as described on that page)
+            rawData = [216, 108, 200, 137, 272, 173, 282, 216, 117, 261, 110, 235, 252, 105, 282, 130, 105, 288, 96, 255, 108, 105, 207, 184, 272, 216, 118, 245, 231, 266, 258, 268, 202, 242, 230, 121, 112, 290, 110, 287, 261, 113, 274, 105, 272, 199, 230, 126, 278, 120, 288, 283, 110, 290, 104, 293, 223, 100, 274, 259, 134, 270, 105, 288, 109, 264, 250, 282, 124, 282, 242, 118, 270, 240, 119, 304, 121, 274, 233, 216, 248, 260, 246, 158, 244, 296, 237, 271, 130, 240, 132, 260, 112, 289, 110, 258, 280, 225, 112, 294, 149, 262, 126, 270, 243, 112, 282, 107, 291, 221, 284, 138, 294, 265, 102, 278, 139, 276, 109, 265, 157, 244, 255, 118, 276, 226, 115, 270, 136, 279, 112, 250, 168, 260, 110, 263, 113, 296, 122, 224, 254, 134, 272, 289, 260, 119, 278, 121, 306, 108, 302, 240, 144, 276, 214, 240, 270, 245, 108, 238, 132, 249, 120, 230, 210, 275, 142, 300, 116, 277, 115, 125, 275, 200, 250, 260, 270, 145, 240, 250, 113, 275, 255, 226, 122, 266, 245, 110, 265, 131, 288, 110, 288, 246, 238, 254, 210, 262, 135, 280, 126, 261, 248, 112, 276, 107, 262, 231, 116, 270, 143, 282, 112, 230, 205, 254, 144, 288, 120, 249, 112, 256, 105, 269, 240, 247, 245, 256, 235, 273, 245, 145, 251, 133, 267, 113, 111, 257, 237, 140, 249, 141, 296, 174, 275, 230, 125, 262, 128, 261, 132, 267, 214, 270, 249, 229, 235, 267, 120, 257, 286, 272, 111, 255, 119, 135, 285, 247, 129, 265, 109, 268];
             quantum = 1;
-            units = "(delay, in seconds)";
+            units = "seconds";
             break;
-          
+        
+        default:
         case "mpg":
             // mpg entries from the R mtcars dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html
             // FUDGED to remove the identical values (see raw-mpg below for original set) 
             rawData = [21.0, 21.1, 22.8, 21.4, 18.7, 18.1, 14.3, 24.4, 22.9, 19.2, 17.8, 16.4, 17.3, 15.3, 10.4, 10.5, 14.7, 32.4, 30.4, 33.9, 21.5, 15.5, 15.2, 13.3, 19.3, 27.3, 26.0, 30.5, 15.8, 19.7, 15.0, 21.3];
             quantum = 0.1;
-            units = "";  // "(mpg)" seems daft
-            break;
-      
-        case "raw-mpg":
-            // mpg entries from the R mtcars dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html
-            rawData = [21.0, 21.0, 22.8, 21.4, 18.7, 18.1, 14.3, 24.4, 22.8, 19.2, 17.8, 16.4, 17.3, 15.2, 10.4, 10.4, 14.7, 32.4, 30.4, 33.9, 21.5, 15.5, 15.2, 13.3, 19.2, 27.3, 26.0, 30.4, 15.8, 19.7, 15.0, 21.4];
-            quantum = 0.1;
-            break;
-      
-        case "discoveries":
-        default:
-            // from R sample dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/discoveries.html
-            var counts = [5, 3, 0, 2, 0, 3, 2, 3, 6, 1, 2, 1, 2, 1, 3, 3, 3, 5, 2, 4, 4, 0, 2, 3, 7, 12, 3, 10, 9, 2, 3, 7, 7, 2, 3, 3, 6, 2, 4, 3, 5, 2, 2, 4, 0, 4, 2, 5, 2, 3, 3, 6, 5, 8, 3, 6, 6, 0, 5, 2, 2, 2, 6, 3, 4, 4, 2, 2, 4, 7, 5, 3, 3, 0, 2, 2, 2, 1, 3, 4, 2, 2, 1, 1, 1, 2, 1, 4, 4, 3, 2, 1, 4, 1, 1, 1, 0, 0, 2, 0];
-            for (var i=0; i<counts.length; i++) {
-            var count = counts[i];
-            for (var c=0; c < count; c++) rawData.push(1860+i);
-            }
-            quantum = 1;
+            units = "mpg";
+
     }
       
     recordData();
@@ -5194,9 +5163,9 @@ chartObject.svgSource=function svgSource(name) {
 };
 
 chartObject.switchDataset=function switchDataset(dataName) {
-    if (!this.allowDataSwitch) {
-        this.allowDataSwitch = true;
-        this.drawDataSelector({ instant: false });
+    this.datasetsAvailable = Math.max(this.datasetsAvailable, this.datasetsForSwitching.indexOf(dataName)+1);
+    if (this.datasetsAvailable > 1) {
+        this.drawDataSelector({ instant: true });
     }
     this.privateSwitchDataset(dataName); // defined within drawDataSelector
 };

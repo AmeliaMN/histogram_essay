@@ -76,6 +76,20 @@
         color: red;
     }
 
+    /* tooltip style from http://bl.ocks.org/d3noob/a22c42db65eb00d4e369 */
+    div.tooltip {
+        position: absolute;			
+        text-align: center;			
+        min-width: 100px;
+        height: 28px;					
+        padding: 8px;
+        font: 12px sans-serif;		
+        background: #ffdc74;
+        border: 0px;		
+        border-radius: 6px;
+        pointer-events: none;			
+    }
+
     /*!
      * Bootstrap v3.3.7 (http://getbootstrap.com)
      * Copyright 2011-2016 Twitter, Inc.

@@ -29,7 +29,7 @@ SOFTWARE.
 function scrollStepDefs(ch) {
 
     // one-time establishment of default settings
-    ch.allowDataSwitch = false;
+    ch.datasetsAvailable = 1;
     ch.useDensity = false;
     ch.triangleSetting = { x: 50, y: 50 };
     
@@ -53,6 +53,7 @@ function scrollStepDefs(ch) {
     
         { // move values across to list
         command: "sort items into list",
+        replayable: true,
         activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             var options = targetStep===thisStep ? undefined : { stage: 1 };
             chart.drawValueList(options);
@@ -61,6 +62,7 @@ function scrollStepDefs(ch) {
         
         { // draw a number line
         command: "draw a number line",
+        replayable: true,
         activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             chart.stopTimer(true);  // force completion of value list
             var options = targetStep===thisStep ? undefined : { instant: true };
@@ -71,27 +73,26 @@ function scrollStepDefs(ch) {
         { // fly the values down to stacks on the number line
         label: "firstBalls",
         command: "place items on number line",
+        replayable: true,
         activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             chart.stopTimer(true);  // force completion of number line
             var options = targetStep===thisStep ? undefined : { instant: true };
             chart.flyBalls(options);
             },
         update: function(chart, progress) {
-            if (progress > 0.25) {
-                chart.allowDataSwitch = true;
-                chart.drawDataSelector({ instant: false });
-            }
-            
             // only change automatically on the first scroll through.  and once switch has been shown, don't reverse.
-            if (chart.maximumScrolledIndex===stepIndex("firstBalls")) {
-                var dataName = chart.dataName, datasets = chart.datasetsForSwitching;
-                
-                if (progress > 0.5) dataName = datasets[datasets.length-1];
-                else if (progress > 0.25 && chart.dataName===datasets[0]) dataName = datasets[1];
+            if (progress < 0.25) return;
 
-                if (dataName !== chart.dataName) {
+            if (chart.maximumScrolledIndex===stepIndex("firstBalls")) {
+                var dataIndex = baseDatasets.indexOf(chart.dataName);
+                
+                if (progress > 0.5) dataIndex = baseDatasets.length-1;
+                else if (progress > 0.25 && dataIndex===0) dataIndex = 1; // only increase
+
+                if (chart.datasetsAvailable < dataIndex+1) {
                     chart.stopTimer();
-                    chart.loadData(dataName);
+                    chart.datasetsAvailable = dataIndex+1;
+                    chart.loadData(baseDatasets[dataIndex]);
                     chart.replaySteps();
                 }
             }
@@ -100,12 +101,12 @@ function scrollStepDefs(ch) {
 
         { // drop the balls through to build up bins
         command: "portion items into bins",
+        replayable: true,
         activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
-            if (!chart.allowDataSwitch) {  // force showing of data switch if user scrolled too quickly
-                chart.allowDataSwitch = true;
-                chart.drawDataSelector({ instant: true });
-            }
             chart.stopTimer(true);  // force completion of ball stacks
+            chart.datasetsAvailable = baseDatasets.length;
+            chart.drawDataSelector({ instant: true });
+            
             var options = targetStep===thisStep ? undefined : { instant: true };
             chart.drawRDefaultBinning(options);
             }
@@ -391,6 +392,7 @@ function scrollStepDefs(ch) {
             }
 
             chart.datasetsForSwitching = laterDatasets;
+            chart.datasetsAvailable = laterDatasets.length;
             chart.drawDataSelector({ instant: prevRendered===null });
     
             chart.binsAreDraggable = true;
