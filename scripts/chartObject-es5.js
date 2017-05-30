@@ -1634,12 +1634,13 @@ function createChartObject() {
 
     chartObject.drawCommandList = function drawCommandList(current, thenDo) {
         var chart = this;
-        //console.log("drawCL:", current);
+
         var listOrigin = this.commandListOrigin,
             fontSize = 13,
             itemHeight = 20,
             buttonSize = 16,
-            itemColour = "rgb(0, 100, 0)";
+            itemColour = "rgb(0, 100, 0)",
+            buttonGap = 6;
         var transformString = this.transformString;
 
         var commandsToDraw = chart.commandList.slice(0, Math.max(current, chart.maximumScrolledIndex) + 1);
@@ -1657,32 +1658,25 @@ function createChartObject() {
             var seln = d3.select(this);
             var text = seln.append("text").attr("x", 0).attr("y", itemHeight / 2).attr("dy", chart.textOffsets.middle).style("font-size", fontSize + "px").style("font-weight", 600).style("fill", itemColour).style("fill-opacity", 0.4).style("text-anchor", "start").style("pointer-events", "none").style('-webkit-user-select', 'none').text(def.command);
 
+            // space out the "normal"-weight text to match the length it'll have when bold  
             var boldWidth = text.node().getBBox().width;
             text.style("font-weight", "normal");
             text.node().nonBoldSpacing = (boldWidth - text.node().getBBox().width) / def.command.length;
 
             if (def.replayable) {
-                var centreX = boldWidth + 6 + buttonSize / 2;
+                var centreX = boldWidth + buttonGap + buttonSize / 2;
 
-                seln.append("circle").attr("class", "replay").attr("cx", centreX).attr("cy", itemHeight / 2).attr("r", buttonSize / 2).style("fill", "green").style("stroke", "green").style("stroke-width", 1).style("cursor", "pointer").style("pointer-events", "all").on("click", function (def) {
-                    chart.jumpToStep(def.index);
-                });
+                seln.append("circle").attr("class", "replay").attr("cx", centreX).attr("cy", itemHeight / 2).attr("r", buttonSize / 2).style("fill", "green").style("stroke", "green").style("stroke-width", 1)
+                //.style("cursor", "pointer")
+                .style("pointer-events", "none");
+                //.on("click", function(def) { chart.jumpToStep(def.index) });
 
                 seln.append("path").attr("d", d3.symbol().type(d3.symbolTriangle).size(36)).attr("transform", "translate(" + centreX + " 10) rotate(90 0 0)").style("fill", "white").style("stroke", "green").style("stroke-width", 1).style("pointer-events", "none");
             }
-            /*
-                        seln
-                            .append("rect")
-                            .attr("x", 0)
-                            .attr("y", 1)
-                            .attr("width", buttonSize)
-                            .attr("height", buttonSize)
-                            .style("fill", "green")
-                            .style("fill-opacity", 1e-6)
-                            .style("stroke", "green")
-                            .style("stroke-width", 1)
-                            .on("click", function(cmd) { console.log(cmd) });
-            */
+
+            seln.append("rect").attr("x", 0).attr("y", 0).attr("width", boldWidth + (def.replayable ? buttonGap + buttonSize : 0)).attr("height", itemHeight).style("fill", "none").style("pointer-events", "all").style("cursor", "pointer").on("click", function (def) {
+                chart.jumpToStep(def.index);
+            });
         });
 
         function decorateList() {
@@ -1691,7 +1685,8 @@ function createChartObject() {
                     isFuture = i > current;
 
                 var buttonSeln = d3.select(this).select(".replay");
-                buttonSeln.style("fill", isCurrent ? "black" : isFuture ? "green" : "white");
+                //buttonSeln.style("fill", isCurrent ? "black" : (isFuture ? "green" : "white"));
+                buttonSeln.style("fill", isCurrent ? "green" : "white"); // simpler policy
 
                 var textSeln = d3.select(this).select("text");
                 textSeln.text(function (def) {
@@ -2074,7 +2069,6 @@ function createChartObject() {
             chartGroup = this.chartGroup,
             transformString = this.transformString;
 
-        var plotOrigin = this.plotOrigin;
         var buttonWidth = 50,
             buttonSep = 30,
             buttonHeight = 35,
@@ -2083,7 +2077,7 @@ function createChartObject() {
             buttonMidY = this.commandListOrigin.y + buttonHeight / 2;
         var fontSize = 14;
 
-        var labelX = this.commandListOrigin.x + 250;
+        var labelX = this.commandListOrigin.x + 280;
         var firstButtonX = labelX + buttonWidth / 2;
 
         chartGroup.selectAll("text.datadesc").remove();
@@ -2106,7 +2100,7 @@ function createChartObject() {
             seln.append("rect").attr("x", -buttonWidth / 2).attr("y", -buttonHeight / 2).attr("width", buttonWidth).attr("height", buttonHeight).style("fill", "#e6830f").style("fill-opacity", 0.2).style("stroke", "blue").style("stroke-width", 2).style("stroke-opacity", 0).on("click", function (def) {
                 if (chart.datasetsAvailable > 1) chart.switchDataset(def.dataName);
             }).on("mouseover", function (def) {
-                showTip(this, chart.datasetShortDescriptions[def.dataName]);
+                showTip(this, '<b>' + def.dataName + '</b><br/>' + chart.datasetShortDescriptions[def.dataName]);
             }).on("mouseout", hideTip);
 
             seln.append("image").attr("width", imageWidth).attr("height", imageHeight).attr("xlink:href", function (def) {
@@ -2118,10 +2112,11 @@ function createChartObject() {
         // tooltip code adapted from  http://bl.ocks.org/d3noob/a22c42db65eb00d4e369 
         function showTip(elem, text) {
             var box = elem.getBoundingClientRect();
-            var tip = d3.select("div.tooltip");
+            var tip = d3.select("div.tooltip"),
+                padding = 8; // NB: see scrolly.css
             tip.html(text);
             var tipWidth = Number.parseInt(tip.style("width"));
-            tip.style("left", box.left + box.width / 2 - tipWidth / 2 + window.scrollX + "px").style("top", box.bottom + 1 + window.scrollY + "px");
+            tip.style("left", box.left + box.width / 2 - tipWidth / 2 - padding + window.scrollX + "px").style("top", box.bottom + 1 + window.scrollY + "px");
             tip.transition().duration(200).style("opacity", 1);
         }
         function hideTip() {
@@ -4468,9 +4463,6 @@ function createChartObject() {
     };
 
     chartObject.loadData = function loadData(dataset, thenDo) {
-        // this.loadData("faithful")
-        // this.data.length
-        // other possibly useful datasets at http://people.stern.nyu.edu/jsimonof/Casebook/Data/ASCII/
         var rawData = [],
             quantum = 1,
             binQuantum,
@@ -4478,11 +4470,11 @@ function createChartObject() {
             minBins = 8,
             maxBins = 50;
         this.datasetShortDescriptions = {
-            mpg: "fuel consumption (in mpg)<br/>for 32 cars",
+            mpg: "fuel consumption (in mpg)<br/>for 32 car models",
             nba: "age (in years)<br/>for 105 NBA athletes",
-            faithful: "272 records of delay (in seconds)<br/>between eruptions of Old Faithful",
+            geyser: "272 records of delay (in seconds)<br/>between eruptions of Old Faithful",
             diamonds: "price (in US$)<br/>for 1000 diamonds",
-            marathons: "marathon finishing time (in hours)<br/>for 3000 runners"
+            marathons: "finishing time (in hours)<br/>for 3000 NY marathon runners"
         };
         var chart = this;
         function recordData() {
@@ -4603,7 +4595,7 @@ function createChartObject() {
                 units = "years";
                 break;
 
-            case "faithful":
+            case "geyser":
                 // eruption times from R sample dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/faithful.html (ne60, adjusted and rounded as described on that page)
                 rawData = [216, 108, 200, 137, 272, 173, 282, 216, 117, 261, 110, 235, 252, 105, 282, 130, 105, 288, 96, 255, 108, 105, 207, 184, 272, 216, 118, 245, 231, 266, 258, 268, 202, 242, 230, 121, 112, 290, 110, 287, 261, 113, 274, 105, 272, 199, 230, 126, 278, 120, 288, 283, 110, 290, 104, 293, 223, 100, 274, 259, 134, 270, 105, 288, 109, 264, 250, 282, 124, 282, 242, 118, 270, 240, 119, 304, 121, 274, 233, 216, 248, 260, 246, 158, 244, 296, 237, 271, 130, 240, 132, 260, 112, 289, 110, 258, 280, 225, 112, 294, 149, 262, 126, 270, 243, 112, 282, 107, 291, 221, 284, 138, 294, 265, 102, 278, 139, 276, 109, 265, 157, 244, 255, 118, 276, 226, 115, 270, 136, 279, 112, 250, 168, 260, 110, 263, 113, 296, 122, 224, 254, 134, 272, 289, 260, 119, 278, 121, 306, 108, 302, 240, 144, 276, 214, 240, 270, 245, 108, 238, 132, 249, 120, 230, 210, 275, 142, 300, 116, 277, 115, 125, 275, 200, 250, 260, 270, 145, 240, 250, 113, 275, 255, 226, 122, 266, 245, 110, 265, 131, 288, 110, 288, 246, 238, 254, 210, 262, 135, 280, 126, 261, 248, 112, 276, 107, 262, 231, 116, 270, 143, 282, 112, 230, 205, 254, 144, 288, 120, 249, 112, 256, 105, 269, 240, 247, 245, 256, 235, 273, 245, 145, 251, 133, 267, 113, 111, 257, 237, 140, 249, 141, 296, 174, 275, 230, 125, 262, 128, 261, 132, 267, 214, 270, 249, 229, 235, 267, 120, 257, 286, 272, 111, 255, 119, 135, 285, 247, 129, 265, 109, 268];
                 quantum = 1;
@@ -4905,7 +4897,7 @@ function createChartObject() {
                 // viewBox was 0 0 32 40
                 return "\n<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" viewBox=\"0 2 32 40\" x=\"0px\" y=\"0px\"><title>diamonda</title><path fill=\"#000000\" d=\"M9.992 10.523c0.084 0.188 0.271 0.302 0.465 0.302 0.069 0 0.139-0.015 0.207-0.045 0.257-0.113 0.372-0.415 0.259-0.672l-2.436-5.458c-0.115-0.256-0.416-0.371-0.672-0.256-0.258 0.115-0.373 0.415-0.258 0.672l2.435 5.457z\"/><path fill=\"#000000\" d=\"M6.056 12.385c0.15 0 0.298-0.066 0.399-0.191 0.176-0.22 0.139-0.539-0.080-0.715l-3.173-2.53c-0.219-0.176-0.539-0.14-0.715 0.080s-0.138 0.539 0.080 0.715l3.174 2.53c0.093 0.075 0.206 0.111 0.315 0.111z\"/><path fill=\"#000000\" d=\"M22.216 10.701c0.069 0.031 0.14 0.047 0.21 0.047 0.193 0 0.378-0.11 0.463-0.297l1.891-4.136c0.117-0.255 0.006-0.557-0.251-0.675-0.255-0.116-0.559-0.004-0.675 0.251l-1.891 4.136c-0.114 0.256-0.001 0.558 0.253 0.674z\"/><path fill=\"#000000\" d=\"M28.732 8.586l-2.557 2.957c-0.183 0.214-0.16 0.535 0.053 0.718 0.097 0.083 0.214 0.124 0.332 0.124 0.143 0 0.284-0.059 0.385-0.176l2.557-2.959c0.184-0.213 0.16-0.534-0.052-0.718s-0.533-0.161-0.718 0.053z\"/><path fill=\"#000000\" d=\"M16.367 10.116c0.006 0 0.013 0 0.017 0 0.274 0 0.5-0.217 0.509-0.491l0.118-3.504c0.010-0.281-0.21-0.516-0.491-0.525-0.276-0.004-0.515 0.209-0.527 0.491l-0.117 3.504c-0.009 0.282 0.211 0.516 0.49 0.525z\"/><path fill=\"#000000\" d=\"M27.191 17.789c-0.014-0.053-0.037-0.106-0.070-0.155-0.001-0.001-0.001-0.001-0.001-0.003l-3.052-4.378c-0.039-0.092-0.103-0.174-0.191-0.231-0.090-0.057-0.19-0.083-0.289-0.082-0.001 0-0.003 0-0.005 0h-14.555c-0.005 0-0.009 0.002-0.016 0.002-0.032 0.001-0.064 0.005-0.095 0.013-0.013 0.002-0.023 0.005-0.035 0.010-0.026 0.008-0.049 0.017-0.073 0.027-0.013 0.006-0.025 0.011-0.036 0.018-0.008 0.004-0.016 0.006-0.023 0.012-0.016 0.011-0.029 0.024-0.043 0.035-0.008 0.008-0.017 0.014-0.026 0.021-0.027 0.027-0.054 0.056-0.075 0.088v0l-2.982 4.474c-0.001 0.001-0.001 0.002-0.001 0.002-0.034 0.049-0.055 0.104-0.069 0.16-0.001 0.003-0.003 0.006-0.005 0.013-0.006 0.036-0.012 0.070-0.012 0.11 0 0.014 0.004 0.032 0.005 0.047 0 0.011 0.001 0.018 0.003 0.027 0.007 0.050 0.023 0.1 0.045 0.148 0.005 0.008 0.009 0.014 0.013 0.021 0.026 0.047 0.058 0.090 0.098 0.126 0.004 0.002 0.004 0.006 0.006 0.006l10.327 9.219c0.009 0.009 0.018 0.012 0.027 0.016 0.034 0.026 0.069 0.048 0.105 0.064 0.015 0.007 0.029 0.016 0.044 0.021 0.053 0.017 0.107 0.028 0.163 0.028 0.001 0 0.001 0 0.003 0 0.056 0 0.11-0.013 0.162-0.030 0.014-0.005 0.027-0.014 0.042-0.020 0.038-0.014 0.073-0.038 0.106-0.064 0.009-0.006 0.018-0.008 0.026-0.016l10.329-9.219c0.002-0.001 0.004-0.006 0.006-0.006 0.041-0.039 0.073-0.081 0.098-0.129 0.006-0.007 0.010-0.014 0.013-0.021 0.023-0.048 0.038-0.097 0.045-0.15 0.002-0.008 0.002-0.019 0.004-0.029 0.001-0.014 0.004-0.027 0.004-0.041 0-0.041-0.006-0.078-0.014-0.116-0.003-0.004-0.006-0.010-0.008-0.016zM16.368 25.955l-3.616-7.524h7.13l-3.514 7.524zM16.313 14.235l3.15 3.178h-6.3l3.151-3.178zM23.606 14.37l2.123 3.045h-4.108l1.985-3.045zM22.659 13.958l-2.059 3.158-3.13-3.158h5.189zM15.155 13.958l-3.13 3.158-2.059-3.158h5.189zM9.023 14.373l1.982 3.040h-4.008l2.026-3.040zM7.381 18.431h4.243l3.187 6.635-7.43-6.635zM17.884 25.112l3.121-6.681h4.364l-7.485 6.681z\"/></svg>";
 
-            case "faithful":
+            case "geyser":
                 // derived from Fountain by Anton Gajdosik
                 return "\n<svg\n   xmlns:svg=\"http://www.w3.org/2000/svg\"\n   xmlns=\"http://www.w3.org/2000/svg\"\n   id=\"svg2\"\n   xml:space=\"preserve\"\n   style=\"enable-background:new 0 0 100 100;\"\n   viewBox=\"0 0 100 125\"\n   y=\"0px\"\n   x=\"0px\"\n   version=\"1.1\"><defs\n     id=\"defs24\" /><path\n     d=\"m 50.989762,26.749152 c 1.495836,0.111689 2.781856,-0.995628 2.893545,-2.491464 L 55.149118,7.3048794 C 55.260808,5.8090434 54.15349,4.5230232 52.657654,4.4113339 51.161818,4.2996447 49.875798,5.4069622 49.764109,6.9027983 L 48.498298,23.855607 c -0.11169,1.495836 0.995628,2.781856 2.491464,2.893545 z\"\n     id=\"path6\" /><path\n     d=\"m 63.651368,30.532827 c 0.3,0.1 0.7,0.2 1,0.2 1,0 2,-0.6 2.5,-1.7 3.1,-7.6 7.8,-12.5 13.9,-14.4 1.4,-0.4 2.2,-1.9 1.7,-3.3 -0.4,-1.4000003 -1.9,-2.2000003 -3.3,-1.7000003 -7.7,2.5000003 -13.5,8.3000003 -17.2,17.5000003 -0.6,1.3 0,2.9 1.4,3.4 z\"\n     id=\"path8\" /><path\n     d=\"m 90.2,47.2 c -5.9,-2.5 -14.9,-3 -24.8,8.8 -2,2.4 -3.7,5 -5.1,7.2 l -3,-15.7 c -0.3,-1.4 -1.7,-2.4 -3.1,-2.1 -1.4,0.3 -2.4,1.7 -2.1,3.1 l 4.3,22.7 c 0,0.5 0.1,1 0.3,1.4 l 0.1,0.6 -6.8,0 -6.8,0 0.1,-0.6 c 0.2,-0.4 0.3,-0.9 0.3,-1.4 l 4.3,-22.7 c 0.3,-1.4 -0.7,-2.8 -2.1,-3.1 -1.4,-0.3 -2.8,0.7 -3.1,2.1 l -3,15.7 C 38.3,60.9 36.6,58.4 34.6,56 24.8,44.2 15.7,44.7 9.8,47.2 c -1.4,0.6 -2,2.1 -1.4,3.5 0.6,1.4 2.1,2 3.5,1.4 13.4,-5.7 24,14.9 26.1,19.5 3.404884,8.298784 20.029396,10.199112 24,0 2.1,-4.5 12.7,-25.2 26.2,-19.5 1.4,0.6 2.9,-0.1 3.5,-1.4 0.5,-1.4 -0.1,-3 -1.5,-3.5 z\"\n     id=\"path10\" /><path\n     d=\"m 90.468389,27.811854 c -9.1,-1.2 -17.8,3.4 -25.7,13.4 -0.9,1.2 -0.7,2.8 0.4,3.7 0.5,0.4 1.1,0.6 1.6,0.6 0.8,0 1.6,-0.3 2.1,-1 6.7,-8.5 13.7,-12.4 20.9,-11.5 1.5,0.2 2.8,-0.8 3,-2.3 0.1,-1.4 -0.9,-2.8 -2.3,-2.9 z\"\n     id=\"path12\" /><path\n     d=\"m 22.9,19.8 c 6.1,2 10.8,6.8 13.9,14.4 0.4,1 1.4,1.7 2.5,1.7 0.3,0 0.7,-0.1 1,-0.2 1.4,-0.6 2,-2.1 1.5,-3.5 -3.8,-9.1 -9.5,-15 -17.2,-17.5 -1.4,-0.4 -2.9,0.3 -3.3,1.7 -0.5,1.5 0.2,3 1.6,3.4 z\"\n     id=\"path14\" /><path\n     d=\"m 28.6,43.6 c 0.5,0.7 1.3,1 2.1,1 0.6,0 1.2,-0.2 1.6,-0.6 1.2,-0.9 1.4,-2.6 0.4,-3.7 C 24.9,30.2 16.3,25.7 7.1,26.9 c -1.5,0.2 -2.5,1.5 -2.3,3 0.2,1.5 1.5,2.5 3,2.3 7.2,-1 14.2,2.9 20.8,11.4 z\"\n     id=\"path16\" /><path\n     d=\"m 48.006023,72.981759 c -8.772774,-2.699712 -18.117695,0.386131 -27.573701,8.929783 -1.087391,1.033236 -1.156824,2.644192 -0.222189,3.714919 0.42635,0.47773 0.98463,0.774922 1.477639,0.858246 0.788812,0.133318 1.62762,-0.02917 2.237282,-0.636057 8.022814,-7.264602 15.574855,-9.943535 22.524191,-7.856259 1.445696,0.447175 2.894164,-0.3222 3.341339,-1.767896 0.331908,-1.363758 -0.420806,-2.910827 -1.784561,-3.242736 z\"\n     id=\"path12-9\" /><path\n     d=\"M 83.226019,78.611756 C 76.88113,71.97908 67.217154,70.11963 54.796422,72.971899 c -1.453057,0.372321 -2.298755,1.7452 -2.004412,3.135653 0.139483,0.624936 0.482153,1.156516 0.87205,1.469535 0.623836,0.500827 1.435482,0.767717 2.263605,0.534878 10.545923,-2.433819 18.446025,-1.092771 23.497115,4.116499 1.044485,1.095011 2.684253,1.129062 3.779266,0.08457 0.954429,-1.029108 1.051079,-2.746857 0.02197,-3.701285 z\"\n     id=\"path12-9-9\" /></svg>";
 

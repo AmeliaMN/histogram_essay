@@ -33,8 +33,8 @@ function scrollStepDefs(ch) {
     ch.useDensity = false;
     ch.triangleSetting = { x: 50, y: 50 };
     
-    var baseDatasets = [ "mpg", "nba", "faithful" ];
-    var laterDatasets = [ "mpg", "nba", "faithful", "diamonds", "marathons" ];
+    var baseDatasets = [ "mpg", "nba", "geyser" ];
+    var laterDatasets = [ "mpg", "nba", "geyser", "diamonds", "marathons" ];
     
     var stepDefs = [
         { // draw value pool
