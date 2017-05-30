@@ -1647,10 +1647,13 @@ function createChartObject() {
         var commandDefs = commandsToDraw.map(function (def, i) {
             return { command: def.command, replayable: def.replayable, index: i };
         });
+        if (commandsToDraw.length < chart.commandList.length) {
+            commandDefs.push({ command: "...", noFade: true, replayable: false, index: commandsToDraw.length });
+        }
 
         var commandEntries = chart.commandGroup.selectAll("g.command").data(commandDefs, function (def) {
-            return def.index;
-        });
+            return def.index + def.command;
+        }); // need to ensure the "..." line gets shifted
         commandEntries.exit().remove();
         commandEntries.enter().append("g").attr("class", "command").attr("transform", function (def, i) {
             return transformString(0, itemHeight * i);
@@ -1691,7 +1694,7 @@ function createChartObject() {
                 var textSeln = d3.select(this).select("text");
                 textSeln.text(function (def) {
                     return def.command;
-                }).interrupt().style("fill", isCurrent ? "red" : itemColour).style("fill-opacity", isFuture ? 0.4 : 1).style("font-weight", isCurrent ? 600 : "normal").attr("letter-spacing", isCurrent ? "normal" : textSeln.node().nonBoldSpacing + "px");
+                }).interrupt().style("fill", isCurrent ? "red" : itemColour).style("fill-opacity", isFuture && !def.noFade ? 0.4 : 1).style("font-weight", isCurrent ? 600 : "normal").attr("letter-spacing", isCurrent ? "normal" : textSeln.node().nonBoldSpacing + "px");
                 if (isCurrent) {
                     textSeln.transition().duration(2000).style("fill", itemColour);
                 }

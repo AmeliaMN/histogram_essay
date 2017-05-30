@@ -1780,8 +1780,11 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
     
     var commandsToDraw = chart.commandList.slice(0, Math.max(current, chart.maximumScrolledIndex)+1);
     var commandDefs = commandsToDraw.map((def, i)=>({ command: def.command, replayable: def.replayable, index: i }));
+    if (commandsToDraw.length < chart.commandList.length) {
+        commandDefs.push({ command: "...", noFade: true, replayable: false, index: commandsToDraw.length })
+    }
 
-    var commandEntries = chart.commandGroup.selectAll("g.command").data(commandDefs, def=>def.index);
+    var commandEntries = chart.commandGroup.selectAll("g.command").data(commandDefs, def=>def.index+def.command); // need to ensure the "..." line gets shifted
     commandEntries.exit().remove();
     commandEntries.enter().append("g")
         .attr("class", "command")
@@ -1860,7 +1863,7 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
                     .text(def=>def.command)
                     .interrupt()
                     .style("fill", isCurrent ? "red" : itemColour)
-                    .style("fill-opacity", isFuture ? 0.4 : 1)
+                    .style("fill-opacity", isFuture && !def.noFade ? 0.4 : 1)
                     .style("font-weight", isCurrent ? 600 : "normal")
                     .attr("letter-spacing", isCurrent ? "normal" : textSeln.node().nonBoldSpacing+"px");
                 if (isCurrent) {
