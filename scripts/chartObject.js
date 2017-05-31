@@ -1495,7 +1495,7 @@ chartObject.drawBins=function drawBins(primaryBins, contextBins, options) {
     	    .style("stroke-opacity", [ 1, 0, 1 ][classIndex])
             .style("opacity", [ contextBins.length ? chart.primaryOpacity : 0.5, chart.contextOpacity, chart.primaryOpacity ][classIndex])
             .attr("pointer-events", [ "all", "none", "none" ][classIndex])
-			.style("cursor", chart.binsAreDraggable ? "ew-resize" : "pointer")
+			.style("cursor", chart.binsAreDraggable ? "ew-resize" : "crosshair")
 			.each(function() {
 			    if (binClass==="primary" || binClass==="contextOutline") d3.select(this).raise();
     			});
@@ -2038,7 +2038,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
     		.attr("dy", chart.textOffsets.central)
             .style("font-size", "14px");
         // for now, we expect labelFn to return an array of objects with props { text, highlightOnChange }
-        var basicFill = "darkgrey";
+        var basicFill = "grey";
         var labelSpans = controlGroup.select("text.scenarioTitle").selectAll("tspan").data(labelFn(val));
         labelSpans.enter().append("tspan")
             .style("fill", basicFill)

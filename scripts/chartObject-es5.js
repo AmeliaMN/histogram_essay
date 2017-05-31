@@ -1420,7 +1420,7 @@ function createChartObject() {
                 return heightScale(useDensity ? binItem.values.length / (chart.data.length * (binItem.max - binItem.min)) : binItem.values.length);
             }).style("fill", fillColour).style("stroke", ["blue", "none", "black"][classIndex])
             //.style("fill-opacity", isContext ? 0.15 : 1)
-            .style("stroke-width", [contextBins.length ? 1 : 0.5, 0, 1][classIndex]).style("stroke-opacity", [1, 0, 1][classIndex]).style("opacity", [contextBins.length ? chart.primaryOpacity : 0.5, chart.contextOpacity, chart.primaryOpacity][classIndex]).attr("pointer-events", ["all", "none", "none"][classIndex]).style("cursor", chart.binsAreDraggable ? "ew-resize" : "pointer").each(function () {
+            .style("stroke-width", [contextBins.length ? 1 : 0.5, 0, 1][classIndex]).style("stroke-opacity", [1, 0, 1][classIndex]).style("opacity", [contextBins.length ? chart.primaryOpacity : 0.5, chart.contextOpacity, chart.primaryOpacity][classIndex]).attr("pointer-events", ["all", "none", "none"][classIndex]).style("cursor", chart.binsAreDraggable ? "ew-resize" : "crosshair").each(function () {
                 if (binClass === "primary" || binClass === "contextOutline") d3.select(this).raise();
             });
             if (preWidth) {
