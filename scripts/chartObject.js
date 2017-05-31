@@ -627,6 +627,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                 .style("stroke", "green")
                                 .style("stroke-opacity", 0.7)
                                 .style("stroke-width", 2)
+                                .style("cursor", "pointer")
                                 .on("click", ()=>toggleContextSpec(rowItem.varName))
                         }
     
@@ -829,7 +830,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                         .style("stroke", "green") // should never be seen
                                         .style("stroke-width", 1)
                                         .style("stroke-opacity", 0)
-                                        .style("cursor", "pointer")
+                                        .style("cursor", cellItem.click ? "pointer" : "crosshair")
                                         .on("mouseover", cellItem=>cellItem.mouseover(cellItem))
                                         .on("mouseout", cellItem=>cellItem.mouseout(cellItem))
                                         .on("click", cellItem=>{ if (cellItem.click) cellItem.click(cellItem); })
@@ -1002,7 +1003,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                 .attr("height", cellItem=>cellItem.isCallout ? rowHeight*3 : rowHeight)
                                 .style("stroke", "none")
                                 .style("fill", cellItem=>cellItem.isCallout ? probeFill : "none")
-                                .style("cursor", cellItem=>cellItem.isCallout ? "ew-resize": "pointer")
+                                .style("cursor", "crosshair") //cellItem=>cellItem.isCallout ? "ew-resize": "crosshair")
                                 .style("pointer-events", "all");
                                 
                         chart.spaceBifocally(groupSeln, groupObject);
@@ -1645,7 +1646,7 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
         .attr("height", switchH)
         .style("fill", "none")
         .style("pointer-events", "all")
-        .style("cursor", "col-resize")
+        .style("cursor", "ew-resize") // "col-resize"
 //.style("stroke", "green")
         .on("mousedown", function() {
             // low-rent drag capability, as shown in https://bl.ocks.org/mbostock/4198499
@@ -1968,19 +1969,15 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
     var scenarioClasses = "rect.demobin,line.binbreak,text.binbreak";
     var numScenarios = this.scenarioRecords.length, changeTime = 400, pauseTime = 750, shifting = false;
 
-    //var outerMargin = 40; // relative to outer edge
-    //var left = outerMargin, right = this.visMaxExtent.x - outerMargin, top = this.plotOrigin.y + 10, bottom = this.plotOrigin.y + this.fallIntoBins + 26;
-    //chart.prepareScenarioZone({ left: left, top: top, width: right-left, height: bottom-top }); // includes sending clearScenarioZone()
-
     var switchSize = 16, autoStepping = true, abandoned = false, displayStep, cycleDirection;
     var movingGroupSeln = null;
     
-    var controlStripWidth = 150, controlStripHeight = 20, controlStripOrigin = { x: 0, y: this.fallIntoBins+30 }, labelOrigin = { x: controlStripOrigin.x + controlStripWidth + 20, y: controlStripOrigin.y+controlStripHeight/2 };
+    var controlStripWidth = 150, controlStripHeight = 20, controlStripOrigin = { x: this.commandListOrigin.x-this.plotOrigin.x, y: this.fallIntoBins+35 }, labelOrigin = { x: controlStripOrigin.x + controlStripWidth + 20, y: controlStripOrigin.y+controlStripHeight/2 };
 
     var stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance;
 
-    this.demoGroup.selectAll("rect.demoScenarioMousetrap").remove();    
-    this.demoGroup.append("rect")
+    var controlGroup = this.demoGroup.append("g").attr("class", "scenariocontrol");
+    controlGroup.append("rect")
         .attr("class", "demoScenarioMousetrap")
         .attr("x", controlStripOrigin.x)
         .attr("y", controlStripOrigin.y)
@@ -1988,6 +1985,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
         .attr("height", controlStripHeight)
         .style("stroke", "green")
         .style("fill-opacity", 1e-6)
+        .style("cursor", "crosshair")
         .on("mouseover", ()=>{
             if (abandoned) return;
 
@@ -2032,7 +2030,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
     }
     
     function updateTitleText(val) {
-        var labels = chart.demoGroup.selectAll("text.scenarioTitle").data([labelFn(val)]);
+        var labels = controlGroup.selectAll("text.scenarioTitle").data([labelFn(val)]);
         labels.enter().append("text")
             .attr("class", "scenarioTitle")
             .attr("x", labelOrigin.x)
@@ -2046,20 +2044,33 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
     }
 
     function updateScenarioTexts(current) {
-        var labels = chart.demoGroup.selectAll("text.scenarioNumber").data(lively.lang.arr.range(1, numScenarios));
+        // current is zero-offset
+        var labels = controlGroup.selectAll("text.scenarioNumber").data(lively.lang.arr.range(1, numScenarios));
         labels.enter().append("text")
             .attr("class", "scenarioNumber")
             .attr("x", n=>controlStripOrigin.x+(n-0.5)*controlStripWidth/numScenarios)
             .attr("y", controlStripOrigin.y+controlStripHeight/2)
-    		.attr("dy", chart.textOffsets.central)
+    		.attr("dy", chart.textOffsets.middle)
     		.style("text-anchor", "middle")
-            .style("font-size", "11px")
+            .style("font-size", "16px")
             .style("-webkit-user-select","none")
             .style("pointer-events", "none")
-            .text(String)
+            //.text(String)
           .merge(labels)
-            .style("font-weight", n=>n===current+1 ? "bold" : "normal")
-            .style("opacity", n=>n===current+1 ? 1 : 0.7);
+            //.style("font-weight", n=>n===current+1 ? "bold" : "normal")
+            //.style("opacity", n=>n===current+1 ? 1 : 0.7)
+            .text(n=>n===current+1 ? "●" : "○")
+            
+        var highlight = controlGroup.selectAll("rect.scenarioHighlight").data([current]);
+        highlight.enter().append("rect")
+            .attr("class", "scenarioHighlight")
+            .attr("fill", "lightgray")
+            .attr("width", controlStripWidth/numScenarios-2)
+            .attr("height", controlStripHeight-2)
+            .attr("y", controlStripOrigin.y+1)
+          .merge(highlight)
+            .attr("x", c=>controlStripOrigin.x+c*controlStripWidth/numScenarios+1)
+            .lower();
     }
     
     function transitionToScenario(scenario, instant) {
@@ -2272,7 +2283,6 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
     // add a mousetrap for highlighting the (changing) bin membership
     var widthExcess = 100;
     var binProbeX = null;
-    this.demoGroup.selectAll(".demobinMousetrap").remove();
     this.demoGroup.append("rect")
         .attr("class", "demobinMousetrap")
         .attr("x", -widthExcess)
@@ -2281,7 +2291,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
         .attr("height", dropDistance)
         .style("fill", "none")
         .style("pointer-events", "all")
-        .style("cursor", "pointer")
+        .style("cursor", "crosshair")
         .on("mousemove", function() {
             binProbeX = d3.mouse(this.parentNode)[0];
             if (!shifting) checkForBinHighlight();
@@ -2315,9 +2325,9 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
     chart.setTimerInfo({
         cleanup: ()=> {
             abandoned = true;
-            chart.clearScenarioZone();
-            chart.demoGroup.selectAll("text.scenarioNumber,text.scenarioTitle").remove();
             stopTransition();
+            chart.demoGroup.selectAll("g.scenariocontrol,rect.demoBinMousetrap,g.groupclone").remove();
+            chart.scenarioRecords = [];
             movingGroupSeln.remove();
             
             // unhide main elements (but no need to restore event handlers)
@@ -2462,6 +2472,7 @@ chartObject.drawDensityControl=function drawDensityControl(offset, handler) {
         .style("border-width", 1)
         .style("stroke", switchColour)
         .style("fill", switchColour)
+        .style("cursor", "pointer")
         .each(function() { showState(this) })
         .on("click", function(d) {
             chart.useDensity = !chart.useDensity;
@@ -2732,6 +2743,7 @@ chartObject.drawSweepControl=function drawSweepControl(offset, handler) {
         .style("border-width", 1)
         .style("stroke", switchColour)
         .style("fill", switchColour)
+        .style("cursor", "pointer")
         .each(function() { showState(this) })
         .on("click", function(d) {
             sweepActive = !sweepActive;
@@ -2875,7 +2887,7 @@ chartObject.drawValueList=function drawValueList(options) {
     //.style("stroke", "black")
             .style("fill", "none")
             .style("pointer-events", "all")
-            .style("cursor", "pointer")
+            .style("cursor", "crosshair")
     
             .on("mousemove", function() {
                 // focus list is also measured from middle of first item to middle of last
@@ -2986,7 +2998,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
     // the first time this is called (for a given dataset), all the balls are "settled".  but when we run through an iteration of bin offsets or widths for the "fiddle" stages, we need to reuse the balls that are now "dropped".
     var balls = chart.dataGroup.selectAll("circle.settled,circle.dropped");
 
-    var xScale = this.xScale, plotOrigin = this.plotOrigin, stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance, maxBinHeight = dropDistance-36;
+    var xScale = this.xScale, plotOrigin = this.plotOrigin, stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance, maxBinHeight = dropDistance-20;
     var colourScale = this.colourScale;
 
     // shuffle from stackoverflow (!): http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array 
@@ -3058,7 +3070,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
     bins.exit().remove();
     var binsE = bins.enter().append("rect")
         .attr("class", "demobin")
-        .style("cursor", "pointer")
+        .style("cursor", "crosshair")
         .on("mouseover", function(def) {
             if (chart.highlightPathIndices) chart.highlightPathIndices(def.indices);
             if (chart.highlightValueIndices) chart.highlightValueIndices(def.indices, true);
@@ -3388,7 +3400,7 @@ chartObject.flyBalls=function flyBalls(options) {
         .attr("height", flightTargetY - valueListTop)
         .style("fill", "none")
         .style("pointer-events", "all")
-        .style("cursor", "pointer")
+        .style("cursor", "crosshair")
         .on("mousemove", function() {
             var evtPoint = d3.mouse(this.parentNode);
             var point = lively.pt(evtPoint[0], evtPoint[1]);
@@ -3659,7 +3671,7 @@ chartObject.flyBalls=function flyBalls(options) {
         .attr("height", fallHeight)
         .style("fill", "none")
         .style("pointer-events", "all")
-        .style("cursor", "pointer")
+        .style("cursor", "crosshair")
         .on("mousemove", function() {
             var evtX = d3.mouse(this.parentNode)[0];
             var probeValue = xScale.invert(evtX);
@@ -4056,7 +4068,7 @@ var fudge=50;
     
     this.numberLineWidth = 550;  // between dataMin and dataMax
     this.fallAfterFlight = 115;  // bottom of flight arcs to number line
-    this.fallIntoBins = 110;     // number line to histogram base line
+    this.fallIntoBins = 100;     // number line to histogram base line
 
     // definition of valueListOrigin is relative to plotOrigin
     var valueListHeight = this.valueListHeight = 310, valueListBottomGap = 60;
@@ -4100,11 +4112,6 @@ var fudge=50;
     this.tableGroup = this.chartGroup.append('g')
 		.attr("transform", transformString(tableOrigin.x, tableOrigin.y));
 		
-    this.clearScenarioZone = function() {
-        this.chartGroup.selectAll("rect.scenariozone,rect.demoScenarioMousetrap,g.groupclone").remove();
-        this.scenarioRecords = [];
-        }
-
 };
 
 chartObject.initChartSubstrates=function initChartSubstrates(divSeln, extent) {

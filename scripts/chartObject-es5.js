@@ -559,7 +559,7 @@ function createChartObject() {
                         seln.append("rect").attr("class", "rowBackground").attr("x", 0).attr("y", 0).attr("width", lively.lang.arr.last(edges)).attr("height", rowHeight - 2).style("opacity", 1);
 
                         if (rowItem.hasExtras) {
-                            seln.append("rect").attr("class", "extraToggle").attr("id", rowItem.varName + "-extraToggle").attr("x", edges[1]).attr("y", (rowHeight - boxSize) / 2 - 2).attr("width", boxSize).attr("height", boxSize).style("fill", "green").style("fill-opacity", 0.3).style("stroke", "green").style("stroke-opacity", 0.7).style("stroke-width", 2).on("click", function () {
+                            seln.append("rect").attr("class", "extraToggle").attr("id", rowItem.varName + "-extraToggle").attr("x", edges[1]).attr("y", (rowHeight - boxSize) / 2 - 2).attr("width", boxSize).attr("height", boxSize).style("fill", "green").style("fill-opacity", 0.3).style("stroke", "green").style("stroke-opacity", 0.7).style("stroke-width", 2).style("cursor", "pointer").on("click", function () {
                                 return toggleContextSpec(rowItem.varName);
                             });
                         }
@@ -742,7 +742,7 @@ function createChartObject() {
                             var seln = d3.select(this);
                             if (cellItem.mouseover) {
                                 seln.append("rect").attr("class", groupObject.category + "MouseTrap").attr("y", 1).attr("height", isContextDef ? rowHeight - 4 : rowHeight).style("fill-opacity", groupObject.isFishy ? 1 : 0).style("stroke", "green") // should never be seen
-                                .style("stroke-width", 1).style("stroke-opacity", 0).style("cursor", "pointer").on("mouseover", function (cellItem) {
+                                .style("stroke-width", 1).style("stroke-opacity", 0).style("cursor", cellItem.click ? "pointer" : "crosshair").on("mouseover", function (cellItem) {
                                     return cellItem.mouseover(cellItem);
                                 }).on("mouseout", function (cellItem) {
                                     return cellItem.mouseout(cellItem);
@@ -916,9 +916,8 @@ function createChartObject() {
                             return cellItem.isCallout ? rowHeight * 3 : rowHeight;
                         }).style("stroke", "none").style("fill", function (cellItem) {
                             return cellItem.isCallout ? probeFill : "none";
-                        }).style("cursor", function (cellItem) {
-                            return cellItem.isCallout ? "ew-resize" : "pointer";
-                        }).style("pointer-events", "all");
+                        }).style("cursor", "crosshair") //cellItem=>cellItem.isCallout ? "ew-resize": "crosshair")
+                        .style("pointer-events", "all");
 
                         chart.spaceBifocally(groupSeln, groupObject);
 
@@ -1535,7 +1534,7 @@ function createChartObject() {
         }
         updateReadout();
 
-        var dragRect = switchGroup.append("rect").attr("class", "draggable").attr("x", dragRegionOffset.x).attr("y", dragRegionOffset.y).attr("width", switchW).attr("height", switchH).style("fill", "none").style("pointer-events", "all").style("cursor", "col-resize")
+        var dragRect = switchGroup.append("rect").attr("class", "draggable").attr("x", dragRegionOffset.x).attr("y", dragRegionOffset.y).attr("width", switchW).attr("height", switchH).style("fill", "none").style("pointer-events", "all").style("cursor", "ew-resize") // "col-resize"
         //.style("stroke", "green")
         .on("mousedown", function () {
             // low-rent drag capability, as shown in https://bl.ocks.org/mbostock/4198499
@@ -1805,10 +1804,6 @@ function createChartObject() {
             pauseTime = 750,
             shifting = false;
 
-        //var outerMargin = 40; // relative to outer edge
-        //var left = outerMargin, right = this.visMaxExtent.x - outerMargin, top = this.plotOrigin.y + 10, bottom = this.plotOrigin.y + this.fallIntoBins + 26;
-        //chart.prepareScenarioZone({ left: left, top: top, width: right-left, height: bottom-top }); // includes sending clearScenarioZone()
-
         var switchSize = 16,
             autoStepping = true,
             abandoned = false,
@@ -1818,15 +1813,15 @@ function createChartObject() {
 
         var controlStripWidth = 150,
             controlStripHeight = 20,
-            controlStripOrigin = { x: 0, y: this.fallIntoBins + 30 },
+            controlStripOrigin = { x: this.commandListOrigin.x - this.plotOrigin.x, y: this.fallIntoBins + 35 },
             labelOrigin = { x: controlStripOrigin.x + controlStripWidth + 20, y: controlStripOrigin.y + controlStripHeight / 2 };
 
         var stackBase = 0,
             dropDistance = this.fallIntoBins,
             binBase = stackBase + dropDistance;
 
-        this.demoGroup.selectAll("rect.demoScenarioMousetrap").remove();
-        this.demoGroup.append("rect").attr("class", "demoScenarioMousetrap").attr("x", controlStripOrigin.x).attr("y", controlStripOrigin.y).attr("width", controlStripWidth).attr("height", controlStripHeight).style("stroke", "green").style("fill-opacity", 1e-6).on("mouseover", function () {
+        var controlGroup = this.demoGroup.append("g").attr("class", "scenariocontrol");
+        controlGroup.append("rect").attr("class", "demoScenarioMousetrap").attr("x", controlStripOrigin.x).attr("y", controlStripOrigin.y).attr("width", controlStripWidth).attr("height", controlStripHeight).style("stroke", "green").style("fill-opacity", 1e-6).style("cursor", "crosshair").on("mouseover", function () {
             if (abandoned) return;
 
             autoStepping = false;
@@ -1867,19 +1862,28 @@ function createChartObject() {
         }
 
         function updateTitleText(val) {
-            var labels = chart.demoGroup.selectAll("text.scenarioTitle").data([labelFn(val)]);
+            var labels = controlGroup.selectAll("text.scenarioTitle").data([labelFn(val)]);
             labels.enter().append("text").attr("class", "scenarioTitle").attr("x", labelOrigin.x).attr("y", labelOrigin.y).attr("dy", chart.textOffsets.central).style("font-size", "14px").style("-webkit-user-select", "none").style("pointer-events", "none").merge(labels).text(String);
         }
 
         function updateScenarioTexts(current) {
-            var labels = chart.demoGroup.selectAll("text.scenarioNumber").data(lively.lang.arr.range(1, numScenarios));
+            // current is zero-offset
+            var labels = controlGroup.selectAll("text.scenarioNumber").data(lively.lang.arr.range(1, numScenarios));
             labels.enter().append("text").attr("class", "scenarioNumber").attr("x", function (n) {
                 return controlStripOrigin.x + (n - 0.5) * controlStripWidth / numScenarios;
-            }).attr("y", controlStripOrigin.y + controlStripHeight / 2).attr("dy", chart.textOffsets.central).style("text-anchor", "middle").style("font-size", "11px").style("-webkit-user-select", "none").style("pointer-events", "none").text(String).merge(labels).style("font-weight", function (n) {
-                return n === current + 1 ? "bold" : "normal";
-            }).style("opacity", function (n) {
-                return n === current + 1 ? 1 : 0.7;
+            }).attr("y", controlStripOrigin.y + controlStripHeight / 2).attr("dy", chart.textOffsets.middle).style("text-anchor", "middle").style("font-size", "16px").style("-webkit-user-select", "none").style("pointer-events", "none")
+            //.text(String)
+            .merge(labels)
+            //.style("font-weight", n=>n===current+1 ? "bold" : "normal")
+            //.style("opacity", n=>n===current+1 ? 1 : 0.7)
+            .text(function (n) {
+                return n === current + 1 ? "●" : "○";
             });
+
+            var highlight = controlGroup.selectAll("rect.scenarioHighlight").data([current]);
+            highlight.enter().append("rect").attr("class", "scenarioHighlight").attr("fill", "lightgray").attr("width", controlStripWidth / numScenarios - 2).attr("height", controlStripHeight - 2).attr("y", controlStripOrigin.y + 1).merge(highlight).attr("x", function (c) {
+                return controlStripOrigin.x + c * controlStripWidth / numScenarios + 1;
+            }).lower();
         }
 
         function transitionToScenario(scenario, instant) {
@@ -2064,8 +2068,7 @@ function createChartObject() {
         // add a mousetrap for highlighting the (changing) bin membership
         var widthExcess = 100;
         var binProbeX = null;
-        this.demoGroup.selectAll(".demobinMousetrap").remove();
-        this.demoGroup.append("rect").attr("class", "demobinMousetrap").attr("x", -widthExcess).attr("y", stackBase).attr("width", this.numberLineWidth + 2 * widthExcess).attr("height", dropDistance).style("fill", "none").style("pointer-events", "all").style("cursor", "pointer").on("mousemove", function () {
+        this.demoGroup.append("rect").attr("class", "demobinMousetrap").attr("x", -widthExcess).attr("y", stackBase).attr("width", this.numberLineWidth + 2 * widthExcess).attr("height", dropDistance).style("fill", "none").style("pointer-events", "all").style("cursor", "crosshair").on("mousemove", function () {
             binProbeX = d3.mouse(this.parentNode)[0];
             if (!shifting) checkForBinHighlight();
         }).on("mouseleave", function () {
@@ -2098,9 +2101,9 @@ function createChartObject() {
         chart.setTimerInfo({
             cleanup: function cleanup() {
                 abandoned = true;
-                chart.clearScenarioZone();
-                chart.demoGroup.selectAll("text.scenarioNumber,text.scenarioTitle").remove();
                 stopTransition();
+                chart.demoGroup.selectAll("g.scenariocontrol,rect.demoBinMousetrap,g.groupclone").remove();
+                chart.scenarioRecords = [];
                 movingGroupSeln.remove();
 
                 // unhide main elements (but no need to restore event handlers)
@@ -2212,7 +2215,7 @@ function createChartObject() {
         var switchSize = 12,
             switchColour = "#444"; // dark grey
 
-        this.histGroup.append("rect").attr("class", "switch").attr("id", "densitySwitch").attr("x", offset.x).attr("y", offset.y).attr("width", switchSize).attr("height", switchSize).style("border-width", 1).style("stroke", switchColour).style("fill", switchColour).each(function () {
+        this.histGroup.append("rect").attr("class", "switch").attr("id", "densitySwitch").attr("x", offset.x).attr("y", offset.y).attr("width", switchSize).attr("height", switchSize).style("border-width", 1).style("stroke", switchColour).style("fill", switchColour).style("cursor", "pointer").each(function () {
             showState(this);
         }).on("click", function (d) {
             chart.useDensity = !chart.useDensity;
@@ -2442,7 +2445,7 @@ function createChartObject() {
 
         var sweepActive = false;
 
-        this.histGroup.append("rect").attr("class", "switch").attr("x", offset.x).attr("y", offset.y).attr("width", switchSize).attr("height", switchSize).style("border-width", 1).style("stroke", switchColour).style("fill", switchColour).each(function () {
+        this.histGroup.append("rect").attr("class", "switch").attr("x", offset.x).attr("y", offset.y).attr("width", switchSize).attr("height", switchSize).style("border-width", 1).style("stroke", switchColour).style("fill", switchColour).style("cursor", "pointer").each(function () {
             showState(this);
         }).on("click", function (d) {
             sweepActive = !sweepActive;
@@ -2588,7 +2591,7 @@ function createChartObject() {
             .attr("width", listWidth).attr("height", listHeight + listEntryHeight)
             //.style("stroke-width", 1)
             //.style("stroke", "black")
-            .style("fill", "none").style("pointer-events", "all").style("cursor", "pointer").on("mousemove", function () {
+            .style("fill", "none").style("pointer-events", "all").style("cursor", "crosshair").on("mousemove", function () {
                 // focus list is also measured from middle of first item to middle of last
                 var positionFromTop = d3.mouse(this.parentNode)[1] - valueListTop;
                 var numToShow = 10;
@@ -2705,7 +2708,7 @@ function createChartObject() {
             stackBase = 0,
             dropDistance = this.fallIntoBins,
             binBase = stackBase + dropDistance,
-            maxBinHeight = dropDistance - 36;
+            maxBinHeight = dropDistance - 20;
         var colourScale = this.colourScale;
 
         // shuffle from stackoverflow (!): http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array 
@@ -2784,7 +2787,7 @@ function createChartObject() {
             return def.binNum;
         });
         bins.exit().remove();
-        var binsE = bins.enter().append("rect").attr("class", "demobin").style("cursor", "pointer").on("mouseover", function (def) {
+        var binsE = bins.enter().append("rect").attr("class", "demobin").style("cursor", "crosshair").on("mouseover", function (def) {
             if (chart.highlightPathIndices) chart.highlightPathIndices(def.indices);
             if (chart.highlightValueIndices) chart.highlightValueIndices(def.indices, true);
         }).on("mouseleave", function () {
@@ -3097,7 +3100,7 @@ function createChartObject() {
         });
 
         chart.chartGroup.selectAll(".flightMousetrap").remove();
-        chart.chartGroup.append("rect").attr("class", "flightMousetrap").attr("x", plotOrigin.x).attr("y", valueListTop).attr("width", originX - plotOrigin.x).attr("height", flightTargetY - valueListTop).style("fill", "none").style("pointer-events", "all").style("cursor", "pointer").on("mousemove", function () {
+        chart.chartGroup.append("rect").attr("class", "flightMousetrap").attr("x", plotOrigin.x).attr("y", valueListTop).attr("width", originX - plotOrigin.x).attr("height", flightTargetY - valueListTop).style("fill", "none").style("pointer-events", "all").style("cursor", "crosshair").on("mousemove", function () {
             var evtPoint = d3.mouse(this.parentNode);
             var point = lively.pt(evtPoint[0], evtPoint[1]);
             chart.clearEphemeralCanvas();
@@ -3369,7 +3372,7 @@ function createChartObject() {
         }
 
         chart.dataGroup.selectAll(".ballMousetrap").remove();
-        chart.dataGroup.append("rect").attr("class", "ballMousetrap").attr("x", -5).attr("y", 5 - fallHeight).attr("width", xScale(chart.dataMax) - xScale(chart.dataMin) + 10).attr("height", fallHeight).style("fill", "none").style("pointer-events", "all").style("cursor", "pointer").on("mousemove", function () {
+        chart.dataGroup.append("rect").attr("class", "ballMousetrap").attr("x", -5).attr("y", 5 - fallHeight).attr("width", xScale(chart.dataMax) - xScale(chart.dataMin) + 10).attr("height", fallHeight).style("fill", "none").style("pointer-events", "all").style("cursor", "crosshair").on("mousemove", function () {
             var evtX = d3.mouse(this.parentNode)[0];
             var probeValue = xScale.invert(evtX);
             var nearest = d3.scan(uniqueValues, function (a, b) {
@@ -3751,7 +3754,7 @@ function createChartObject() {
 
         this.numberLineWidth = 550; // between dataMin and dataMax
         this.fallAfterFlight = 115; // bottom of flight arcs to number line
-        this.fallIntoBins = 110; // number line to histogram base line
+        this.fallIntoBins = 100; // number line to histogram base line
 
         // definition of valueListOrigin is relative to plotOrigin
         var valueListHeight = this.valueListHeight = 310,
@@ -3791,11 +3794,6 @@ function createChartObject() {
         this.rangeGroup = this.chartGroup.append('g').attr("transform", transformString(dataOrigin.x, dataOrigin.y));
 
         this.tableGroup = this.chartGroup.append('g').attr("transform", transformString(tableOrigin.x, tableOrigin.y));
-
-        this.clearScenarioZone = function () {
-            this.chartGroup.selectAll("rect.scenariozone,rect.demoScenarioMousetrap,g.groupclone").remove();
-            this.scenarioRecords = [];
-        };
     };
 
     chartObject.initChartSubstrates = function initChartSubstrates(divSeln, extent) {
