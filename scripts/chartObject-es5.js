@@ -1821,7 +1821,7 @@ function createChartObject() {
             binBase = stackBase + dropDistance;
 
         var controlGroup = this.demoGroup.append("g").attr("class", "scenariocontrol");
-        controlGroup.append("rect").attr("class", "demoScenarioMousetrap").attr("x", controlStripOrigin.x).attr("y", controlStripOrigin.y).attr("width", controlStripWidth).attr("height", controlStripHeight).style("stroke", "green").style("fill-opacity", 1e-6).style("cursor", "crosshair").on("mouseover", function () {
+        controlGroup.append("rect").attr("id", "scenarioSwitcher").attr("x", controlStripOrigin.x).attr("y", controlStripOrigin.y).attr("width", controlStripWidth).attr("height", controlStripHeight).style("stroke", "green").style("fill-opacity", 1e-6).style("cursor", "crosshair").on("mouseover", function () {
             if (abandoned) return;
 
             autoStepping = false;
@@ -4182,7 +4182,7 @@ function createChartObject() {
                 var newState = pos < -stickPoint ? "before" : pos > unstickPoint ? "after" : "during";
                 if (newState !== visScrollState) {
                     var isDuring = newState === "during";
-                    visSeln.style("position", isDuring ? "fixed" : null).style("float", isDuring ? null : "right").style("top", isDuring ? stickPoint + "px" : null).style("left", isDuring ? d3.select("#sections").node().getBoundingClientRect().right + textMargin + "px" : null).style("padding-top", isDuring ? null : newState === "before" ? "0px" : containerMaxScroll + "px");
+                    visSeln.style("position", isDuring ? "fixed" : null).style("float", isDuring ? null : "right").style("top", isDuring ? stickPoint + "px" : null).style("left", isDuring ? d3.select("#sections").node().getBoundingClientRect().right + textMargin + 1 + "px" : null).style("padding-top", isDuring ? null : newState === "before" ? "0px" : containerMaxScroll + "px");
                     visScrollState = newState;
                 }
 

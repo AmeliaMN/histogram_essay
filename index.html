@@ -185,7 +185,7 @@ function getVis() { return window.scrollyVis }
 
     <p>Watch what happens to the relative bin heights as we move the bins back and forth along the number line (changing the "bin offset"). Points are essentially being moved from one bin to another, changing the aggregation of height in the bins.</p>
     <p>The only thing we are varying is this offset. The data remains the same, the binwidth remains the same, but we nudge the edges in one direction or another. Some of the distributions look quite similar to one another, but occasionally a strangely different distribution will pop out.</p>
-    <p>Mouse over the green dashed rectangle to slow down the animation.</p>
+    <p>Mouse over the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#scenarioSwitcher')" onmouseout="getVis().hoverOut()">scenario switcher</span> to take control of the animation.</p>
   </section>
   <section class="step">
     <div class="title">Shifting the bin width</div>
