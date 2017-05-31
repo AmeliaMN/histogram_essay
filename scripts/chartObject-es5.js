@@ -4135,7 +4135,7 @@ function createChartObject() {
                 dispatch.call('size', this, { x: visWidth, y: visHeight });
 
                 var lastSection = sections.nodes()[sections.size() - 1];
-                d3.select(lastSection).style("padding-bottom", "0px");
+                d3.select(lastSection).style("padding-bottom", "0px").style("margin-bottom", "50px");
 
                 // give the page some time to reflow before we measure section positions
                 setTimeout(function () {
@@ -4154,13 +4154,6 @@ function createChartObject() {
                     var containerRect = container.node().getBoundingClientRect();
                     containerTop = containerRect.top + window.pageYOffset; // px from top of page
                     containerMaxScroll = containerRect.height - visHeight;
-
-                    /* no longer needed... unless we switch to having an extremely short last section
-                                    var lastSectionHeight = lastSection.getBoundingClientRect().height;
-                                    var stepMarginBottom = 150; // **tied to scrolly.css**
-                                    var paddingNeeded = Math.max(0, visHeight - lastSectionHeight - switchPos - stepMarginBottom + 20);
-                                    d3.select(lastSection).style("padding-bottom", paddingNeeded+"px");
-                    */
 
                     visScrollState = null; // force re-layout
 
@@ -4189,7 +4182,7 @@ function createChartObject() {
                 var newState = pos < -stickPoint ? "before" : pos > unstickPoint ? "after" : "during";
                 if (newState !== visScrollState) {
                     var isDuring = newState === "during";
-                    visSeln.style("position", isDuring ? "fixed" : null).style("float", isDuring ? null : "right").style("top", isDuring ? stickPoint + "px" : null).style("left", isDuring ? d3.select("#sections").node().getBoundingClientRect().right + textMargin + 1 + "px" : null).style("padding-top", isDuring ? null : newState === "before" ? "0px" : containerMaxScroll + "px");
+                    visSeln.style("position", isDuring ? "fixed" : null).style("float", isDuring ? null : "right").style("top", isDuring ? stickPoint + "px" : null).style("left", isDuring ? d3.select("#sections").node().getBoundingClientRect().right + textMargin + "px" : null).style("padding-top", isDuring ? null : newState === "before" ? "0px" : containerMaxScroll + "px");
                     visScrollState = newState;
                 }
 
