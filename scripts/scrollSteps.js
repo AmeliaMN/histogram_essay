@@ -122,7 +122,7 @@ function scrollStepDefs(ch) {
         },
 
         { // move the bins through a sweep of offsets (relative to dataMin)
-        command: "fiddle with bin alignment",
+        command: "vary bin alignment",
         activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             chart.stopTimer(true);
             chart.scenarioRecords = [];
@@ -140,10 +140,9 @@ function scrollStepDefs(ch) {
         },
         
         { // move the bins through a sweep of widths (1.0 down to 0.5 of R default)
-        command: "fiddle with bin width",
+        command: "vary bin width",
         activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             chart.stopTimer();
-            chart.clearScenarioZone();
             if (targetStep === thisStep) {
                 chart.iterate(
                     lively.lang.arr.range(100,50,-10),
@@ -204,7 +203,6 @@ function scrollStepDefs(ch) {
             // if previous steps have been given a chance to draw elements, clear them away
             if (prevRendered !== null) {
                 chart.stopTimer();
-                chart.clearScenarioZone();
                 chart.clearMousetraps(["list", "flight", "ball"]);
                 chart.highlightPathIndices([]);
                 chart.highlightValueIndices([]);
@@ -213,7 +211,7 @@ function scrollStepDefs(ch) {
                 chart.clearEphemeralCanvas();
                 // if we're landing here, keep the balls for now
                 if (targetStep !== thisStep) chart.clearDemoBalls();
-            } else { // if not, fill in the elements that we need to be there
+            } else { // no previous drawing, so fill in the elements that we need to be there
                 chart.datasetsForSwitching = baseDatasets;
                 chart.drawDataSelector({ instant: true });
             }

@@ -1669,10 +1669,7 @@ function createChartObject() {
             if (def.replayable) {
                 var centreX = boldWidth + buttonGap + buttonSize / 2;
 
-                seln.append("circle").attr("class", "replay").attr("cx", centreX).attr("cy", itemHeight / 2).attr("r", buttonSize / 2).style("fill", "green").style("stroke", "green").style("stroke-width", 1)
-                //.style("cursor", "pointer")
-                .style("pointer-events", "none");
-                //.on("click", function(def) { chart.jumpToStep(def.index) });
+                seln.append("circle").attr("class", "replay").attr("cx", centreX).attr("cy", itemHeight / 2).attr("r", buttonSize / 2).style("fill", "green").style("stroke", "green").style("stroke-width", 1).style("pointer-events", "none");
 
                 seln.append("path").attr("d", d3.symbol().type(d3.symbolTriangle).size(36)).attr("transform", "translate(" + centreX + " 10) rotate(90 0 0)").style("fill", "white").style("stroke", "green").style("stroke-width", 1).style("pointer-events", "none");
             }
@@ -1794,49 +1791,106 @@ function createChartObject() {
     };
 
     chartObject.drawCyclingScenarios = function drawCyclingScenarios(labelFn) {
-        // @@ still too much hard-coded stuff in here
+        // not a pretty piece of code.
+
+        // cycling won't be launched unless the user pauses scrolling at this step.
+        // if user doesn't interact with the control strip, the animation will step automatically at a rate defined by pauseTime and changeTime.
+        // if user mouses over the strip, the selected scenario will be drawn instantly.  once the mouse leaves the strip, automatic stepping will resume from the selected scenario (and in the direction of the last automatic step).
 
         var chart = this;
 
-        var scenarioClasses = "rect.demobin,line.binbreak,text.binbreak"; // @@ like this
+        var scenarioClasses = "rect.demobin,line.binbreak,text.binbreak";
+        var numScenarios = this.scenarioRecords.length,
+            changeTime = 400,
+            pauseTime = 750,
+            shifting = false;
 
-        var outerMargin = 40; // relative to outer edge
-        var left = outerMargin,
-            right = this.visMaxExtent.x - outerMargin,
-            top = this.plotOrigin.y + 10,
-            bottom = this.plotOrigin.y + this.fallIntoBins + 26;
-
-        chart.prepareScenarioZone({ left: left, top: top, width: right - left, height: bottom - top }); // includes sending clearScenarioZone()
+        //var outerMargin = 40; // relative to outer edge
+        //var left = outerMargin, right = this.visMaxExtent.x - outerMargin, top = this.plotOrigin.y + 10, bottom = this.plotOrigin.y + this.fallIntoBins + 26;
+        //chart.prepareScenarioZone({ left: left, top: top, width: right-left, height: bottom-top }); // includes sending clearScenarioZone()
 
         var switchSize = 16,
-            labelOrigin = { x: -100, y: this.fallIntoBins + 40 },
-            cycling = false,
-            cycleStep,
+            autoStepping = true,
+            abandoned = false,
+            displayStep,
             cycleDirection;
         var movingGroupSeln = null;
 
-        function updateLabelText(val) {
-            var labels = chart.demoGroup.selectAll("text.scenarioLabel").data([labelFn(val)]);
-            labels.enter().append("text").attr("class", "scenarioLabel").attr("x", labelOrigin.x).attr("y", labelOrigin.y).attr("dy", chart.textOffsets.central).style("font-size", "14px")
-            //.style("dominant-baseline", "hanging")
-            .style("-webkit-user-select", "none").merge(labels).text(String);
+        var controlStripWidth = 150,
+            controlStripHeight = 20,
+            controlStripOrigin = { x: 0, y: this.fallIntoBins + 30 },
+            labelOrigin = { x: controlStripOrigin.x + controlStripWidth + 20, y: controlStripOrigin.y + controlStripHeight / 2 };
+
+        var stackBase = 0,
+            dropDistance = this.fallIntoBins,
+            binBase = stackBase + dropDistance;
+
+        this.demoGroup.selectAll("rect.demoScenarioMousetrap").remove();
+        this.demoGroup.append("rect").attr("class", "demoScenarioMousetrap").attr("x", controlStripOrigin.x).attr("y", controlStripOrigin.y).attr("width", controlStripWidth).attr("height", controlStripHeight).style("stroke", "green").style("fill-opacity", 1e-6).on("mouseover", function () {
+            if (abandoned) return;
+
+            autoStepping = false;
+            stopTransition();
+        }).on("mousemove", function () {
+            if (abandoned) return;
+
+            var x = d3.mouse(this.parentNode)[0] - controlStripOrigin.x;
+            var desiredStep = Math.max(0, Math.min(Math.floor(numScenarios * x / controlStripWidth), numScenarios - 1));
+            //console.log(desiredStep);
+            if (desiredStep !== displayStep) transitionToScenario(desiredStep, true);
+        }).on("mouseout", function () {
+            if (abandoned) return;
+
+            autoStepping = true;
+            stepAfterDelay(0);
+        });
+
+        var delayedStep = null;
+        function stepAfterDelay(delay) {
+            if (delayedStep) clearTimeout(delayedStep);
+            delayedStep = null;
+
+            if (delay) {
+                delayedStep = setTimeout(doStep, delay);
+            } else {
+                doStep();
+            }
+
+            function doStep() {
+                if (abandoned || !autoStepping) return; // either user has taken control by mousing over control strip, or we've left this stage of the essay
+
+                // bounce off the ends
+                if (displayStep === 0) cycleDirection = 1;else if (displayStep === numScenarios - 1) cycleDirection = -1;
+
+                transitionToScenario(displayStep + cycleDirection, false); // not instant
+            }
         }
 
-        function transitionToNext() {
-            //console.log(cycleStep+cycleDirection);
-            if (!cycling) return;
+        function updateTitleText(val) {
+            var labels = chart.demoGroup.selectAll("text.scenarioTitle").data([labelFn(val)]);
+            labels.enter().append("text").attr("class", "scenarioTitle").attr("x", labelOrigin.x).attr("y", labelOrigin.y).attr("dy", chart.textOffsets.central).style("font-size", "14px").style("-webkit-user-select", "none").style("pointer-events", "none").merge(labels).text(String);
+        }
 
-            var changeTime = 400,
-                pauseTime = chart.slowScenarioCycles ? 1500 : 750;
+        function updateScenarioTexts(current) {
+            var labels = chart.demoGroup.selectAll("text.scenarioNumber").data(lively.lang.arr.range(1, numScenarios));
+            labels.enter().append("text").attr("class", "scenarioNumber").attr("x", function (n) {
+                return controlStripOrigin.x + (n - 0.5) * controlStripWidth / numScenarios;
+            }).attr("y", controlStripOrigin.y + controlStripHeight / 2).attr("dy", chart.textOffsets.central).style("text-anchor", "middle").style("font-size", "11px").style("-webkit-user-select", "none").style("pointer-events", "none").text(String).merge(labels).style("font-weight", function (n) {
+                return n === current + 1 ? "bold" : "normal";
+            }).style("opacity", function (n) {
+                return n === current + 1 ? 1 : 0.7;
+            });
+        }
 
-            var nextGroupSeln = d3.select(chart.scenarioRecords[cycleStep + cycleDirection].bins);
-            //nextGroupSeln.style("opacity", 1);
+        function transitionToScenario(scenario, instant) {
+            var nextGroupSeln = d3.select(chart.scenarioRecords[scenario].bins);
+
             // we want to move the elements in movingGroup to the positions of the corresponding elements in nextGroup.  we do this by setting up data objects that hold the relevant attributes of the latter.
             var rectDefs = [];
             var nextRects = nextGroupSeln.selectAll("rect");
             nextRects.each(function (def) {
                 var seln = d3.select(this);
-                rectDefs.push({ binNum: def.binNum, x: +seln.attr("x"), y: +seln.attr("y"), width: +seln.attr("width"), height: +seln.attr("height") });
+                rectDefs.push({ binNum: def.binNum, x: +seln.attr("x"), y: +seln.attr("y"), width: +seln.attr("width"), height: +seln.attr("height"), indices: def.indices });
             });
             var sampleRect = nextRects.nodes()[0]; // suitable for cloning
             var yBase = rectDefs[0].y + rectDefs[0].height; // as good as any
@@ -1857,23 +1911,8 @@ function createChartObject() {
             });
             var sampleLine = nextLines.nodes()[0]; // for cloning
 
-            var trans = d3.transition().delay(pauseTime).duration(changeTime);
-
-            trans.on("end", function () {
-                //nextGroupSeln.style("opacity", 1e-6);
-                if (!cycling) return;
-
-                updateLabelText(chart.scenarioRecords[cycleStep + cycleDirection].value);
-
-                var numSteps = chart.scenarioRecords.length;
-                cycleStep = cycleStep + cycleDirection;
-                if (cycleStep === 0) {
-                    cycleDirection = 1;
-                } else if (cycleStep === numSteps - 1) {
-                    cycleDirection = -1;
-                }
-                setTimeout(transitionToNext, 50);
-            });
+            shifting = true; // suppress bin hit-testing until the shift finishes
+            var trans = d3.transition().duration(instant ? 0 : changeTime);
 
             var preMoveRects = movingGroupSeln.selectAll("rect.movingclone"),
                 preMoveFirstRect = d3.select(preMoveRects.nodes()[0]),
@@ -1890,7 +1929,7 @@ function createChartObject() {
                 return def.binNum;
             });
 
-            rects.exit().attr("class", "defunctclone").transition().delay(pauseTime).duration(changeTime).on("start.defunctrect", function () {
+            rects.exit().attr("class", "defunctclone").transition(trans).on("start.defunctrect", function () {
                 d3.select(this).style("stroke-opacity", 1e-6).style("fill-opacity", 0.15);
             }).attr("x", function (def) {
                 return postMoveFirstX + def.binNum * postMoveWidth;
@@ -1908,9 +1947,6 @@ function createChartObject() {
                 return def.width;
             }).attr("height", 0);
 
-            //var colourInterp = d3.interpolateRgb("grey", "lightgrey");
-            //var fastTransFactor = changeTime/200;
-
             movingGroupSeln.selectAll("rect.movingclone").each(function (def) {
                 var seln = d3.select(this);
                 def.preY = +seln.attr("y");
@@ -1918,22 +1954,12 @@ function createChartObject() {
             });
 
             movingGroupSeln.selectAll("rect.movingclone").transition(trans).on("start.rect", function (def) {
-                d3.select(this)
-                //.style("stroke", "lightgrey")
-                .style("stroke-opacity", 1e-6).attr("y", function (def) {
+                d3.select(this).style("stroke-opacity", 1e-6).attr("y", function (def) {
                     return def.preY - 1;
                 }).attr("height", function (def) {
                     return def.preHeight + 1;
                 });
-                //.style("fill-opacity", 0.1)
-                //.style("fill", "url(#bin-gradient)")
-            })
-
-            //.styleTween("fill-opacity", ()=>function(t) { return 0.25-0.15*Math.min(1, t*changeTime/200)})
-            //.styleTween("stroke-width", ()=>function(t) { return 0.5+0.5*Math.min(1, t*changeTime/200)})
-            //.styleTween("stroke-opacity", ()=>function(t) { return 1-0.75*Math.min(1, t*fastTransFactor) })
-            //.styleTween("stroke", ()=>function(t) { return colourInterp(Math.min(1, t*fastTransFactor)) })
-            .attr("x", function (def) {
+            }).attr("x", function (def) {
                 return def.x;
             }).attr("width", function (def) {
                 return def.width;
@@ -1942,25 +1968,11 @@ function createChartObject() {
             }) // fudge for appearances' sake
             .attr("y", function (def) {
                 return def.y - 2;
-            }).style("opacity", 1).transition().duration(200).attr("y", function (def) {
+            }).style("opacity", 1).transition().duration(instant ? 0 : 200).attr("y", function (def) {
                 return def.y;
             }).attr("height", function (def) {
                 return def.height;
             }).style("stroke-opacity", 1);
-            //.style("stroke", "grey")
-            //.style("stroke-width", 0.5)
-            //.style("fill", "lightgray")
-            //.style("fill-opacity", 0.25);
-
-            /*            
-                        .on("end.rect", function(def) {
-                            d3.select(this)
-                                .style("stroke-opacity", 1)
-                                .style("fill-opacity", 0.25)
-                                .attr("height", def.height)
-                                .attr("y", def.y);
-                            });
-            */
 
             var texts = movingGroupSeln.selectAll("text.movingclone").data(textDefs, function (def) {
                 return def.index;
@@ -2013,49 +2025,92 @@ function createChartObject() {
             var baseLine = movingGroupSeln.selectAll("line.base").data([0]);
             baseLine.enter().append("line").attr("class", "base").attr("y1", yBase).attr("y2", yBase).style("stroke-width", 0.5) // style copied from dropBallsIntoBins
             .style("stroke", "grey").merge(baseLine).attr("x1", preMoveFirstX).attr("x2", preMoveLastX).transition(trans).attr("x1", postMoveFirstX).attr("x2", postMoveLastX);
+
+            trans.on("end", function () {
+                //console.log("end");
+                if (abandoned) return;
+
+                shifting = false;
+                displayStep = scenario;
+                updateTitleText(chart.scenarioRecords[scenario].value);
+                updateScenarioTexts(scenario);
+                checkForBinHighlight();
+                if (autoStepping) stepAfterDelay(pauseTime);
+            });
         }
 
         function stopTransition() {
-            if (movingGroupSeln) movingGroupSeln.selectAll("*").interrupt();
-            movingGroupSeln.remove();
-            movingGroupSeln = null;
+            if (delayedStep) clearTimeout(delayedStep);
+            delayedStep = null;
+
+            if (movingGroupSeln) {
+                movingGroupSeln.selectAll("*").interrupt();
+                movingGroupSeln.selectAll(".defunctclone").remove();
+            }
         }
 
-        if (chart.scenarioRecords.length > 1) {
-            cycling = true;
+        movingGroupSeln = d3.select(chart.duplicateObjects(chart.scenarioRecords[0].bins, "rect,text,line")); // NB: not the scenarioClasses, but these with "clone" added
 
-            movingGroupSeln = d3.select(chart.duplicateObjects(chart.scenarioRecords[0].bins, "rect,text,line")); // NB: not the scenarioClasses, but these with "clone" added
+        movingGroupSeln.selectAll("*").attr("class", "movingclone");
 
-            movingGroupSeln.selectAll("*").attr("class", "movingclone");
+        // prepare the moving group's elements.  by default (see dropBallsIntoBins) the bins' fill is lightgray at 0.25 opacity.
+        movingGroupSeln.style("opacity", 1);
+        movingGroupSeln.selectAll("text,line").style("opacity", 1);
+        movingGroupSeln.selectAll("rect").style("fill", "lightgray").style("fill-opacity", 0.25).style("stroke-opacity", 1);
 
-            // prepare the moving group's elements.  by default (see dropBallsIntoBins) the bins' fill is lightgray at 0.25 opacity.
-            movingGroupSeln.style("opacity", 1);
-            movingGroupSeln.selectAll("text,line").style("opacity", 1);
-            movingGroupSeln.selectAll("rect").style("fill", "lightgray").style("fill-opacity", 0.25).style("stroke-opacity", 1);
+        // hide and de-sensitise the main-scenario elements
+        this.demoGroup.selectAll(scenarioClasses).style("opacity", 0).style("cursor", "default").on("mouseover", null).on("mouseout", null);
 
-            // hide the main-scenario elements
-            chart.demoGroup.selectAll(scenarioClasses).style("opacity", 1e-6);
+        // add a mousetrap for highlighting the (changing) bin membership
+        var widthExcess = 100;
+        var binProbeX = null;
+        this.demoGroup.selectAll(".demobinMousetrap").remove();
+        this.demoGroup.append("rect").attr("class", "demobinMousetrap").attr("x", -widthExcess).attr("y", stackBase).attr("width", this.numberLineWidth + 2 * widthExcess).attr("height", dropDistance).style("fill", "none").style("pointer-events", "all").style("cursor", "pointer").on("mousemove", function () {
+            binProbeX = d3.mouse(this.parentNode)[0];
+            if (!shifting) checkForBinHighlight();
+        }).on("mouseleave", function () {
+            binProbeX = null;
+            if (!shifting) checkForBinHighlight();
+        });
 
-            cycleStep = 0;
-            cycleDirection = 1;
-
-            updateLabelText(chart.scenarioRecords[cycleStep].value);
-
-            chart.setTimerInfo({
-                cleanup: function cleanup() {
-                    if (cycling) {
-                        cycling = false;
-                        stopTransition();
-                        chart.demoGroup.select("text.scenarioLabel").remove();
-
-                        // unhide main elements
-                        chart.demoGroup.selectAll(scenarioClasses).style("opacity", 1);
-                    }
+        function checkForBinHighlight() {
+            var indexRange = [];
+            if (binProbeX !== null) {
+                var binHit = movingGroupSeln.selectAll("rect").select(function () {
+                    var x = Number(this.getAttribute("x")),
+                        w = Number(this.getAttribute("width"));
+                    return binProbeX >= x && binProbeX <= x + w ? this : null;
+                });
+                if (binHit.size()) {
+                    indexRange = binHit.datum().indices;
                 }
-            });
-
-            transitionToNext();
+            }
+            chart.highlightPathIndices(indexRange);
+            chart.highlightValueIndices(indexRange, true); // gather repeats
         }
+
+        displayStep = 0;
+        cycleDirection = 1;
+
+        updateTitleText(chart.scenarioRecords[displayStep].value);
+        updateScenarioTexts(displayStep);
+
+        chart.setTimerInfo({
+            cleanup: function cleanup() {
+                abandoned = true;
+                chart.clearScenarioZone();
+                chart.demoGroup.selectAll("text.scenarioNumber,text.scenarioTitle").remove();
+                stopTransition();
+                movingGroupSeln.remove();
+
+                // unhide main elements (but no need to restore event handlers)
+                chart.demoGroup.selectAll(scenarioClasses).style("opacity", 1);
+            }
+        });
+
+        stepAfterDelay(pauseTime);
+
+        // }
     };
 
     chartObject.drawDataSelector = function drawDataSelector(options) {
@@ -2634,7 +2689,7 @@ function createChartObject() {
             showScale = !(options && options.noScale);
 
         function clearDemoBins() {
-            chart.chartGroup.selectAll("rect.demobin,line.binbreak,text.binbreak,text.democounter,circle.movingBall,g.annotation").interrupt().remove();
+            chart.chartGroup.selectAll("rect.demobin,line.binbreak,text.binbreak,text.democounter,circle.movingBall,g.annotation,rect.demobinMousetrap").interrupt().remove();
         }
         chart.clearDemoBins = clearDemoBins;
 
@@ -2729,7 +2784,7 @@ function createChartObject() {
             return def.binNum;
         });
         bins.exit().remove();
-        var binsE = bins.enter().append("rect").attr("class", "demobin").on("mouseover", function (def) {
+        var binsE = bins.enter().append("rect").attr("class", "demobin").style("cursor", "pointer").on("mouseover", function (def) {
             if (chart.highlightPathIndices) chart.highlightPathIndices(def.indices);
             if (chart.highlightValueIndices) chart.highlightValueIndices(def.indices, true);
         }).on("mouseleave", function () {
@@ -3987,7 +4042,7 @@ function createChartObject() {
             var navHeight = d3.select("nav").node().getBoundingClientRect().height;
             var heightMargin = navHeight + 50;
             var switchPos = 200 + navHeight; // how far from the top we switch in a new section
-            var stickPoint = 20 + navHeight;
+            var stickPoint = 10 + navHeight;
             var textMargin = 10; // NB: tied to scrolly.css
 
             var visSeln = null;

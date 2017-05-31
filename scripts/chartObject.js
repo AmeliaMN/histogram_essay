@@ -1822,10 +1822,8 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
                     .style("fill", "green")
                     .style("stroke", "green")
                     .style("stroke-width", 1)
-                    //.style("cursor", "pointer")
-                    .style("pointer-events", "none")
-                    //.on("click", function(def) { chart.jumpToStep(def.index) });
-    
+                    .style("pointer-events", "none");
+
                 seln
                     .append("path")
                     .attr("d", d3.symbol().type(d3.symbolTriangle).size(36))
@@ -1959,48 +1957,120 @@ chartObject.drawColouredNumberLine=function drawColouredNumberLine(options) {
 };
 
 chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
-    // @@ still too much hard-coded stuff in here
+    // not a pretty piece of code.
+    
+    // cycling won't be launched unless the user pauses scrolling at this step.
+    // if user doesn't interact with the control strip, the animation will step automatically at a rate defined by pauseTime and changeTime.
+    // if user mouses over the strip, the selected scenario will be drawn instantly.  once the mouse leaves the strip, automatic stepping will resume from the selected scenario (and in the direction of the last automatic step).
     
     var chart=this;
 
-    var scenarioClasses = "rect.demobin,line.binbreak,text.binbreak";  // @@ like this
-    
-    var outerMargin = 40; // relative to outer edge
-    var left = outerMargin, right = this.visMaxExtent.x - outerMargin, top = this.plotOrigin.y + 10, bottom = this.plotOrigin.y + this.fallIntoBins + 26;
-    
-    chart.prepareScenarioZone({ left: left, top: top, width: right-left, height: bottom-top }); // includes sending clearScenarioZone()
+    var scenarioClasses = "rect.demobin,line.binbreak,text.binbreak";
+    var numScenarios = this.scenarioRecords.length, changeTime = 400, pauseTime = 750, shifting = false;
 
-    var switchSize = 16, labelOrigin = { x: -100, y: this.fallIntoBins+40 }, cycling = false, cycleStep, cycleDirection;
+    //var outerMargin = 40; // relative to outer edge
+    //var left = outerMargin, right = this.visMaxExtent.x - outerMargin, top = this.plotOrigin.y + 10, bottom = this.plotOrigin.y + this.fallIntoBins + 26;
+    //chart.prepareScenarioZone({ left: left, top: top, width: right-left, height: bottom-top }); // includes sending clearScenarioZone()
+
+    var switchSize = 16, autoStepping = true, abandoned = false, displayStep, cycleDirection;
     var movingGroupSeln = null;
     
-    function updateLabelText(val) {
-        var labels = chart.demoGroup.selectAll("text.scenarioLabel").data([labelFn(val)]);
+    var controlStripWidth = 150, controlStripHeight = 20, controlStripOrigin = { x: 0, y: this.fallIntoBins+30 }, labelOrigin = { x: controlStripOrigin.x + controlStripWidth + 20, y: controlStripOrigin.y+controlStripHeight/2 };
+
+    var stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance;
+
+    this.demoGroup.selectAll("rect.demoScenarioMousetrap").remove();    
+    this.demoGroup.append("rect")
+        .attr("class", "demoScenarioMousetrap")
+        .attr("x", controlStripOrigin.x)
+        .attr("y", controlStripOrigin.y)
+        .attr("width", controlStripWidth)
+        .attr("height", controlStripHeight)
+        .style("stroke", "green")
+        .style("fill-opacity", 1e-6)
+        .on("mouseover", ()=>{
+            if (abandoned) return;
+
+            autoStepping = false;
+            stopTransition();
+            })
+        .on("mousemove", function() {
+            if (abandoned) return;
+
+            var x = d3.mouse(this.parentNode)[0]-controlStripOrigin.x;
+            var desiredStep = Math.max(0, Math.min(Math.floor(numScenarios*x/controlStripWidth), numScenarios-1));
+//console.log(desiredStep);
+            if (desiredStep!==displayStep) transitionToScenario(desiredStep, true);
+            })
+        .on("mouseout", ()=>{
+            if (abandoned) return;
+
+            autoStepping = true;
+            stepAfterDelay(0);
+            });
+    
+    var delayedStep = null;
+    function stepAfterDelay(delay) {
+        if (delayedStep) clearTimeout(delayedStep);
+        delayedStep = null;
+        
+        if (delay) {
+            delayedStep = setTimeout(doStep, delay);
+        } else {
+            doStep();
+        }
+        
+        function doStep() {
+            if (abandoned || !autoStepping) return;  // either user has taken control by mousing over control strip, or we've left this stage of the essay
+
+            // bounce off the ends
+            if (displayStep===0) cycleDirection = 1;
+            else if (displayStep===numScenarios-1) cycleDirection = -1;
+
+            transitionToScenario(displayStep+cycleDirection, false); // not instant
+        }
+    }
+    
+    function updateTitleText(val) {
+        var labels = chart.demoGroup.selectAll("text.scenarioTitle").data([labelFn(val)]);
         labels.enter().append("text")
-            .attr("class", "scenarioLabel")
+            .attr("class", "scenarioTitle")
             .attr("x", labelOrigin.x)
             .attr("y", labelOrigin.y)
     		.attr("dy", chart.textOffsets.central)
             .style("font-size", "14px")
-            //.style("dominant-baseline", "hanging")
             .style("-webkit-user-select","none")
+            .style("pointer-events", "none")
           .merge(labels)
             .text(String);
     }
+
+    function updateScenarioTexts(current) {
+        var labels = chart.demoGroup.selectAll("text.scenarioNumber").data(lively.lang.arr.range(1, numScenarios));
+        labels.enter().append("text")
+            .attr("class", "scenarioNumber")
+            .attr("x", n=>controlStripOrigin.x+(n-0.5)*controlStripWidth/numScenarios)
+            .attr("y", controlStripOrigin.y+controlStripHeight/2)
+    		.attr("dy", chart.textOffsets.central)
+    		.style("text-anchor", "middle")
+            .style("font-size", "11px")
+            .style("-webkit-user-select","none")
+            .style("pointer-events", "none")
+            .text(String)
+          .merge(labels)
+            .style("font-weight", n=>n===current+1 ? "bold" : "normal")
+            .style("opacity", n=>n===current+1 ? 1 : 0.7);
+    }
     
-    function transitionToNext() {
-//console.log(cycleStep+cycleDirection);
-        if (!cycling) return;
+    function transitionToScenario(scenario, instant) {
+        var nextGroupSeln = d3.select(chart.scenarioRecords[scenario].bins);
 
-        var changeTime = 400, pauseTime = chart.slowScenarioCycles ? 1500 : 750;
-
-        var nextGroupSeln = d3.select(chart.scenarioRecords[cycleStep+cycleDirection].bins);
-//nextGroupSeln.style("opacity", 1);
         // we want to move the elements in movingGroup to the positions of the corresponding elements in nextGroup.  we do this by setting up data objects that hold the relevant attributes of the latter.
         var rectDefs = [];
         var nextRects = nextGroupSeln.selectAll("rect");
         nextRects.each(function(def) {
             var seln = d3.select(this);
-            rectDefs.push({ binNum: def.binNum, x: +seln.attr("x"), y: +seln.attr("y"), width: +seln.attr("width"), height: +seln.attr("height") })
+            rectDefs.push({ binNum: def.binNum, x: +seln.attr("x"), y: +seln.attr("y"), width: +seln.attr("width"), height: +seln.attr("height"), indices: def.indices })
             });
         var sampleRect = nextRects.nodes()[0]; // suitable for cloning
         var yBase = rectDefs[0].y+rectDefs[0].height; // as good as any
@@ -2021,24 +2091,8 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             });
         var sampleLine = nextLines.nodes()[0]; // for cloning
 
-        var trans = d3.transition().delay(pauseTime).duration(changeTime);
-
-        trans
-            .on("end", function() {
-//nextGroupSeln.style("opacity", 1e-6);
-                if (!cycling) return;
-
-                updateLabelText(chart.scenarioRecords[cycleStep+cycleDirection].value);
-    
-                var numSteps = chart.scenarioRecords.length;
-                cycleStep = cycleStep+cycleDirection;
-                if (cycleStep===0) {
-                    cycleDirection = 1;
-                } else if (cycleStep===numSteps-1) {
-                    cycleDirection = -1
-                }
-                setTimeout(transitionToNext,50);
-                });
+        shifting = true; // suppress bin hit-testing until the shift finishes
+        var trans = d3.transition().duration(instant ? 0 : changeTime);
 
         var preMoveRects = movingGroupSeln.selectAll("rect.movingclone"), preMoveFirstRect = d3.select(preMoveRects.nodes()[0]), preMoveLastRect = d3.select(preMoveRects.nodes()[preMoveRects.size()-1]), preMoveFirstX = +preMoveFirstRect.attr("x"), preMoveWidth = +preMoveFirstRect.attr("width"), preMoveLastX = +preMoveLastRect.attr("x")+Number(preMoveLastRect.attr("width"));
         var postMoveFirstX = +rectDefs[0].x, postMoveWidth = +rectDefs[0].width, postMoveLastX = postMoveFirstX + postMoveWidth*rectDefs.length;
@@ -2048,7 +2102,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
 
         rects.exit()
             .attr("class", "defunctclone")
-            .transition().delay(pauseTime).duration(changeTime)
+            .transition(trans)
             .on("start.defunctrect", function() {
                 d3.select(this)
                     .style("stroke-opacity", 1e-6)
@@ -2074,9 +2128,6 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .attr("width", def=>def.width)
             .attr("height", 0);
             
-        //var colourInterp = d3.interpolateRgb("grey", "lightgrey");
-        //var fastTransFactor = changeTime/200;
-
         movingGroupSeln.selectAll("rect.movingclone")
             .each(function(def) {
                 var seln = d3.select(this);
@@ -2089,42 +2140,21 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
 
             .on("start.rect", function(def) {
                 d3.select(this)
-                    //.style("stroke", "lightgrey")
                     .style("stroke-opacity", 1e-6)
                     .attr("y", def=>def.preY-1)
                     .attr("height", def=>def.preHeight+1)
-                    //.style("fill-opacity", 0.1)
-                    //.style("fill", "url(#bin-gradient)")
                     })
 
-            //.styleTween("fill-opacity", ()=>function(t) { return 0.25-0.15*Math.min(1, t*changeTime/200)})
-            //.styleTween("stroke-width", ()=>function(t) { return 0.5+0.5*Math.min(1, t*changeTime/200)})
-            //.styleTween("stroke-opacity", ()=>function(t) { return 1-0.75*Math.min(1, t*fastTransFactor) })
-            //.styleTween("stroke", ()=>function(t) { return colourInterp(Math.min(1, t*fastTransFactor)) })
             .attr("x", def=>def.x)
             .attr("width", def=>def.width)
             .attr("height", def=>def.height+2) // fudge for appearances' sake
             .attr("y", def=>def.y-2)
             .style("opacity", 1)
             .transition()
-            .duration(200)
+            .duration(instant ? 0 : 200)
             .attr("y", def=>def.y)
             .attr("height", def=>def.height)
-            .style("stroke-opacity", 1)
-            //.style("stroke", "grey")
-            //.style("stroke-width", 0.5)
-            //.style("fill", "lightgray")
-            //.style("fill-opacity", 0.25);
-
-/*            
-            .on("end.rect", function(def) {
-                d3.select(this)
-                    .style("stroke-opacity", 1)
-                    .style("fill-opacity", 0.25)
-                    .attr("height", def.height)
-                    .attr("y", def.y);
-                });
-*/
+            .style("stroke-opacity", 1);
 
         var texts = movingGroupSeln.selectAll("text.movingclone").data(textDefs, def=>def.index);
 
@@ -2191,56 +2221,114 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .attr("x2", preMoveLastX)
             .transition(trans)
             .attr("x1", postMoveFirstX)
-            .attr("x2", postMoveLastX)
+            .attr("x2", postMoveLastX);
+            
+        trans
+            .on("end", function() {
+//console.log("end");
+                if (abandoned) return;
+
+                shifting = false;
+                displayStep = scenario;
+                updateTitleText(chart.scenarioRecords[scenario].value);
+                updateScenarioTexts(scenario);
+                checkForBinHighlight();
+                if (autoStepping) stepAfterDelay(pauseTime);
+                });
+
     }
 
     function stopTransition() {
-        if (movingGroupSeln) movingGroupSeln.selectAll("*").interrupt();
-        movingGroupSeln.remove();
-        movingGroupSeln = null;
+        if (delayedStep) clearTimeout(delayedStep);
+        delayedStep = null;
+
+        if (movingGroupSeln) {
+            movingGroupSeln.selectAll("*").interrupt();
+            movingGroupSeln.selectAll(".defunctclone").remove();
+        }
     }
 
-    if (chart.scenarioRecords.length > 1) {
-        cycling = true;
+    movingGroupSeln = d3.select(chart.duplicateObjects(chart.scenarioRecords[0].bins, "rect,text,line")); // NB: not the scenarioClasses, but these with "clone" added
+
+    movingGroupSeln.selectAll("*")
+        .attr("class", "movingclone");
+
+    // prepare the moving group's elements.  by default (see dropBallsIntoBins) the bins' fill is lightgray at 0.25 opacity.
+    movingGroupSeln.style("opacity", 1);
+    movingGroupSeln.selectAll("text,line")
+        .style("opacity", 1);
+    movingGroupSeln.selectAll("rect")
+        .style("fill", "lightgray")
+        .style("fill-opacity", 0.25)
+        .style("stroke-opacity", 1);
+
+    // hide and de-sensitise the main-scenario elements
+    this.demoGroup.selectAll(scenarioClasses)
+        .style("opacity", 0)
+        .style("cursor", "default")
+        .on("mouseover", null)
+        .on("mouseout", null);
         
-        movingGroupSeln = d3.select(chart.duplicateObjects(chart.scenarioRecords[0].bins, "rect,text,line")); // NB: not the scenarioClasses, but these with "clone" added
-
-        movingGroupSeln.selectAll("*")
-            .attr("class", "movingclone");
-
-        // prepare the moving group's elements.  by default (see dropBallsIntoBins) the bins' fill is lightgray at 0.25 opacity.
-        movingGroupSeln.style("opacity", 1);
-        movingGroupSeln.selectAll("text,line")
-            .style("opacity", 1);
-        movingGroupSeln.selectAll("rect")
-            .style("fill", "lightgray")
-            .style("fill-opacity", 0.25)
-            .style("stroke-opacity", 1);
-
-        // hide the main-scenario elements
-        chart.demoGroup.selectAll(scenarioClasses).style("opacity", 1e-6);
-
-        cycleStep = 0;
-        cycleDirection = 1;
-
-        updateLabelText(chart.scenarioRecords[cycleStep].value);
-    
-        chart.setTimerInfo({
-            cleanup: ()=> {
-                if (cycling) {
-                    cycling = false;
-                    stopTransition();
-                    chart.demoGroup.select("text.scenarioLabel").remove();
-                    
-                    // unhide main elements
-                    chart.demoGroup.selectAll(scenarioClasses).style("opacity", 1);
-                }
-                }
+    // add a mousetrap for highlighting the (changing) bin membership
+    var widthExcess = 100;
+    var binProbeX = null;
+    this.demoGroup.selectAll(".demobinMousetrap").remove();
+    this.demoGroup.append("rect")
+        .attr("class", "demobinMousetrap")
+        .attr("x", -widthExcess)
+        .attr("y", stackBase)
+        .attr("width", this.numberLineWidth+2*widthExcess)
+        .attr("height", dropDistance)
+        .style("fill", "none")
+        .style("pointer-events", "all")
+        .style("cursor", "pointer")
+        .on("mousemove", function() {
+            binProbeX = d3.mouse(this.parentNode)[0];
+            if (!shifting) checkForBinHighlight();
+            })
+        .on("mouseleave", function() {
+            binProbeX = null;
+            if (!shifting) checkForBinHighlight();
             });
-
-        transitionToNext();
-
+        
+    function checkForBinHighlight() {
+        var indexRange = [];
+        if (binProbeX!==null) {
+            var binHit = movingGroupSeln.selectAll("rect").select(function() {
+                var x = Number(this.getAttribute("x")), w = Number(this.getAttribute("width"));
+                return binProbeX>=x && binProbeX<=x+w ? this : null;
+                });
+            if (binHit.size()) {
+                indexRange = binHit.datum().indices;
+            }
+        }            
+        chart.highlightPathIndices(indexRange);
+        chart.highlightValueIndices(indexRange, true); // gather repeats
     }
+
+    displayStep = 0;
+    cycleDirection = 1;
+
+    updateTitleText(chart.scenarioRecords[displayStep].value);
+    updateScenarioTexts(displayStep);
+
+    chart.setTimerInfo({
+        cleanup: ()=> {
+            abandoned = true;
+            chart.clearScenarioZone();
+            chart.demoGroup.selectAll("text.scenarioNumber,text.scenarioTitle").remove();
+            stopTransition();
+            movingGroupSeln.remove();
+            
+            // unhide main elements (but no need to restore event handlers)
+            chart.demoGroup.selectAll(scenarioClasses).style("opacity", 1);
+            }
+        });
+
+    stepAfterDelay(pauseTime);
+
+// }
+
 };
 
 chartObject.drawDataSelector=function drawDataSelector(options) {
@@ -2887,7 +2975,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         showScale = !(options && options.noScale);
 
     function clearDemoBins() {
-        chart.chartGroup.selectAll("rect.demobin,line.binbreak,text.binbreak,text.democounter,circle.movingBall,g.annotation").interrupt().remove();
+        chart.chartGroup.selectAll("rect.demobin,line.binbreak,text.binbreak,text.democounter,circle.movingBall,g.annotation,rect.demobinMousetrap").interrupt().remove();
     }
     chart.clearDemoBins = clearDemoBins;
 
@@ -2970,6 +3058,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
     bins.exit().remove();
     var binsE = bins.enter().append("rect")
         .attr("class", "demobin")
+        .style("cursor", "pointer")
         .on("mouseover", function(def) {
             if (chart.highlightPathIndices) chart.highlightPathIndices(def.indices);
             if (chart.highlightValueIndices) chart.highlightValueIndices(def.indices, true);
@@ -4243,7 +4332,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
         var navHeight = d3.select("nav").node().getBoundingClientRect().height;
         var heightMargin = navHeight+50;
         var switchPos = 200+navHeight;  // how far from the top we switch in a new section
-        var stickPoint = 20+navHeight
+        var stickPoint = 10+navHeight
         var textMargin = 10;  // NB: tied to scrolly.css
 
         var visSeln = null;
