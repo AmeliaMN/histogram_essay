@@ -134,7 +134,11 @@ function scrollStepDefs(ch) {
                         chart.drawBreakValues({ instant: true });
                     }
                     );
-                chart.drawCyclingScenarios(function(v) { return "offset = bin width * "+(-v)+"%"});
+                chart.drawCyclingScenarios(function(v) { return [
+                    { text: "offset = bin width * " },
+                    { text: String(-v), highlightOnChange: true },
+                    { text: "%" }
+                    ] });
             }
             }
         },
@@ -151,7 +155,11 @@ function scrollStepDefs(ch) {
                         chart.drawBreakValues({ instant: true });
                         }
                     );
-                chart.drawCyclingScenarios(function(v)  { return "bin width = "+v+"% of default"});
+                chart.drawCyclingScenarios(function(v)  { return [
+                    { text: "bin width = " },
+                    { text: String(v), highlightOnChange: true },
+                    { text: "% of default" }
+                    ] });
             }
             }
         },

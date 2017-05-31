@@ -1609,7 +1609,7 @@ function createChartObject() {
             var seln = d3.select(this);
             if (instant) seln.style("fill", "grey");else {
                 var throb = function throb() {
-                    seln.transition().duration(1000).style("fill", "gray").transition().duration(1000).style("fill", "red").on("end", throb);
+                    seln.transition().duration(500).style("fill", "gray").transition().duration(500).style("fill", "red").on("end", throb);
                 };
 
                 seln.style("fill", "red");
@@ -1862,8 +1862,20 @@ function createChartObject() {
         }
 
         function updateTitleText(val) {
-            var labels = controlGroup.selectAll("text.scenarioTitle").data([labelFn(val)]);
-            labels.enter().append("text").attr("class", "scenarioTitle").attr("x", labelOrigin.x).attr("y", labelOrigin.y).attr("dy", chart.textOffsets.central).style("font-size", "14px").style("-webkit-user-select", "none").style("pointer-events", "none").merge(labels).text(String);
+            var labelText = controlGroup.selectAll("text.scenarioTitle").data([0]);
+            labelText.enter().append("text").attr("class", "scenarioTitle").attr("x", labelOrigin.x).attr("y", labelOrigin.y).attr("dy", chart.textOffsets.central).style("font-size", "14px");
+            // for now, we expect labelFn to return an array of objects with props { text, highlightOnChange }
+            var basicFill = "grey";
+            var labelSpans = controlGroup.select("text.scenarioTitle").selectAll("tspan").data(labelFn(val));
+            labelSpans.enter().append("tspan").style("fill", basicFill).style("-webkit-user-select", "none").style("pointer-events", "none").merge(labelSpans).each(function (def) {
+                var seln = d3.select(this);
+                seln.interrupt();
+                if (def.highlightOnChange && seln.text() !== def.text) {
+                    seln.style("fill", "red").transition().duration(1000).style("fill", basicFill);
+                }
+            }).text(function (def) {
+                return def.text;
+            });
         }
 
         function updateScenarioTexts(current) {
@@ -2102,6 +2114,7 @@ function createChartObject() {
             cleanup: function cleanup() {
                 abandoned = true;
                 stopTransition();
+                chart.demoGroup.selectAll("tspan").interrupt();
                 chart.demoGroup.selectAll("g.scenariocontrol,rect.demoBinMousetrap,g.groupclone").remove();
                 chart.scenarioRecords = [];
                 movingGroupSeln.remove();
