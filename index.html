@@ -99,11 +99,11 @@ function getVis() { return window.scrollyVis }
   <a class="thumbnail" style="float: right; margin: 0px 0px 15px 15px;" href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/"><img width="300px" src="img/hickey-ross-tags-1.png" class="img-responsive" alt="Bob Ross paintings containing the named elements"/></a>
 
 
-    <p><b>Categorical</b> variables take on only on a few specific values. For example, gender is often reported as a categorical variable, perhaps with categories "male," "female," and "gender non-conforming." Racial categories are another common use of categorical variables.</p>
+    <p><b>Categorical</b> variables take on only on a few specific values. For example, gender is a common categorical variable, perhaps with categories "male," "female," and "gender non-conforming."</p>
 
 	
 
-    <p>When a variable is categorical, the way to view the distribution of one variable is known as a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> or bar graph. Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>. The categories for painting elements are discrete choices, so Walt Hickey (the author of the chart) counted up how many paintings contained each element and displayed the <a href="#" data-toggle="tooltip" title="Technically, he really showed the percentages">counts</a>.</p>
+    <p>To visualize the distribution of one categorical variable, we use what is called a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (or bar graph). Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>. The categories for painting elements are discrete choices, so Walt Hickey (the author of the chart) counted how many paintings contained each element and displayed the counts (technically, he really showed the percentages).</p>
 
     <p>Bar charts are not parameterized, which reduces the number of choices for the data analyst to make. As we will see, this is not the case for histograms.</p>
     
@@ -113,16 +113,16 @@ function getVis() { return window.scrollyVis }
   <h3>Distributions of numeric variables</h3>
   
 
-  <p><b>Numeric</b> variables are measured as numbers. For example, height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables can only take on certain integer values. Continuous variables can take on any value along the number line.</p>
+  <p><b>Numeric</b> variables are measured as numbers. Height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables can only take on certain integer values. Continuous variables can take on any value along the number line.</p>
 
 	
 
 		<p>When a variable is numeric, there are a <a href="#" data-toggle="tooltip" title="Including boxplots, stem and leaf plots, and density plots">a variety of ways</a> to visualize the distribution, but the most common method is probably the histogram.</p>
-    <p>For example, Justin Wolfers of The Upshot produced a histogram to <a href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=1">visualize the finishing times of 10 million marathon finishers</a>.</p>
+    <p>Justin Wolfers of The Upshot produced a histogram to <a href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=1">visualize the finishing times of 10 million marathon finishers</a>.</p>
 
       <a class="thumbnail" style="float: right; margin: 0px 0px 15px 15px;" href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=0"><img width="300px" src="img/0422-ups-marathon-945-1.png", class="img-responsive" alt="Marathon finishing times"/></a>
 
-    <p>At first glance, this looks simple enough. We bin data into a set of discrete bins, then count how many values fall into each of the bins to aggregate the data. But, as we look closer we realize that there are actually many choices the data analyst needs to make in order to create a histogram, and the choices have big consequences on the resulting distribution!</p>
+    <p>At first glance, creating a histogram looks simple enough&mdash;we break data into a set of discrete bins, then count how many values fall into each of the bins. But, as we look closer there are actually many choices that must be made in order to create a histogram, and the choices have big consequences on the resulting distribution!</p>
 
 </div>
 <br style="clear:both" />
@@ -141,7 +141,7 @@ function getVis() { return window.scrollyVis }
   </section>
   <section class="step">
     <div class="title">Sort into an ordered list</div>
-    A first step in being able to describe the distribution of the variable is to gather the items into a list, sorted by value. Now we can see the maximum value and the minimum value. Beyond that, it is hard to say much about the center, shape, and spread of the distribution. Part of the problem is that the list is completely filled&mdash;the space between two items is the same no matter how far apart their values may be. We'd like to move these values appropriately so we can tell how sparse or clumpy they are.
+    A first step in being able to describe the distribution of the variable is to gather the items into a list, sorted by value. Now we can see the maximum value and the minimum value. Beyond that, it is hard to say much about the center, shape, and spread of the distribution. Part of the problem is the list is completely filled&mdash;the space between two items is the same no matter how far apart their values may be. We'd like to move these values appropriately so we can tell how sparse or clumpy they are.
   </section>
   <section class="step">
     <div class="title">Draw the number line</div>
@@ -149,19 +149,22 @@ function getVis() { return window.scrollyVis }
   </section>
   <section class="step">
     <div class="title">Add data to the number line</div>
-    <p>Now, we want to show each item as a dot at the appropriate point along the number line.  Here we draw a path connecting each item's position in the list to its position on the line, to highlight how adjacent items in the list will end up close or far apart on the number line depending on their values.</p>
+    <p>Now, we show each item as a dot at the appropriate point along the number line.  Here we draw a path connecting each item's position in the list to its position on the line, to highlight how adjacent items in the list will end up close or far apart on the number line depending on their values.</p>
     
-    <p>In the first sample dataset ("mpg"), there are&mdash;by chance&mdash;no two items having exactly the same value. We have some other datasets available.  At an opposite extreme from "mpg" is "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">nba</span>", a dataset listing the ages of some NBA athletes.  Because the ages are rounded to whole years, there end up being multiple items (i.e., multiple athletes) with the same age value.  We show repeated values by <b>stacking</b> them on top of each other on the number line.<p>
+    <p>In the first sample dataset ("mpg"), there are&mdash;by chance&mdash;no two items with exactly the same value. We have some other datasets available.  At an opposite extreme is "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">nba</span>", a dataset listing the ages of some NBA athletes.  The ages are rounded to whole years, so there are multiple items (i.e., multiple athletes) with the same age value.  We show repeated values by <b>stacking</b> them on top of each other on the number line.<p>
     
-    <p>A third example dataset is "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">geyser</span>", a dataset of timings, in seconds, between eruptions of the Old Faithful geyser in Yellowstone National Park.  Again, this dataset turns out to have some values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are being rounded to integers.  If the timings were measured to multiple decimal places (fanciful though that would be, for something as vague as an eruption onset), this dataset would almost certainly have no duplicates.  This is why counting items over a <i>range</i> of values&mdash;which is what histograms are all about&mdash;is useful in the first place.<p>
+    <p>A third sample dataset is "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">geyser</span>", a dataset of timings, in seconds, between eruptions of the Old Faithful geyser in Yellowstone National Park.  This dataset has values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are rounded to integers.  If the timings were measured to multiple decimal places, this dataset would almost certainly have no duplicates.<p>  
+
+
+    <p>In these small datasets, the stacks of dots (often called a <b>dotplot</b>) may give you a good sense of the distribution of the data. However, many real-world datasets have values which are repeated many hundreds or thousands of times, so it becomes very hard to plot all the dots. Histograms provide a way to visualize data by aggregating it into bins, and they can be used with data of any size.   Histograms allow you to group similar values together.</p>
     
     <p>The buttons at the top of the visualization allow you to switch between these datasets at any stage of the essay.<p>
   </section>
   <section class="step">
     <div class="title">Portioning items into bins&mdash;the essence of a histogram</div>
-    <p>In these small datasets, the stacks of dots may give you a good sense of the distribution of the data. However, many real-world datasets have values which are repeated many hundreds or thousands of times. It becomes very hard to plot all the dots. Histograms provide a way to visualize data by aggregating it into bins, and they can be used with data of any size.</p>
+    
 
-    <p>Once items are placed along a number line, drawing a histogram involves sectioning the number line into <b>bins</b> and <b>counting</b> the items that fall into each bin. Notice how the distribution shown in the histogram echoes the distribution we could see in the dot plot.</p>
+    <p>Once items are placed along a number line, drawing a histogram involves sectioning the number line into <b>bins</b> and <b>counting</b> the items that fall into each bin. Notice how the distribution shown in the histogram echoes the distribution from the dot plot.</p>
 
     <p>Perhaps because of their visual similarity to bar charts, histograms can appear very objective. But, unlike bar charts, histograms are governed by many <a href="https://em.wikipedia.org/wiki/Parameter" data-toggle="tooltip" title="Things that can be changed">parameters</a>.</p>
     
@@ -169,28 +172,34 @@ function getVis() { return window.scrollyVis }
   </section>
   <section class="step">
     <div class="title">Why these bins?</div>
-    <p>Many tools for working with data provide functionality to generate histograms, but most of them abstract away the defaults baked into the system. As a result, it is easy to come away with the belief that the histogram you generated is representative of the data, when in fact it is only one of a great number of possible histograms.</p>
+    <p>We've chosen to set the edges of the histogram bins to be round numbers. For the "<span class="VisControlLink" onclick="getVis().switchDataset('mpg')">mpg</span>" and "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">nba</span>" datasets, the chosen breaks cover the value ranges quite tidily.  But for "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">geyser</span>" the first bin seems a bit arbitrary.  And it is.</p>
 
-    <p> For example, the statistical programming language <a href="https://www.r-project.org/">R</a> sets bin edges ("breaks") that are round numbers.  This certainly makes it easy to draw labels for the bins&mdash;and for the "<span class="VisControlLink" onclick="getVis().switchDataset('mpg')">mpg</span>" and "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">nba</span>" datasets, the chosen breaks do cover the value ranges quite tidily.  But if you look at "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">geyser</span>" that first bin seems a bit arbitrary.  And it is.</p>
+    <!--<p>Many tools for working with data provide functionality to generate histograms, but most of them abstract away the defaults baked into the system. As a result, it is easy to come away with the belief that the histogram you generated is representative of the data, when in fact it is only one of a great number of possible histograms.</p>-->
+
+    <!--<p> For example, the statistical programming language <a href="https://www.r-project.org/">R</a> sets bin edges ("breaks") that are round numbers.  This certainly makes it easy to draw labels for the bins&mdash;and </p>-->
 
 
-    <p>There are many algorithms for automatically choosing the number of bins in a histogram or the width of histogram bins. The <a href="https://en.wikipedia.org/wiki/Histogram#Sturges.27_formula">Sturges algorithm<a/> is a well-known method for choosing bin widths, but other algorithms include <a href="https://en.wikipedia.org/wiki/Histogram#Scott.27s_normal_reference_rule">Scott's choice</a> and the <a href="https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule">Freedman-Diaconis choice</a>. However, these are essentially just heuristics, and the generation of histograms should always involve human intervention.  </p>
+    <p>There are many algorithms for automatically choosing the number of bins in a histogram or the width of histogram bins. The <a href="https://en.wikipedia.org/wiki/Histogram#Sturges.27_formula">Sturges algorithm<a/> is a well-known method for choosing bin widths, but other algorithms include <a href="https://en.wikipedia.org/wiki/Histogram#Scott.27s_normal_reference_rule">Scott's choice</a> and the <a href="https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule">Freedman-Diaconis choice</a>. However, these are essentially just heuristics, and the generation of histograms should always involve human intervention. </p>
 
-    <p>No matter which parameters we choose, we're trying to answer the question "what is the distribution of this data like?" This is like trying to explain the distribution to someone over the phone. One way to convey the information would be to read the entire list of data and provide the exact values, but it is probably more salient to convey whether the distribution is symmetric, where it is centered, and whether it has extreme values. One question to ask when generating histograms is "How consistent is this description when we vary the parameters?"</p>
+    <p>No matter which parameters we choose, we're trying to answer the question "what is the distribution of this data like?" This is like trying to explain the distribution to someone over the phone. One way to convey the information would be to read the entire list of data, but it is more salient to convey whether the distribution is symmetric, where it is centered, and whether it has extreme values.</p>
+
+    <p>Is the histogram that we created the only possible way to visualize this data? No. Is it the best? Maybe not. </p>
+    <p>One question to ask when generating histograms is "How consistent is this description when we vary the parameters?"</p>
 
   </section>
   <section class="step">
     <div class="title">Shifting the bin offset</div>
-    <p>Is the histogram that we created the only possible way to visualize this data? No. Is it the best? Maybe not.</p>
+    
 
-    <p>Watch what happens to the relative bin heights as we move the bins back and forth along the number line (changing the "bin offset"). Points are essentially being moved from one bin to another, changing the aggregation of height in the bins.</p>
-    <p>The only thing we are varying is this offset. The data remains the same, the binwidth remains the same, but we nudge the edges in one direction or another. Some of the distributions look quite similar to one another, but occasionally a strangely different distribution will pop out.</p>
+    <p>Watch what happens to the relative bin heights as change the "bin offset" slightly. The only thing varying is this offset. The data remains the same, the binwidth remains the same, but the edges move a little in one direction or another.</p>
+
+    <p>Points are essentially being moved from one bin to another, changing the aggregation of height in the bins. Some of the distributions look quite similar to one another, but occasionally a strangely different picture will pop out.</p>
     <p>Mouse over the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#scenarioSwitcher')" onmouseout="getVis().hoverOut()">scenario switcher</span> to take control of the animation.</p>
   </section>
   <section class="step">
     <div class="title">Shifting the bin width</div>
-    <p>Another parameter we can vary is the width of the histogram bins. Now we fix the left end of the first bin to be equal to the minimum data value, and adjust the widths.</p>
-    <p>Unlike offsets, some widths can be argued as being more valid than others.  For example, setting a width of 1.4 years for the "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">nba</span>" dataset, where values are always integers, is asking for trouble: some bins will inevitably span two integer values, while others only include one.</p>
+    <p>Now, we vary the width of the histogram bins. Here, the left end of the first bin has been fixed to be equal to the minimum data value, and all that is being varied is the binwidth.</p>
+    <p>Unlike offset, some widths can be argued to be more valid than others. For example, setting a width of 1.4 years for the "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">nba</span>" dataset, where values are always integers, is asking for trouble: some bins will inevitably span two integer values, while others only include one.</p>
   </section>
   <section class="step">
     <div class="title">Unmasking the magic</div>
