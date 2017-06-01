@@ -122,7 +122,7 @@ function scrollStepDefs(ch) {
         },
 
         { // move the bins through a sweep of offsets (relative to dataMin)
-        command: "vary bin alignment",
+        command: "vary bin offset",
         activate: function(chart, originStep, prevRendered, targetStep, thisStep) {
             chart.stopTimer(true);
             chart.scenarioRecords = [];
