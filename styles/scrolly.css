@@ -318,67 +318,6 @@
       color: inherit;
     }
 
-    .tooltip {
-      position: absolute;
-      z-index: 1070;
-      display: block;
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-size: 12px;
-      font-style: normal;
-      font-weight: normal;
-      line-height: 1.42857143;
-      text-align: left;
-      text-align: start;
-      text-decoration: none;
-      text-shadow: none;
-      text-transform: none;
-      letter-spacing: normal;
-      word-break: normal;
-      word-spacing: normal;
-      word-wrap: normal;
-      white-space: normal;
-      filter: alpha(opacity=0);
-      opacity: 0;
-
-      line-break: auto;
-    }
-
-    .popover {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1060;
-      display: none;
-      max-width: 276px;
-      padding: 1px;
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-size: 14px;
-      font-style: normal;
-      font-weight: normal;
-      line-height: 1.42857143;
-      text-align: left;
-      text-align: start;
-      text-decoration: none;
-      text-shadow: none;
-      text-transform: none;
-      letter-spacing: normal;
-      word-break: normal;
-      word-spacing: normal;
-      word-wrap: normal;
-      white-space: normal;
-      background-color: #fff;
-      -webkit-background-clip: padding-box;
-              background-clip: padding-box;
-      border: 1px solid #ccc;
-      border: 1px solid rgba(0, 0, 0, .2);
-      border-radius: 6px;
-      -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
-              box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
-
-      line-break: auto;
-    }
-
-
     .navbar {
       position: relative;
       min-height: 50px;
@@ -386,9 +325,9 @@
       border: 1px solid transparent;
     }
 
-      .navbar-fixed-top .navbar-collapse,
-      .navbar-static-top .navbar-collapse,
-      .navbar-fixed-bottom .navbar-collapse {
+    .navbar-fixed-top .navbar-collapse,
+    .navbar-static-top .navbar-collapse,
+    .navbar-fixed-bottom .navbar-collapse {
         padding-right: 0;
         padding-left: 0;
       }
@@ -527,3 +466,63 @@
       padding: 9px;
       color: #333;
     }
+
+    blockquote {
+      padding: 10px 20px;
+      margin: 0 0 20px;
+      border-left: 5px solid #eeeeee;
+    }
+
+    blockquote p {
+      font-size: 17.5px;
+      font-weight: 300;
+      line-height: 1.25;
+    }
+
+    blockquote p:first-child {  /* ael added */
+      margin-top: 0;
+    }
+
+    blockquote p:last-child {
+      margin-bottom: 0;
+    }
+
+    blockquote small {
+      display: block;
+      line-height: 1.428571429;
+      color: #999999;
+    }
+
+    blockquote small:before {
+      content: '\2014 \00A0';
+    }
+
+    blockquote.pull-right {
+      padding-right: 15px;
+      padding-left: 0;
+      border-right: 5px solid #eeeeee;
+      border-left: 0;
+    }
+
+    blockquote.pull-right p,
+    blockquote.pull-right small {
+      text-align: right;
+    }
+
+    blockquote.pull-right small:before {
+      content: '';
+    }
+
+    blockquote.pull-right small:after {
+      content: '\00A0 \2014';
+    }
+
+    q:before,
+    q:after,
+    blockquote:before,
+    blockquote:after {
+      content: "";
+    }
+
+
+
