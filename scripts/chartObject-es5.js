@@ -610,7 +610,10 @@ function createChartObject() {
                         var cellGroup = [],
                             groupObject = { category: "expr", cells: cellGroup, xOffset: edges[1] };
                         if (rowItem.reason === "extraShadow") cellGroup.push({ rowSpec: rowItem, text: rowItem.expr, x: 32, fill: "green" }); // jan 2017: text is empty
-                        else if (!lively.lang.obj.isArray(rowItem.expr)) cellGroup.push({ rowSpec: rowItem, text: rowItem.expr, x: 0, styledText: rowItem.styledExpr });else {
+                        else if (!lively.lang.obj.isArray(rowItem.expr)) {
+                                groupObject.id = rowItem.varName + "-expression";
+                                cellGroup.push({ rowSpec: rowItem, text: rowItem.expr, x: 0, styledText: rowItem.styledExpr });
+                            } else {
                                 if (rowItem.hasExtras) {
                                     groupObject.id = rowItem.varName + "-extraGroup";
 
@@ -1518,7 +1521,7 @@ function createChartObject() {
 
         var valueIndex = initialIndex;
 
-        var switchRect = switchGroup.append("rect").attr("x", dragRegionOffset.x).attr("y", dragRegionOffset.y).attr("width", switchW).attr("height", switchH).style("border-width", 1).style("stroke", switchColour).style("fill", "none").style("pointer-events", "none").attr("stroke-dasharray", "2 4");
+        var switchRect = switchGroup.append("rect").attr("id", "widthControl").attr("x", dragRegionOffset.x).attr("y", dragRegionOffset.y).attr("width", switchW).attr("height", switchH).style("border-width", 1).style("stroke", switchColour).style("fill", "none").style("pointer-events", "none").attr("stroke-dasharray", "2 4");
 
         var switchReadout = switchGroup.append("text").attr("class", "readout").attr("x", dragRegionOffset.x + switchW / 2).attr("y", dragRegionOffset.y + switchH / 3).attr("dy", this.textOffsets.central).style("font-size", "14px").style("text-anchor", "middle")
         //.style("dominant-baseline", "central")
@@ -2458,7 +2461,7 @@ function createChartObject() {
 
         var sweepActive = false;
 
-        this.histGroup.append("rect").attr("class", "switch").attr("x", offset.x).attr("y", offset.y).attr("width", switchSize).attr("height", switchSize).style("border-width", 1).style("stroke", switchColour).style("fill", switchColour).style("cursor", "pointer").each(function () {
+        this.histGroup.append("rect").attr("class", "switch").attr("id", "sweepSwitch").attr("x", offset.x).attr("y", offset.y).attr("width", switchSize).attr("height", switchSize).style("border-width", 1).style("stroke", switchColour).style("fill", switchColour).style("cursor", "pointer").each(function () {
             showState(this);
         }).on("click", function (d) {
             sweepActive = !sweepActive;

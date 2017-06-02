@@ -686,8 +686,10 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                 if (rowItem.expr !== "") {
                     var cellGroup = [], groupObject = { category: "expr", cells: cellGroup, xOffset: edges[1] };
                     if (rowItem.reason==="extraShadow") cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 32, fill: "green"}); // jan 2017: text is empty
-                    else if (!lively.lang.obj.isArray(rowItem.expr)) cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 0, styledText: rowItem.styledExpr});
-                    else {
+                    else if (!lively.lang.obj.isArray(rowItem.expr)) {
+                        groupObject.id = rowItem.varName+"-expression";
+                        cellGroup.push({rowSpec: rowItem, text: rowItem.expr, x: 0, styledText: rowItem.styledExpr});
+                    } else {
                         if (rowItem.hasExtras) {
                             groupObject.id = rowItem.varName+"-extraGroup";
                             
@@ -1588,6 +1590,7 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
 
     var switchRect = switchGroup
         .append("rect")
+        .attr("id", "widthControl")
         .attr("x", dragRegionOffset.x)
         .attr("y", dragRegionOffset.y)
         .attr("width", switchW)
@@ -2753,6 +2756,7 @@ chartObject.drawSweepControl=function drawSweepControl(offset, handler) {
     this.histGroup
         .append("rect")
         .attr("class", "switch")
+        .attr("id", "sweepSwitch")
         .attr("x", offset.x)
         .attr("y", offset.y)
         .attr("width", switchSize)
