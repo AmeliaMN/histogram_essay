@@ -2313,26 +2313,28 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
         .style("cursor", "crosshair")
         .on("mousemove", function() {
             binProbeX = d3.mouse(this.parentNode)[0];
+            // highlighting waits until bins have settled
             if (!shifting) checkForBinHighlight();
             })
         .on("mouseleave", function() {
             binProbeX = null;
-            if (!shifting) checkForBinHighlight();
+            // clearing is immediate (even while bins are shifting)
+            chart.highlightPathIndices([]);
+            chart.highlightValueIndices([]);
             });
         
     function checkForBinHighlight() {
-        var indexRange = [];
         if (binProbeX!==null) {
+            var indexRange = [];
             var binHit = movingGroupSeln.selectAll("rect").select(function() {
                 var x = Number(this.getAttribute("x")), w = Number(this.getAttribute("width"));
                 return binProbeX>=x && binProbeX<=x+w ? this : null;
                 });
-            if (binHit.size()) {
-                indexRange = binHit.datum().indices;
-            }
+            if (binHit.size()) indexRange = binHit.datum().indices;
+
+            chart.highlightPathIndices(indexRange);
+            chart.highlightValueIndices(indexRange, true); // gather repeats
         }            
-        chart.highlightPathIndices(indexRange);
-        chart.highlightValueIndices(indexRange, true); // gather repeats
     }
 
     displayStep = 0;
@@ -4354,8 +4356,8 @@ chartObject.initScrolliness=function initScrolliness(options) {
         // that is scrolled through
         var sectionPositions = [];
         var currentIndex = -1;  // somewhat redundantly tracked both here and by the stepController
-        // y coordinate of
-        var containerTop = 0, containerMaxScroll = 0, visScrollState = null;
+        // the following are used to switch on and off the inline scrolling of the viz.
+        var containerTop, containerMaxScroll, visScrollState = null;
         
         var navHeight = d3.select("nav").node().getBoundingClientRect().height;
         var heightMargin = navHeight+50;
@@ -4396,7 +4398,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             var timer = d3.timer(function () {
                 resize();
                 timer.stop();
-            });
+                });
         }
         
         /**
@@ -4418,7 +4420,6 @@ chartObject.initScrolliness=function initScrolliness(options) {
             //    fitting into the window height.
             
             var divWidth = d3.select("#scrolly").node().getBoundingClientRect().width;
-//console.log("divWidth:",divWidth);
             d3.select("#sections").style("padding-left", "0px");
             var visRatio = visMaxExtent.x / visMaxExtent.y;
             var visMinWidth = Math.max(visMinExtent.x, visRatio*visMinExtent.y);
@@ -4482,7 +4483,9 @@ chartObject.initScrolliness=function initScrolliness(options) {
         * 
         */
         function position() {
-//console.log("position", Date.now());
+            // reject any position() prior to a resize(), which takes crucial measurements.
+            if (!containerTop) return;
+
             var pos = window.pageYOffset - containerTop; // pos of top of visible region relative to start of scrolly
             
             var unstickPoint = containerMaxScroll-stickPoint;

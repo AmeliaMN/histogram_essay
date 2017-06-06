@@ -56,9 +56,12 @@
         
     #vis {
       display: inline-block;
-      /* position: fixed; */
       margin-left: 0;
       -webkit-transform: translate3d(0,0,0); /* for Safari on iPad; see http://stackoverflow.com/questions/9807620/ipad-safari-scrolling-causes-html-elements-to-disappear-and-reappear-with-a-dela */
+
+      /* the following two will be overridden (or removed) depending on scroll state */ 
+      float: right;
+      padding-top: 0px;
     }
     
     .VisControlLink {  /* link style from Bret Victor's "Ladder of Abstraction" essay */
@@ -474,7 +477,7 @@
     }
 
     blockquote p {
-      font-size: 17.5px;
+      font-size: 17px;
       font-weight: 300;
       line-height: 1.25;
     }
