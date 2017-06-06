@@ -4084,9 +4084,7 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     this.stopTimer();
     this.chartGroup.selectAll("*").remove();
 
-var fudge=50;
-
-    var plotOrigin = this.plotOrigin = lively.pt(185, 525+fudge);
+    var plotOrigin = this.plotOrigin = lively.pt(185, 575);
     var commandListOrigin = this.commandListOrigin = lively.pt(45, 10);
     
     this.numberLineWidth = 550;  // between dataMin and dataMax
@@ -4100,9 +4098,9 @@ var fudge=50;
     this.valueListEntryHeight = 15;
     
     // once we've presented the code table
-    var tableOrigin = this.tableOrigin = lively.pt(10, 335+fudge);
-    var dataOrigin = this.dataOrigin = lively.pt(270, 135+fudge);
-    var histOrigin = this.histOrigin = lively.pt(270, 290+fudge);
+    var tableOrigin = this.tableOrigin = lively.pt(10, 385);
+    var dataOrigin = this.dataOrigin = lively.pt(270, 185);
+    var histOrigin = this.histOrigin = lively.pt(270, 340);
 
     var binFill = d3.color("blue");
     binFill.opacity = 0.8;
@@ -4134,6 +4132,9 @@ var fudge=50;
 
     this.tableGroup = this.chartGroup.append('g')
 		.attr("transform", transformString(tableOrigin.x, tableOrigin.y));
+		
+	this.clearFixedCanvas();
+	this.clearEphemeralCanvas();
 		
 };
 
@@ -4669,7 +4670,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             
             var originIndex = lastIndex;
             var startIndex = originIndex; // unless there's a restart point along the way
-            if (index <= lastIndex || lastIndex===-1) {  // jump backwards, or on page load
+            if (index <= lastIndex || lastIndex===-1) {  // jump backwards, replay, or page load
                 refreshChart();
                 startIndex = restartIndex(index)-1;
                 lastIndex = null;   // for steps that care which step was last rendered
