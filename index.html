@@ -131,7 +131,7 @@ function getVis() { return window.scrollyVis }
 
     <p>Justin Wolfers of <a href="https://www.nytimes.com/section/upshot">The Upshot</a> produced the histogram at right to <a href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=1">visualize the finishing times of 10 million marathon runners</a>.</p>
 
-    <p>At first glance, creating a histogram looks simple enough&mdash;we break data into a set of discrete bins, then count how many values fall into each of the bins. But, as we look closer there are actually many choices that must be made in order to create a histogram. And, the choices have big consequences on the resulting distribution!</p>
+    <p>At first glance, creating a histogram looks simple enough&mdash;we break data into a set of discrete bins, then count how many values fall into each of the bins. But, as we look closer there are actually many choices that must be made in order to create a histogram. And, the choices have big consequences on how the distribution will appear!</p>
 
 </div>
 <br style="clear:both" />
@@ -204,7 +204,7 @@ function getVis() { return window.scrollyVis }
   <section class="step">
     <div class="title">Varying the bin offset</div>
 
-    <p>First, let's try shifting the bins left and right along the number line, based on an "offset" that we define here as how far the left-most bin extends below the dataset's minimum value.</p>
+    <p>First, let's try shifting the bins left and right along the number line, based on an <a class="tiponly" href="#" data-toggle="tooltip" title="defined here as how far the left-most bin extends below the dataset's minimum value" data-placement="bottom">"offset."</a></p>
     
     <p>Watch what happens to the relative bin heights as the offset changes. Items are being moved from one bin to another, changing the aggregation of height in the bins. Typically the various histograms' shapes look quite alike, but occasionally a strangely different picture will pop out.</p>
     
