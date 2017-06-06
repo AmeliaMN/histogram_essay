@@ -110,7 +110,7 @@ function getVis() { return window.scrollyVis }
 
 	
 
-    <p>To visualize the distribution of one categorical variable, we use what is called a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (or bar graph). Bar charts show how many items are counted in each of a set of categories. For example, fivethirtyeight used a bar chart to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>. The categories for painting elements are discrete choices, so Walt Hickey (the author of the chart) counted how many paintings contained each element and displayed the counts (technically, he really showed the percentages).</p>
+    <p>To visualize the distribution of one categorical variable, we use what is called a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (or bar graph). Bar charts show how many items are counted in each of a set of categories. For example, <a href="https://fivethirtyeight.com/">fivethirtyeight</a> created the bar chart at right to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>. The categories for painting elements are discrete choices, so Walt Hickey (the author of the chart) counted how many paintings contained each element and displayed the counts (technically, he really showed the percentages).</p>
 
     <p>Bar charts are not parameterized, which reduces the number of choices for the data analyst to make. As we will see, this is not the case for histograms.</p>
     
@@ -122,16 +122,16 @@ function getVis() { return window.scrollyVis }
   <h3>Distributions of numeric variables</h3>
   
 
-  <p><b>Numeric</b> variables are measured as numbers. Height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables can only take on certain integer values. Continuous variables can take on any value along the number line.</p>
+  <p><b>Numeric</b> variables are measured as numbers. Height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables can only take on certain integer values (1, 2, 3, etc). Continuous variables can take on any value along the number line (1.7, 14.06, etc).</p>
 
       <a class="thumbnail" style="float: right; margin: 0px 0px 15px 15px;" href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=0"><img width="300px" src="img/0422-ups-marathon-945-1.png", class="img-responsive" alt="Marathon finishing times"/></a>
 
 
     <p>When a variable is numeric, there are <a class="tiponly" href="#" data-toggle="tooltip" title="Including boxplots, stem and leaf plots, and density plots">a variety of ways</a> to visualize the distribution, but the most common method is probably the histogram.</p>
 
-    <p>Justin Wolfers of The Upshot produced a histogram to <a href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=1">visualize the finishing times of 10 million marathon finishers</a>.</p>
+    <p>Justin Wolfers of <a href="https://www.nytimes.com/section/upshot">The Upshot</a> produced the histogram at right to <a href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=1">visualize the finishing times of 10 million marathon runners</a>.</p>
 
-    <p>At first glance, creating a histogram looks simple enough&mdash;we break data into a set of discrete bins, then count how many values fall into each of the bins. But, as we look closer there are actually many choices that must be made in order to create a histogram, and the choices have big consequences on the resulting distribution!</p>
+    <p>At first glance, creating a histogram looks simple enough&mdash;we break data into a set of discrete bins, then count how many values fall into each of the bins. But, as we look closer there are actually many choices that must be made in order to create a histogram. And, the choices have big consequences on the resulting distribution!</p>
 
 </div>
 <br style="clear:both" />
@@ -146,7 +146,7 @@ function getVis() { return window.scrollyVis }
 
   <section class="step">
     <div class="title">Gather your data</div>
-    <p>A histogram is based on a collection of values for some variable, so first we need to gather those values. The initial dataset for our examples consists of fuel-mileage figures from a sample of car models available in 1974 (yes, rather out of date). We can visualize the dataset as a pool of items, each identified by its value&mdash;which in theory lets us "see" all the items, but makes it hard to get the gestalt of the variable. What are some common values? Is there a lot of variation?</p>
+    <p>A histogram is based on a collection of values for some variable, so first we need to gather those values. The initial dataset for our examples consists of fuel consumption (in miles per gallon) from a sample of car models available in 1974 (yes, rather out of date). We can visualize the dataset as a pool of items, each identified by its value&mdash;which in theory lets us "see" all the items, but makes it hard to get the gestalt of the variable. What are some common values? Is there a lot of variation?</p>
   </section>
   <section class="step">
     <div class="title">Sort into an ordered list</div>
@@ -160,9 +160,11 @@ function getVis() { return window.scrollyVis }
     <div class="title">Add data to the number line</div>
     <p>Now, we map each item to a dot at the appropriate point along the number line.  Here we're also drawing the path followed by each item on its way from the list to the line, helping to reveal how adjacent list items end up close or far apart on the number line depending on their values.</p>
     
-    <p>In the first sample dataset ("mpg"), there are&mdash;by chance&mdash;no two items with exactly the same value. We have some other datasets available. At an opposite extreme is "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">nba</span>", a dataset listing the ages of some NBA athletes. The ages are rounded to whole years, so there are multiple items (i.e., multiple athletes) with the same age value. We show repeated values by <b>stacking</b> them on top of each other on the number line.<p>
+    <p>In the first sample dataset ("MPG"), there are&mdash;by chance&mdash;no two items with exactly the same value. We have some other datasets available.</p>
+
+    <p>As you scroll, you will find a dataset at an opposite extreme&mdash; "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>", a dataset listing the ages of some National Basketball Association (NBA) athletes. The ages are rounded to whole years, so there are multiple items (i.e., multiple athletes) with the same age value. We show repeated values by <b>stacking</b> them on top of each other.<p>
     
-    <p>A third sample dataset is "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">geyser</span>", a dataset of timings, in seconds, between eruptions of the Old Faithful geyser in Yellowstone National Park.  This dataset, too, has values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are rounded to integers.  If the timings were measured to multiple decimal places, there would almost certainly be no duplicates.<p>
+    <p>Scrolling further, a third sample dataset is "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">geyser</span>", a dataset of timings, in seconds, between eruptions of the Old Faithful geyser in Yellowstone National Park.  This dataset, too, has values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are rounded to integers.  If the timings were measured to multiple decimal places, there would almost certainly be no duplicates.<p>
 
 
     <p>In these small datasets, the stacks of dots (often called a <b>dotplot</b>) may give you a good sense of the distribution of the data. However, many real-world datasets have values which are repeated many hundreds or thousands of times, so it becomes very hard to plot all the dots. Conversely, a dataset may have no duplicates at all, so even a dense region of items would appear as an unremarkable smear along the number line. Histograms provide a way to visualize data by aggregating it into bins, and they can be used with data of any size.</p>
@@ -182,11 +184,11 @@ function getVis() { return window.scrollyVis }
 <!--     <p>The <span style="font-family:monospace">hist()</span> function in R will create a histogram for any dataset that you give it, using&mdash;unless you specify otherwise&mdash;default settings for the number and placement of the bins.  Here we show the default histogram that R would draw for this dataset.</p> -->
   </section>
   <section class="step">
-    <div class="title">Why these bins?</div>
+    <div class="title">Bin-breaks: Why these bins?</div>
     
     <p>For a start, you probably noticed that the histograms shown for the sample datasets have different numbers of bins. This is because we used <a href="https://en.wikipedia.org/wiki/Histogram#Sturges.27_formula">Sturges' formula</a>, a common method for estimating, based on the number of items in a dataset, how many bins it needs.</p>
     
-    <p>Given a suggested number of bins, how did we then decide the precise values for the bin boundaries (the so-called "breaks")?  Again we used a common method: look for nearby round numbers. This is why the breaks for "<span class="VisControlLink" onclick="getVis().switchDataset('mpg')">mpg</span>" are all multiples of 5, and those for "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">nba</span>" are multiples of 2.</p>
+    <p>Given a suggested number of bins, how did we then decide the precise values for the bin boundaries (the so-called "breaks")?  Again we used a common method: look for nearby round numbers. This is why the breaks for "<span class="VisControlLink" onclick="getVis().switchDataset('mpg')">MPG</span>" are all multiples of 5, and those for "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" are multiples of 2.</p>
     
     <p>For those two datasets, the bins turn out to cover the range of the item values rather tidily. But look at the first and last bins for "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">geyser</span>". Their placement relative to the value range looks a little arbitrary, right?  That's because it is.</p>
 
@@ -213,7 +215,7 @@ function getVis() { return window.scrollyVis }
     <div class="title">Varying the bin width</div>
     <p>We now fix the left-most bin to the minimum data value, and instead vary bin width.  The width values are defined in terms of the default width that was used in the preceding stages.</p>
     
-    <p>Some widths can be argued as being more valid than others. For example, setting a width of 1.4 years for the "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">nba</span>" dataset, where item values are always integers, is asking for trouble: some bins will inevitably span two integer values, while others only include one. More generally, if the precision used in measuring item values is <i>p</i>, it only makes sense to use a bin width that is some integer multiple of <i>p</i>.</p>
+    <p>Some widths can be argued as being more valid than others. For example, setting a width of 1.4 years for the "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" dataset, where item values are always integers, is asking for trouble: some bins will inevitably span two integer values, while others only include one. More generally, if the precision used in measuring item values is <i>p</i>, it only makes sense to use a bin width that is some integer multiple of <i>p</i>.</p>
 
     <!--<p>When the spacing of the bins isn't a multiple of the spacing of valid data values, some bins will end up covering more of the possible data values.  In such a case, it's easy to see that the relative item counts in the bins are likely to change depending on how the bin boundaries line up relative to the number line: shift all boundaries to the left, for example, and you'll also be shifting to the left the places where item counts happen to get clumped together.</p>-->
 
@@ -259,7 +261,7 @@ function getVis() { return window.scrollyVis }
 
     <!--In <a href="https://www.r-project.org/">R</a>, the default is "left-open" bins, which means that any items with exactly the value of a bin's left (i.e., lower) limit will <i>not</i> be counted as belonging to that bin.  In <a href="https://stats.stackexchange.com/questions/51551/rounding-when-making-a-histogram">SAS and Stata</a>, the default is right-open.</p>-->
 
-    <p>How much of a difference does the choice between left-open and right-open make? That largely depends on the dataset&mdash;in particular, on the occurrence of data values that are highly "stacked" (i.e., have multiple items), and of course whether a bin boundary happens to fall exactly on such a stack. Among our sample datasets, predictably, "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">nba</span>" has the greatest propensity for dramatic variation.</p>
+    <p>How much of a difference does the choice between left-open and right-open make? That largely depends on the dataset&mdash;in particular, on the occurrence of data values that are highly "stacked" (i.e., have multiple items), and of course whether a bin boundary happens to fall exactly on such a stack. Among our sample datasets, predictably, "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" has the greatest propensity for dramatic variation.</p>
 
     <p>Try <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#open-extraGroup')" onmouseout="getVis().hoverOut()">switching <b>open</b></span> between L and R.  Notice how any data points exactly on a bin boundary "jump" as they are moved between neighboring bins.</p>
     
