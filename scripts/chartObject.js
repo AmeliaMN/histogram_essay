@@ -2434,7 +2434,7 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
     // tooltip code adapted from  http://bl.ocks.org/d3noob/a22c42db65eb00d4e369 
     function showTip(elem, text) {
         var box = elem.getBoundingClientRect();
-        var tip = d3.select("div.tooltip"), padding = 8; // NB: see scrolly.css
+        var tip = d3.select("div.vistooltip"), padding = 8; // NB: see scrolly.css
         tip.html(text);
         var tipWidth = Number.parseInt(tip.style("width"));
         tip        
@@ -2445,7 +2445,7 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
             .style("opacity", 1);		
     }
     function hideTip() {
-        d3.select("div.tooltip")
+        d3.select("div.vistooltip")
             .transition()		
             .duration(500)		
             .style("opacity", 0);	
@@ -4200,10 +4200,10 @@ chartObject.initChartSubstrates=function initChartSubstrates(divSeln, extent) {
 
     this.initChartSubgroups();
 
-    // Define a div to act as a tooltip
-    d3.selectAll("div.tooltip").remove();
+    // Define a div to act as a tooltip within the visualisation
+    d3.selectAll("div.vistooltip").remove();
     d3.select("body").append("div")	
-        .attr("class", "tooltip")				
+        .attr("class", "vistooltip")				
         .style("opacity", 0);
 
 };

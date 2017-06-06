@@ -64,14 +64,15 @@
       padding-top: 0px;
     }
     
-    .VisControlLink {  /* link style from Bret Victor's "Ladder of Abstraction" essay */
-        color: rgb(68, 102, 255);
+    .VisControlLink {
+        color: green;
         cursor: pointer;
-        border-bottom: 1px dashed rgb(68, 102, 255);
+        border-bottom: 1px dashed green;
     }
 
     .VisHighlightLink {
-        color: rgb(68, 102, 255);
+        /* color: rgb(68, 102, 255); */
+        color: chocolate;
         cursor: help;
     }
 
@@ -80,7 +81,7 @@
     }
 
     /* tooltip style from http://bl.ocks.org/d3noob/a22c42db65eb00d4e369 */
-    div.tooltip {
+    div.vistooltip {
         position: absolute;			
         text-align: center;			
         min-width: 100px;
@@ -93,6 +94,7 @@
         pointer-events: none;			
     }
 
+    // selectively copied from Bootstrap
     /*!
      * Bootstrap v3.3.7 (http://getbootstrap.com)
      * Copyright 2011-2016 Twitter, Inc.
@@ -139,14 +141,36 @@
     }
     a {
       background-color: transparent;
+      cursor: pointer; /* added */
     }
     a:active,
     a:hover {
       outline: 0;
     }
+    a {
+      color: #337ab7;
+      text-decoration: none;
+    }
+    a:hover,
+    a:focus {
+      color: #23527c;
+      text-decoration: underline;
+    }
+    a:focus {
+      outline: 5px auto -webkit-focus-ring-color;
+      outline-offset: -2px;
+    }
+
+    a.tiponly:hover,
+    a.tiponly:focus {
+      text-decoration: none;
+      cursor: default;
+    }
+
     abbr[title] {
       border-bottom: 1px dotted;
     }
+
     b,
     strong {
       font-weight: bold;
@@ -527,5 +551,118 @@
       content: "";
     }
 
+    .tooltip {
+      position: absolute;
+      z-index: 1030;
+      display: block;
+      font-size: 12px;
+      line-height: 1.4;
+      opacity: 0;
+      filter: alpha(opacity=0);
+      visibility: visible;
+    }
+
+    .tooltip.in {
+      opacity: 0.9;
+      filter: alpha(opacity=90);
+    }
+
+    .tooltip.top {
+      padding: 5px 0;
+      margin-top: -3px;
+    }
+
+    .tooltip.right {
+      padding: 0 5px;
+      margin-left: 3px;
+    }
+
+    .tooltip.bottom {
+      padding: 5px 0;
+      margin-top: 3px;
+    }
+
+    .tooltip.left {
+      padding: 0 5px;
+      margin-left: -3px;
+    }
+
+    .tooltip-inner {
+      max-width: 200px;
+      padding: 3px 8px;
+      color: #ffffff;
+      text-align: center;
+      text-decoration: none;
+      background-color: #000000;
+      border-radius: 4px;
+    }
+
+    .tooltip-arrow {
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-color: transparent;
+      border-style: solid;
+    }
+
+    .tooltip.top .tooltip-arrow {
+      bottom: 0;
+      left: 50%;
+      margin-left: -5px;
+      border-top-color: #000000;
+      border-width: 5px 5px 0;
+    }
+
+    .tooltip.top-left .tooltip-arrow {
+      bottom: 0;
+      left: 5px;
+      border-top-color: #000000;
+      border-width: 5px 5px 0;
+    }
+
+    .tooltip.top-right .tooltip-arrow {
+      right: 5px;
+      bottom: 0;
+      border-top-color: #000000;
+      border-width: 5px 5px 0;
+    }
+
+    .tooltip.right .tooltip-arrow {
+      top: 50%;
+      left: 0;
+      margin-top: -5px;
+      border-right-color: #000000;
+      border-width: 5px 5px 5px 0;
+    }
+
+    .tooltip.left .tooltip-arrow {
+      top: 50%;
+      right: 0;
+      margin-top: -5px;
+      border-left-color: #000000;
+      border-width: 5px 0 5px 5px;
+    }
+
+    .tooltip.bottom .tooltip-arrow {
+      top: 0;
+      left: 50%;
+      margin-left: -5px;
+      border-bottom-color: #000000;
+      border-width: 0 5px 5px;
+    }
+
+    .tooltip.bottom-left .tooltip-arrow {
+      top: 0;
+      left: 5px;
+      border-bottom-color: #000000;
+      border-width: 0 5px 5px;
+    }
+
+    .tooltip.bottom-right .tooltip-arrow {
+      top: 0;
+      right: 5px;
+      border-bottom-color: #000000;
+      border-width: 0 5px 5px;
+    }
 
 

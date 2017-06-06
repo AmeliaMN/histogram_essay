@@ -17,6 +17,9 @@
 
     <style>@import 'https://fonts.googleapis.com/css?family=Raleway:100,300';</style>
 
+    <script type="text/javascript" src="dist/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="dist/js/tooltip.js"></script>
+    
     <script type="text/javascript" src="dist/js/babel-polyfill/6.23.0/polyfill.min.js"></script>
     <script type="text/javascript" src="dist/js/lively.lang.min.js"></script>
     <script type="text/javascript" src="dist/js/d3.v4.js"></script>
@@ -25,6 +28,10 @@
 
 <script>
 window.Global = window;
+
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+});
 
 lively.pt = function pt(x, y) { return { x:x, y: y } }; // trivial, non-functional version
 
@@ -120,7 +127,7 @@ function getVis() { return window.scrollyVis }
       <a class="thumbnail" style="float: right; margin: 0px 0px 15px 15px;" href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=0"><img width="300px" src="img/0422-ups-marathon-945-1.png", class="img-responsive" alt="Marathon finishing times"/></a>
 
 
-    <p>When a variable is numeric, there are <a href="#" data-toggle="tooltip" title="Including boxplots, stem and leaf plots, and density plots">a variety of ways</a> to visualize the distribution, but the most common method is probably the histogram.</p>
+    <p>When a variable is numeric, there are <a class="tiponly" href="#" data-toggle="tooltip" title="Including boxplots, stem and leaf plots, and density plots">a variety of ways</a> to visualize the distribution, but the most common method is probably the histogram.</p>
 
     <p>Justin Wolfers of The Upshot produced a histogram to <a href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=1">visualize the finishing times of 10 million marathon finishers</a>.</p>
 
