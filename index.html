@@ -177,7 +177,9 @@ function getVis() { return window.scrollyVis }
     
     <p>Once items are placed along a number line, drawing a histogram involves sectioning the number line into <b>bins</b> and <b>counting</b> the items that fall into each bin. Notice how the distribution shown in the histogram echoes the distribution from the dot plot.</p>
 
-    <p>The benefit of gathering the items into bins is that it helps us to answer the question "what is the distribution of this data like?"  Imagine trying to describe some dataset over the phone: rather than mechanically reading out the entire list of values, it would be more useful to provide a summary, such as by saying whether the items' distribution is symmetric, where it is centered, and whether it has extreme values.  A histogram is another kind of summary, in which you communicate the overall properties in terms of portions (i.e., bins) of the data.</p>
+    <p>Gathering the items into bins helps us to answer the question "what is the distribution of this data like?"  Imagine trying to describe some dataset over the phone: rather than mechanically reading out the entire list of values, it would be more useful to provide a summary, such as by saying whether the items' distribution is symmetric, where it is centered, and whether it has extreme values.  A histogram is another kind of summary, in which you communicate the overall properties in terms of portions (i.e., bins) of the data.</p>
+
+    <p>For example, the "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">geyser</span>" data can be described as being bimodal (because it has two 'peaks'), while the "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" is more unimodal, and perhaps right-skewed (because of the decreasing heights of the bins moving toward the right). We'd like to know if these descriptions remain consistent as we vary things about the histogram.</p>
 
     <p>Perhaps because of their visual similarity to bar charts, histograms can appear very objective. But, unlike bar charts, histograms are governed by many <a href="https://en.wikipedia.org/wiki/Parameter" data-toggle="tooltip" title="Things that can be changed">parameters</a>.</p>
     
@@ -186,7 +188,7 @@ function getVis() { return window.scrollyVis }
   <section class="step">
     <div class="title">Bin-breaks: Why these bins?</div>
     
-    <p>For a start, you probably noticed that the histograms shown for the sample datasets have different numbers of bins. This is because we used <a href="https://en.wikipedia.org/wiki/Histogram#Sturges.27_formula">Sturges' formula</a>, a common method for estimating, based on the number of items in a dataset, how many bins it needs.</p>
+    <p>For a start, you probably noticed that the histograms shown for the sample datasets have different numbers of bins. This is because we used <a href="https://en.wikipedia.org/wiki/Histogram#Sturges.27_formula">Sturges' formula</a>, a common method for estimating the number of bins for a histogram, given the size of a dataset.</p>
     
     <p>Given a suggested number of bins, how did we then decide the precise values for the bin boundaries (the so-called "breaks")?  Again we used a common method: look for nearby round numbers. This is why the breaks for "<span class="VisControlLink" onclick="getVis().switchDataset('mpg')">MPG</span>" are all multiples of 5, and those for "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" are multiples of 2.</p>
     
@@ -198,7 +200,7 @@ function getVis() { return window.scrollyVis }
 
     <!--<p> For example, the statistical programming language <a href="https://www.r-project.org/">R</a> sets bin edges ("breaks") that are round numbers.  This certainly makes it easy to draw labels for the bins&mdash;and </p>-->
 
-    <p>What's important is whether a given histogram is a representative summary of its underlying dataset. One way to judge this is to try varying the positions of the breaks, and see what impact that has on the summary that the histogram conveys.</p>
+    <p>What's important is whether a given histogram is a <b>representative summary</b> of its underlying dataset. One way to judge this is to try varying the positions of the breaks, and see what impact that has on the summary that the histogram conveys.</p>
 
   </section>
   <section class="step">
@@ -206,7 +208,7 @@ function getVis() { return window.scrollyVis }
 
     <p>First, let's try shifting the bins left and right along the number line, based on an <a class="tiponly" href="#" data-toggle="tooltip" title="defined here as how far the left-most bin extends below the dataset's minimum value" data-placement="bottom">"offset."</a></p>
     
-    <p>Watch what happens to the relative bin heights as the offset changes. Items are being moved from one bin to another, changing the aggregation of height in the bins. Typically the various histograms' shapes look quite alike, but occasionally a strangely different picture will pop out.</p>
+    <p>Watch what happens to the relative bin heights as the offset changes. Items are being moved from one bin to another, changing the aggregation, and therefore, the height of the bins. Typically the various histograms' shapes look quite alike, but occasionally a strangely different picture will pop out.</p>
     
     <p>Mouse over the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#scenarioSwitcher')" onmouseout="getVis().hoverOut()">scenario switcher</span> to take control of the animation. Also, try switching between the available datasets.</p>
   </section>
@@ -230,7 +232,7 @@ function getVis() { return window.scrollyVis }
 
     <p>We show the code as formula-like derivations that are written in English, but are easy to translate into today's programming languages. Candidate values for adjustable parameters are also shown, and can be selected using the mouse; try hovering over the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#width-extraGroup')" onmouseout="getVis().hoverOut()">values in the <b>width</b> row</span> to see histograms with different bin widths. You can fix on a value by clicking it.</p>
     
-    <p>Clicking the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#width-extraToggle')" onmouseout="getVis().hoverOut()">green square</span> at the left side of the row will turn on a "sweep" of width values, creating a cloud of transparent histograms with different bin widths. Creating a sweep adds annotation to each row of the table that the sweep affects. Try creating a sweep then mousing over the data-value cells to see how the various widths affect the derived bins.</p>
+    <p>Clicking the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#width-extraToggle')" onmouseout="getVis().hoverOut()">green square</span> at the left side of the row will turn on a "sweep" of width values, creating a cloud of transparent histograms with different bin widths. Creating a sweep adds annotation to each row of the table that the sweep affects. Try creating a sweep, then mousing over the data-value cells to see how the various widths affect the derived bins.</p>
 
     <p>Because broader bins tend to capture more items, and narrower bins fewer, it can be hard to compare histograms that have different bin widths; the narrow bins appear unfairly short. A solution is to plot the histograms as <b>densities</b>&mdash;in effect, counts per unit width. Use the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#densitySwitch')" onmouseout="getVis().hoverOut()">density checkbox</span> to toggle this option. Switching to density preserves the overall shape of each histogram but boosts the height of narrow bins (and conversely tames the broad ones), making comparisons across bin widths easier.</p>
 
