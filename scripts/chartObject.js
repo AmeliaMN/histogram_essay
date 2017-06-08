@@ -1419,7 +1419,9 @@ chartObject.drawBinAnnotations=function drawBinAnnotations(group, axisOrigin, ax
         	    .style("text-anchor", d=>d.anchor || "start");
             if (def.suffix) {
                 // mildly hacky.  we want to add a suffix (typically a units string) but have the first tspan be anchored as if it were on its own.  so we figure out where the anchoring tspan has been put, then fix it to a "start" anchor and explicit offset before appending a further tspan for the suffix.
-            	var mainLeft = mainSpan.node().getBBox().x;
+                
+            	// var mainLeft = mainSpan.node().getBBox().x; doesn't work on IE
+            	var mainLeft = this.getBBox().x;
             	mainSpan
             	    .style("text-anchor", "start")
             	    .attr("dx", mainLeft-def.x);
