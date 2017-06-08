@@ -65,14 +65,14 @@
     }
     
     .VisControlLink {
-        color: green;
+        color: chocolate;
         cursor: pointer;
         border-bottom: 1px dashed green;
     }
 
     .VisHighlightLink {
         /* color: rgb(68, 102, 255); */
-        color: chocolate;
+        color: #ff3366;
         cursor: help;
     }
 

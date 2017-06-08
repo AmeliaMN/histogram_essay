@@ -1137,7 +1137,8 @@ function createChartObject() {
                     if (elemClass !== "defunctRow") seln.raise();
                 });
             }
-tableGroup.raise();
+            tableGroup.raise();
+
             if (options.hasOwnProperty("binHighlight")) {
                 if (options.binHighlight === null) chart.resetBinHighlight();else chart.highlightBinNumber(options.binHighlight);
             }
@@ -2168,7 +2169,7 @@ tableGroup.raise();
             imageWidth = 35,
             imageHeight = 35,
             buttonMidY = this.buttonRowOrigin.y + buttonHeight / 2;
-        var fontSize = 14,
+        var fontSize = 16,
             dataLabelColour = this.dataLabelColour;
 
         var labelX = this.buttonRowOrigin.x;
@@ -3822,7 +3823,7 @@ tableGroup.raise();
         this.dataLabelColour = "chocolate";
 
         var commandListOrigin = this.commandListOrigin = lively.pt(45, 10);
-        this.buttonRowOrigin = lively.pt(325, this.visMaxExtent.y - 70);
+        this.buttonRowOrigin = lively.pt(290, this.visMaxExtent.y - 70);
 
         var plotOrigin = this.plotOrigin = lively.pt(185, this.visMaxExtent.y - 210);
 
