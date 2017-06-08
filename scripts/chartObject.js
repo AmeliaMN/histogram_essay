@@ -1386,7 +1386,7 @@ chartObject.drawBinAnnotations=function drawBinAnnotations(group, axisOrigin, ax
     var chart=this;
     var axisX = axisOrigin.x, axisBase = axisOrigin.y;
     
-	var labels = group.selectAll("text.histLabel").data(labelDefs);
+    var labels = group.selectAll("text.histLabel").data(labelDefs, def=>def.labelType+def.text);
 	labels.exit().remove();
 	labels.enter().append("text")
 	    .attr("class", "histLabel")
@@ -1408,19 +1408,31 @@ chartObject.drawBinAnnotations=function drawBinAnnotations(group, axisOrigin, ax
 	    .attr("x", d=>d.x)
 	    .attr("y", d=>axisBase+d.y)
         .attr("dy", d=>chart.textOffsets[d.baseline || "central"])
-	    .style("text-anchor", d=>d.anchor || "start")
-        //.style("dominant-baseline", d=>d.baseline || "central")
         .each(function(def) {
             var seln = d3.select(this);
-            if (def.highlightOnChange && seln.text()!==def.text) {
+            var spans = seln.selectAll("tspan");
+            var highlight = def.highlightOnChange && (spans.empty() || d3.select(spans.node()).text()!==def.text);
+            spans.remove();
+            var mainSpan = seln.append("tspan")
+                .text(def.text)
+        	    .style("text-anchor", d=>d.anchor || "start");
+            if (def.suffix) {
+                // mildly hacky.  we want to add a suffix (typically a units string) but have the first tspan be anchored as if it were on its own.  so we figure out where the anchoring tspan has been put, then fix it to a "start" anchor and explicit offset before appending a further tspan for the suffix.
+            	var mainLeft = mainSpan.node().getBBox().x;
+            	mainSpan
+            	    .style("text-anchor", "start")
+            	    .attr("dx", mainLeft-def.x);
+            	seln.append("tspan").text(def.suffix);
+            }
+
+            if (highlight) {
                 seln
                     .style("fill", "red")
                     .transition()
                     .duration(1000)
                     .style("fill", "grey")
             }
-            })
-        .text(d=>d.text);
+            });
     
 	var ticks = group.selectAll("line.tick").data(tickDefs);
 	ticks.exit().remove();
@@ -1467,9 +1479,9 @@ chartObject.drawBins=function drawBins(primaryBins, contextBins, options) {
 	    if (this.countScaleMax !== lastValue) chart.histGroup.selectAll("text.histLabel").filter(def=>def.highlightOnChange).interrupt().remove();
 	    rangeMax = this.countScaleMax = lastValue;
 	}
-	var maxHeight = 100;
+	var maxBinHeight = this.maxMainBinHeight;
 	// if we're drawing a full axis, no need to fill in zero-height bins with a line
-    var heightScale = extraAxisAnnotations ? function(val) { return val/rangeMax*maxHeight } : function(val) { return val===0 ? 0.01 : val/rangeMax*maxHeight };
+    var heightScale = extraAxisAnnotations ? function(val) { return val/rangeMax*maxBinHeight } : function(val) { return val===0 ? 0.01 : val/rangeMax*maxBinHeight };
 	var histGroup = this.histGroup, binGroup = histGroup.select(".binGroup");
     var transformString = this.transformString;
     
@@ -1551,29 +1563,31 @@ chartObject.drawBins=function drawBins(primaryBins, contextBins, options) {
 	var extraLabelSpacing = 9; 
 	var legendX = xScale(this.dataMax)+40, lineLegendY = 12;
 	var labelDefs = [
-        { x: legendX, anchor: "start", y: -heightScale(lastValue)-15, text: useDensity ? "density" : "count" }
+        { labelType: "title", x: legendX, anchor: "start", y: -heightScale(lastValue)-15, text: useDensity ? "density" : "count" }
         ];
     var tickLength = 4;
     var tickDefs = [
         { x: legendX, y: 0, dx: -tickLength, dy: 0 }    // a foot for the scale
         ];
 	scaleValues.forEach(v=>{
-	    labelDefs.push({ x: legendX+tickLength+3, y: -heightScale(v), text: String(v), highlightOnChange: true });
+	    labelDefs.push({ labelType: "yAxis", x: legendX+tickLength+3, y: -heightScale(v), text: String(v), highlightOnChange: true });
 	    tickDefs.push({ x: legendX, y: -heightScale(v), dx: tickLength, dy: 0 });
 	    });
 	if (extraAxisAnnotations) {
+	    // not just min and max
     	var axisValues = this.rPretty([this.dataMin, this.dataMax], 10);
     	axisValues.forEach(v=>{
-    	    labelDefs.push({ x: xScale(v), anchor: "middle", y: lineLegendY, text: String(v) });
+    	    labelDefs.push({ labelType: "xAxis", x: xScale(v), anchor: "middle", y: lineLegendY, text: String(v) });
     	    tickDefs.push({ x: xScale(v), y: 0, dx: 0, dy: tickLength });
     	    });
+    	labelDefs[labelDefs.length-1].suffix = " "+this.dataUnits;
     	// add a very long "tick" to act as a baseline for the axis
     	var baselineStart = xScale(axisValues[0]), baselineEnd = xScale(axisValues[axisValues.length-1]);
     	tickDefs.push({ x: baselineStart, y: 0, dx: baselineEnd-baselineStart, dy: 0 });
 	} else {
-	    [ this.dataMin, this.dataMax ].forEach(v=>{
-	        labelDefs.push({ x: xScale(v), anchor: "middle", y: lineLegendY, text: v });
-	        tickDefs.push({ x: xScale(v), y: 0, dx: 0, dy: tickLength });
+	    [ { val: this.dataMin }, { val: this.dataMax, suffix: " "+this.dataUnits } ].forEach(def=>{
+	        labelDefs.push({ labelType: "xAxis", x: xScale(def.val), anchor: "middle", y: lineLegendY, text: String(def.val), suffix: def.suffix });
+	        tickDefs.push({ x: xScale(def.val), y: 0, dx: 0, dy: tickLength });
     	    });
 	}
     this.drawBinAnnotations(histGroup, { x: legendX, y: 0 }, heightScale(lastValue), tickDefs, labelDefs, true);  // instant
@@ -1785,7 +1799,7 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
     var commandsToDraw = chart.commandList.slice(0, Math.max(current, chart.maximumScrolledIndex)+1);
     var commandDefs = commandsToDraw.map((def, i)=>({ command: def.command, replayable: def.replayable, index: i }));
     if (commandsToDraw.length < chart.commandList.length) {
-        commandDefs.push({ command: "...(keep scrolling)", replayable: false, index: commandsToDraw.length })
+        commandDefs.push({ command: "...(keep scrolling)", replayable: false, clickable: false, index: commandsToDraw.length })
     }
 
     var commandEntries = chart.commandGroup.selectAll("g.command").data(commandDefs, def=>def.index+def.command); // need to ensure the "..." line gets shifted
@@ -1838,17 +1852,18 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
                     .style("pointer-events", "none");
                 }
 
-            seln
-                .append("rect")
-                .attr("x", 0)
-                .attr("y", 0)
-                .attr("width", boldWidth + (def.replayable ? buttonGap+buttonSize : 0))
-                .attr("height", itemHeight)
-                .style("fill", "none")
-                .style("pointer-events", "all")
-                .style("cursor", "pointer")
-                .on("click", function(def) { chart.jumpToStep(def.index) });
-
+            if (!(def.clickable===false)) {
+                seln
+                    .append("rect")
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("width", boldWidth + (def.replayable ? buttonGap+buttonSize : 0))
+                    .attr("height", itemHeight)
+                    .style("fill", "none")
+                    .style("pointer-events", "all")
+                    .style("cursor", "pointer")
+                    .on("click", function(def) { chart.jumpToStep(def.index) });
+            }
         });
 
     function decorateList() {        
@@ -1975,7 +1990,8 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
     var switchSize = 16, autoStepping = true, abandoned = false, displayStep, cycleDirection;
     var movingGroupSeln = null;
     
-    var controlStripWidth = 150, controlStripHeight = 20, controlStripOrigin = { x: this.commandListOrigin.x-this.plotOrigin.x, y: this.fallIntoBins+35 }, labelOrigin = { x: controlStripOrigin.x + controlStripWidth + 20, y: controlStripOrigin.y+controlStripHeight/2 };
+    // NB: going into demoGroup, so coords are relative to plotOrigin
+    var controlStripWidth = 150, controlStripHeight = 20, controlStripOrigin = { x: this.commandListOrigin.x-this.plotOrigin.x, y: this.buttonRowOrigin.y-this.plotOrigin.y }, labelOrigin = { x: controlStripOrigin.x, y: controlStripOrigin.y+controlStripHeight+10 };
 
     var stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance;
 
@@ -2038,7 +2054,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .attr("class", "scenarioTitle")
             .attr("x", labelOrigin.x)
             .attr("y", labelOrigin.y)
-    		.attr("dy", chart.textOffsets.central)
+    		.attr("dy", chart.textOffsets.hanging)
             .style("font-size", "14px");
         // for now, we expect labelFn to return an array of objects with props { text, highlightOnChange }
         var basicFill = "grey";
@@ -2375,25 +2391,34 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
 
     var chart=this, chartGroup = this.chartGroup, transformString = this.transformString;
 
-    var buttonWidth = 50, buttonSep = 30, buttonHeight = 35, imageWidth = 35, imageHeight = 35, buttonMidY = this.commandListOrigin.y + buttonHeight/2;
-    var fontSize = 14;
+    var buttonWidth = 50, buttonSep = 30, buttonHeight = 35, imageWidth = 35, imageHeight = 35, buttonMidY = this.buttonRowOrigin.y + buttonHeight/2;
+    var fontSize = 14, dataLabelColour = this.dataLabelColour;
 
-    var labelX = this.commandListOrigin.x + 280;
-    var firstButtonX = labelX + buttonWidth/2;
+    var labelX = this.buttonRowOrigin.x;
+    var firstButtonX = labelX + buttonWidth/2; // centre of button
 
-    chartGroup.selectAll("text.datadesc").remove();
-    var descText = chartGroup.append("text")
+    // short descriptions are stored under mixed-case keys, to be used as their human-readable names
+    function readable(dn) { return Object.keys(chart.datasetShortDescriptions).find(k=>k.toLowerCase()===dn) };
+    
+    var dataName = this.dataName, readableName = readable(dataName);
+    var descTexts = chartGroup.selectAll("text.datadesc").data([
+        { x: labelX-5, anchor: "end", colour: "black", text: "dataset" },
+        { x: labelX, anchor: "start", colour: this.dataLabelColour, text: readableName+": "+(this.datasetShortDescriptions[readableName].replace(/\<br\/\>/m," ")) }
+        ]);
+    descTexts.enter().append("text")
         .attr("class", "datadesc")
-        .attr("x", labelX)
         .attr("y", buttonMidY+buttonHeight/2+10)
 		.attr("dy", chart.textOffsets.hanging)
         .style("font-size", fontSize+"px")
         .style("pointer-events", "none")
-        .style('-webkit-user-select','none');
-    descText.append("tspan").text("dataset:");
-    descText.append("tspan").attr("dx", 10).style("fill", "blue").text(this.datasetShortDescriptions[this.dataName].replace(/\<br\/\>/m," "));
+        .style('-webkit-user-select','none')
+      .merge(descTexts)
+        .attr("x", def=>def.x)
+		.style("text-anchor", def=>def.anchor)
+		.style("fill", def=>def.colour)
+        .text(def=>def.text);
 
-    var switchDefs = datasets.slice(0, this.datasetsAvailable).map(dn=>({ dataName: dn }));
+    var switchDefs = datasets.slice(0, this.datasetsAvailable).map(dn=>({ dataName: dn, readableName: readable(dn) }));
 
     var switchEntries = chartGroup.selectAll("g.dataswitch").data(switchDefs, def=>def.dataName);
     switchEntries.exit().remove();
@@ -2411,12 +2436,12 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
                 .attr("height", buttonHeight)
                 .style("fill", "#e6830f")
                 .style("fill-opacity", 0.2)
-                .style("stroke", "blue")
+                .style("stroke", dataLabelColour)
                 .style("stroke-width", 2)
                 .style("stroke-opacity", 0)
                 .on("click", def=>{ if (chart.datasetsAvailable > 1) chart.switchDataset(def.dataName) })
                 .on("mouseover", function(def) {
-                    showTip(this, '<b>'+def.dataName + '</b><br/>' + chart.datasetShortDescriptions[def.dataName])
+                    showTip(this, '<b>'+def.readableName + '</b><br/>' + chart.datasetShortDescriptions[def.readableName])
                     })
                 .on("mouseout", hideTip);
 
@@ -2434,12 +2459,13 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
     // tooltip code adapted from  http://bl.ocks.org/d3noob/a22c42db65eb00d4e369 
     function showTip(elem, text) {
         var box = elem.getBoundingClientRect();
-        var tip = d3.select("div.vistooltip"), padding = 8; // NB: see scrolly.css
+        var tip = d3.select("div.vistooltip"), padding = 8; // NB: tied to scrolly.css
         tip.html(text);
-        var tipWidth = Number.parseInt(tip.style("width"));
+        var tipWidth = Number.parseInt(tip.style("width"))+padding*2, tipHeight = Number.parseInt(tip.style("height"))+padding*2;
+        // NB: tooltip position style is "fixed", in case user scrolls
         tip        
-            .style("left", box.left + box.width/2 - tipWidth/2 - padding + window.scrollX + "px")
-            .style("top", box.bottom + 1 + window.scrollY + "px");
+            .style("left", box.left + box.width/2 - tipWidth/2 + "px")
+            .style("top", box.top - tipHeight - 1 + "px");
         tip.transition()
             .duration(200)		
             .style("opacity", 1);		
@@ -2473,6 +2499,33 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
             });
     }
     
+};
+
+chartObject.drawDataUnits=function drawDataUnits() {
+
+    var chart=this, chartGroup = this.chartGroup;
+
+    var fontSize = 14;
+    var plotOrigin = this.plotOrigin;
+    var labelX = plotOrigin.x+this.valueListOrigin.x+10; // same as numbers in value list
+    var unitLabelMiddle = plotOrigin.y - this.fallAfterFlight + 9;  // same as middle of coloured number line
+
+    var unitLabels = chartGroup.selectAll("text.dataunits").data([
+        { x: labelX-5, anchor: "end", colour: "black", text: "unit:" },
+        { x: labelX, anchor: "start", colour: this.dataLabelColour, text: this.dataUnits }
+        ]);
+    unitLabels.enter().append("text")
+        .attr("class", "dataunits")
+        .attr("y", unitLabelMiddle)
+		.attr("dy", chart.textOffsets.middle)
+        .style("font-size", fontSize+"px")
+        .style("pointer-events", "none")
+        .style('-webkit-user-select','none')
+      .merge(unitLabels)
+        .attr("x", def=>def.x)
+		.style("text-anchor", def=>def.anchor)
+		.style("fill", def=>def.colour)
+        .text(def=>def.text);
 };
 
 chartObject.drawDensityControl=function drawDensityControl(offset, handler) {
@@ -3010,7 +3063,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         showScale = !(options && options.noScale);
 
     function clearDemoBins() {
-        chart.chartGroup.selectAll("rect.demobin,line.binbreak,text.binbreak,text.democounter,circle.movingBall,g.annotation,rect.demobinMousetrap").interrupt().remove();
+        chart.chartGroup.selectAll("rect.demobin,line.binbreak,text.binbreak,text.democounter,circle.movingBall,g.annotation,rect.demobinMousetrap,text.dataunits").interrupt().remove();
     }
     chart.clearDemoBins = clearDemoBins;
 
@@ -3259,14 +3312,14 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
 
     	var legendX = xScale(chart.dataMax)+85;  // try to steer clear of moving bins
     	var labelDefs = [
-            { x: legendX, anchor: "start", y: -heightScale(Math.max(lastValue, maxBinCount))-15, text: "count" },
+            { labelType: "title", x: legendX, anchor: "start", y: -heightScale(Math.max(lastValue, maxBinCount))-15, text: "count" },
     	    ];
         var tickLength = 4;
         var tickDefs = [
             { x: legendX, y: 0, dx: -tickLength, dy: 0 }
             ];
     	scaleValues.slice(0, numOfScaleValues).forEach(v=>{
-        	    labelDefs.push({ x: legendX+tickLength+3, y: -heightScale(v), text: String(v) });
+        	    labelDefs.push({ labelType: "yAxis", x: legendX+tickLength+3, y: -heightScale(v), text: String(v) });
         	    tickDefs.push({ x: legendX, y: -heightScale(v), dx: tickLength, dy: 0 });
     	    });
         chart.drawBinAnnotations(annotationGroup, { x: legendX, y: binBase }, heightScale(count), tickDefs, labelDefs, instant);
@@ -4084,9 +4137,14 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     this.stopTimer();
     this.chartGroup.selectAll("*").remove();
 
-    var plotOrigin = this.plotOrigin = lively.pt(185, 575);
+    this.dataLabelColour = "chocolate";
+
     var commandListOrigin = this.commandListOrigin = lively.pt(45, 10);
+    this.buttonRowOrigin = lively.pt(325, this.visMaxExtent.y - 70);
+
+    var plotOrigin = this.plotOrigin = lively.pt(185, this.visMaxExtent.y - 210);
     
+    // during "demo" phase
     this.numberLineWidth = 550;  // between dataMin and dataMax
     this.fallAfterFlight = 115;  // bottom of flight arcs to number line
     this.fallIntoBins = 100;     // number line to histogram base line
@@ -4098,9 +4156,10 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     this.valueListEntryHeight = 15;
     
     // once we've presented the code table
-    var tableOrigin = this.tableOrigin = lively.pt(10, 385);
-    var dataOrigin = this.dataOrigin = lively.pt(270, 185);
-    var histOrigin = this.histOrigin = lively.pt(270, 340);
+    var dataOrigin = this.dataOrigin = lively.pt(270, 110);
+    var histOrigin = this.histOrigin = lively.pt(270, 265);
+    var tableOrigin = this.tableOrigin = lively.pt(10, 305);
+    this.maxMainBinHeight = 90;
 
     var binFill = d3.color("blue");
     binFill.opacity = 0.8;
@@ -4491,16 +4550,14 @@ chartObject.initScrolliness=function initScrolliness(options) {
             
             var unstickPoint = containerMaxScroll-stickPoint;
             var newState = pos < -stickPoint ? "before" : (pos > unstickPoint ? "after" : "during");
-            if (newState !== visScrollState) {
-                var isDuring = newState==="during";
-                visSeln
-                    .style("position", isDuring ? "fixed" : null)
-                    .style("float", isDuring ? null : "right")
-                    .style("top", isDuring ? stickPoint+"px" : null)
-                    .style("left", isDuring ? (d3.select("#sections").node().getBoundingClientRect().right+textMargin+1+"px") : null)
-                    .style("padding-top", isDuring ? null : (newState==="before" ? "0px" : (containerMaxScroll+"px")) );
+            var isDuring = newState==="during";
+            visSeln
+                .style("position", isDuring ? "fixed" : null)
+                .style("float", isDuring ? null : "right")
+                .style("top", isDuring ? stickPoint+"px" : null)
+                .style("left", isDuring ? (d3.select("#sections").node().getBoundingClientRect().right+textMargin+1+"px") : null)
+                .style("padding-top", isDuring ? null : (newState==="before" ? "0px" : (containerMaxScroll+"px")) );
             visScrollState = newState;
-            }
 
             var sectionIndex = Math.max(0, d3.bisect(sectionPositions, pos+switchPos)-1);
 
@@ -4738,13 +4795,13 @@ chartObject.initScrolliness=function initScrolliness(options) {
     var stepDefs = options.stepDefinitions;
     chart.commandList = stepDefs.map(function(def) { return { command: def.command, replayable: !!def.replayable } });
 
+    chart.visMaxExtent = options.visExtent;
+
     var visSeln = d3.select("#"+options.element);
 
     // first create a new stepController and its plot, initially displayed at full extent
     var stepController = scrollVis(stepDefs, "initChartSubstrates", "initChartSubgroups");
     stepController(visSeln, chart, options.visExtent);
-
-    chart.visMaxExtent = options.visExtent;
 
     // now set up the scroll functionality on the outer div
     var scroll = scroller()
@@ -4823,11 +4880,11 @@ chartObject.iterate=function iterate(values, fn) {
 chartObject.loadData=function loadData(dataset, thenDo) {
     var rawData = [], quantum = 1, binQuantum, units = "", minBins = 8, maxBins = 50;
     this.datasetShortDescriptions = {
-        mpg: "fuel consumption (in mpg)<br/>for 32 car models",
-        nba: "age (in years)<br/>for 105 NBA athletes",
-        geyser: "272 records of delay (in seconds)<br/>between eruptions of Old Faithful",
-        diamonds: "price (in US$)<br/>for 1000 diamonds",
-        marathons: "finishing time (in hours)<br/>for 3000 NY marathon runners"
+        MPG: "fuel consumption (in mpg)<br/>for 32 car models",
+        NBA: "age (in years)<br/>for 105 NBA athletes",
+        Geyser: "272 records of delay (in seconds)<br/>between eruptions of Old Faithful",
+        Diamonds: "price (in US$)<br/>for 1000 diamonds",
+        Marathons: "finishing time (in hours)<br/>for 3000 NY marathon runners"
     }
     var chart=this;
     function recordData() {
@@ -4913,7 +4970,7 @@ chartObject.loadData=function loadData(dataset, thenDo) {
                 binQuantum = 5;
                 minBins = 15;
                 maxBins = 45;
-                units = "$";
+                units = "US$";
                 recordData();
                 });
             return;

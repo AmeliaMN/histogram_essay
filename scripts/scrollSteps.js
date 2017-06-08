@@ -48,6 +48,7 @@ function scrollStepDefs(ch) {
             chart.datasetsForSwitching = baseDatasets;
             chart.drawDataSelector({ instant: true });
             chart.drawValueList({ stage: 0 });
+            chart.drawDataUnits();
         }
         },
     
@@ -221,6 +222,7 @@ function scrollStepDefs(ch) {
                 if (targetStep !== thisStep) chart.clearDemoBalls();
             } else { // no previous drawing, so fill in the elements that we need to be there
                 chart.datasetsForSwitching = baseDatasets;
+                chart.datasetsAvailable = baseDatasets.length;
                 chart.drawDataSelector({ instant: true });
             }
             

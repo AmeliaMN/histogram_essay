@@ -82,7 +82,7 @@
 
     /* tooltip style from http://bl.ocks.org/d3noob/a22c42db65eb00d4e369 */
     div.vistooltip {
-        position: absolute;			
+        position: fixed;
         text-align: center;			
         min-width: 100px;
         height: 44px;
