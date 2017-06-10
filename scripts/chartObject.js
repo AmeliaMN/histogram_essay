@@ -2442,7 +2442,12 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
                 .style("stroke", dataLabelColour)
                 .style("stroke-width", 2)
                 .style("stroke-opacity", 0)
-                .on("click", def=>{ if (chart.datasetsAvailable > 1) chart.switchDataset(def.dataName) })
+                .on("click", def=>{
+                    if (chart.datasetsAvailable > 1) {
+                        hideTip();
+                        chart.switchDataset(def.dataName);
+                    }
+                    })
                 .on("mouseover", function(def) {
                     showTip(this, '<b>'+def.readableName + '</b><br/>' + chart.datasetShortDescriptions[def.readableName])
                     })

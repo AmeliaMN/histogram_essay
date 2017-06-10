@@ -2210,7 +2210,10 @@ function createChartObject() {
         }).style("opacity", 1e-6).each(function (def, i) {
             var seln = d3.select(this);
             seln.append("rect").attr("x", -buttonWidth / 2).attr("y", -buttonHeight / 2).attr("width", buttonWidth).attr("height", buttonHeight).style("fill", "#e6830f").style("fill-opacity", 0.2).style("stroke", dataLabelColour).style("stroke-width", 2).style("stroke-opacity", 0).on("click", function (def) {
-                if (chart.datasetsAvailable > 1) chart.switchDataset(def.dataName);
+                if (chart.datasetsAvailable > 1) {
+                    hideTip();
+                    chart.switchDataset(def.dataName);
+                }
             }).on("mouseover", function (def) {
                 showTip(this, '<b>' + def.readableName + '</b><br/>' + chart.datasetShortDescriptions[def.readableName]);
             }).on("mouseout", hideTip);
