@@ -30,8 +30,6 @@
 <script>
 window.Global = window;
 
-console.log(bowser);
-
 $(function () {
   $('[data-toggle="tooltip"]').tooltip()
 });
@@ -40,6 +38,10 @@ lively.pt = function pt(x, y) { return { x:x, y: y } }; // trivial, non-function
 
 // the chartDefs function is expected to return one or more functions, each of which accepts a newly created chartObject and initialises it  
 function startup() {
+    if (!bowser.chrome) {
+        document.getElementById("browserwarning").innerHTML = "<p style='color: red'><i>We notice that you're not using the Google Chrome browser. You're welcome to try continuing&mdash;but if some parts of the essay are rendering or behaving strangely, please try Chrome instead.</i></p>"
+    }
+
     chartDefs().forEach(function(initFn) { initFn(createChartObject()) });
 };
 
@@ -96,6 +98,8 @@ function getVis() { return window.scrollyVis }
 <div id="intro">
 		<h1 id="top">What's so hard about histograms?</h1>	
 		<p class="lead">Histograms are a way to summarize a numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
+        
+        <div id="browserwarning"></div>
       
     <!--<p><i>May 2017: Please note the "beta release" designation; this is a work in progress.  The interactive parts have so far been tested mainly on Chrome.</i></p>-->
         
