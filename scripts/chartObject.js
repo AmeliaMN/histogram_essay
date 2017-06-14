@@ -2457,7 +2457,7 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
                 .append("image")
                 .attr("width", imageWidth)
                 .attr("height", imageHeight)
-                .attr("xlink:href", def=>"data:image/svg+xml;utf8,"+chart.svgSource(def.dataName))
+                .attr("xlink:href", def=>"data:image/svg+xml;base64,"+window.btoa(chart.svgSource(def.dataName)))
                 .attr("x", -imageWidth/2)
                 .attr("y", -imageHeight/2 + 5)  // fudge
                 .style("pointer-events", "none");

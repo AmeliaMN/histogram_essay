@@ -2219,7 +2219,7 @@ function createChartObject() {
             }).on("mouseout", hideTip);
 
             seln.append("image").attr("width", imageWidth).attr("height", imageHeight).attr("xlink:href", function (def) {
-                return "data:image/svg+xml;utf8," + chart.svgSource(def.dataName);
+                return "data:image/svg+xml;base64," + window.btoa(chart.svgSource(def.dataName));
             }).attr("x", -imageWidth / 2).attr("y", -imageHeight / 2 + 5) // fudge
             .style("pointer-events", "none");
         });
