@@ -117,7 +117,7 @@ function getVis() { return window.scrollyVis }
 
 	
 
-    <p>To visualize the distribution of one categorical variable, we use what is called a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (or bar graph). Bar charts show how many items are counted in each of a set of categories. For example, <a href="https://fivethirtyeight.com/">fivethirtyeight</a> created the bar chart at right to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>. The categories for painting elements are discrete choices, so Walt Hickey (the author of the chart) counted how many paintings contained each element and displayed the counts (technically, he really showed the percentages).</p>
+    <p>To visualize the distribution of one categorical variable, we use what is called a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (or bar graph). Bar charts show how many items are counted in each of a set of categories. For example, <a href="https://fivethirtyeight.com/">fivethirtyeight</a> created the bar chart at right to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>. The categories for painting elements are discrete choices, so Walt Hickey (the author of the chart) counted how many paintings contained each element and displayed the <a class="tiponly" href="#" data-toggle="tooltip" title="(technically, he really showed the percentages)" data-placement="top">counts</a>.</p>
 
     <p>Bar charts are not parameterized, which reduces the number of choices for the data analyst to make. As we will see, this is not the case for histograms.</p>
     
@@ -149,11 +149,11 @@ function getVis() { return window.scrollyVis }
 
 <div id="sections">
 
-<h2 style="margin-top: 0">Building a histogram</h2>
+<h2 style="margin-top: 0">How to build a histogram</h2>
 
   <section class="step">
     <div class="title">Gather your data</div>
-    <p>A histogram is based on a collection of values for some variable, so first we need to gather those values. The initial dataset for our examples consists of fuel consumption (in miles per gallon) from a sample of car models available in 1974 (yes, rather out of date). We can visualize the dataset as a pool of items, each identified by its value&mdash;which in theory lets us "see" all the items, but makes it hard to get the gestalt of the variable. What are some common values? Is there a lot of variation?</p>
+    <p>A histogram is based on a collection of data about a numeric variable. Our first step is to gather some values for that variable. The initial dataset we will consider consists of fuel consumption (in miles per gallon) from a sample of car models available in 1974 (yes, rather out of date). We can visualize the dataset as a pool of items, each identified by its value&mdash;which in theory lets us "see" all the items, but makes it hard to get the gestalt of the variable. What are some common values? Is there a lot of variation?</p>
   </section>
   <section class="step">
     <div class="title">Sort into an ordered list</div>
@@ -161,7 +161,7 @@ function getVis() { return window.scrollyVis }
   </section>
   <section class="step">
     <div class="title">Draw the number line</div>
-    <p>A common convention is to use a number line, where higher values move to the right and smaller (or negative) values to the left. We can draw a line representing all possible numbers between the minimum and maximum data values.</p>
+    <p>A common convention is to use a number line, where higher values are displayed to the right and smaller (or negative) values to the left. We can draw a line representing all possible numbers between the minimum and maximum data values.</p>
   </section>
   <section class="step">
     <div class="title">Add data to the number line</div>
@@ -176,14 +176,14 @@ function getVis() { return window.scrollyVis }
 
     <p>In these small datasets, the stacks of dots (often called a <b>dotplot</b>) may give you a good sense of the distribution of the data. However, many real-world datasets have values which are repeated many hundreds or thousands of times, so it becomes very hard to plot all the dots. Conversely, a dataset could have no duplicates at all, so even a dense region of items would appear as an unremarkable smear along the number line. Histograms provide a way to visualize data by aggregating it into bins, and can be used with data of any size.</p>
     
-    <p>The buttons that this stage adds at the bottom of the visualization allow you to switch between the sample datasets at any time.<p>
+    <p>The buttons at the bottom of the visualization allow you to switch between the sample datasets at any time.<p>
   </section>
   <section class="step">
     <div class="title">Portioning items into bins&mdash;the essence of a histogram</div>
     
     <p>Once items are placed along a number line, drawing a histogram involves sectioning the number line into <b>bins</b> and <b>counting</b> the items that fall into each bin. Notice how the distribution shown in the histogram echoes the distribution from the dot plot.</p>
 
-    <p>Gathering the items into bins helps us to answer the question "what is the distribution of this data like?"  Imagine trying to describe some dataset over the phone: rather than mechanically reading out the entire list of values, it would be more useful to provide a summary, such as by saying whether the items' distribution is symmetric, where it is centered, and whether it has extreme values.  A histogram is another kind of summary, in which you communicate the overall properties in terms of portions (i.e., bins) of the data.</p>
+    <p>Gathering the items into bins helps us to answer the question "what is the distribution of this data like?"  Imagine trying to describe some dataset over the phone: rather than mechanically reading out the entire list of values, it would be more useful to provide a summary, such as by saying whether the variable's distribution is symmetric, where it is centered, and whether it has extreme values.  A histogram is another kind of summary, in which you communicate the overall properties in terms of portions (i.e., bins) of the data.</p>
 
     <p>For example, the "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">Geyser</span>" data can be described as being bimodal (because its histogram has two 'peaks'), while "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" is more unimodal, and perhaps right-skewed (because the bin heights decrease towards the right).</p>
     
@@ -254,14 +254,14 @@ function getVis() { return window.scrollyVis }
     
   </section>
   <section class="step">
-    <div class="title">One more thing: bin openness</div>
+    <div class="title">One more thing: Bin openness</div>
     <p>We've been focusing on the effects of the bin offset and bin width, but there is at least one more parameter that is important: the "openness" of the bins.</p>
     
       <p>Openness is about how to deal with items that fall exactly on a bin boundary. Do they get counted as belonging to the lower bin, or to the higher bin?  Or to both?</p>
 
     <p>It's not both&mdash;because that would mean that the boundary items were being counted twice. In a histogram, each data item must be assigned to exactly one bin.</p>
 
-    <p>So, then: lower or higher? Every histogram-drawing tool has a default policy on this (but might not reveal what that policy is, let alone enable you to try the alternative). In this essay our default has been "left-open", which means that any items with exactly the value of a bin's left (i.e., lower) limit will <i>not</i> be counted as belonging to that bin.</p>
+    <p>So, then: lower or higher? Every histogram-drawing tool has a default policy on this (but might not reveal what that policy is, let alone enable you to try the alternative). In this essay our default has been "left-open," which means that any items with exactly the value of a bin's left (i.e., lower) limit will <i>not</i> be counted as belonging to that bin.</p>
 
     <!--In <a href="https://www.r-project.org/">R</a>, the default is "left-open" bins, which means that any items with exactly the value of a bin's left (i.e., lower) limit will <i>not</i> be counted as belonging to that bin.  In <a href="https://stats.stackexchange.com/questions/51551/rounding-when-making-a-histogram">SAS and Stata</a>, the default is right-open.</p>-->
 
@@ -274,7 +274,7 @@ function getVis() { return window.scrollyVis }
   <section class="step">
     <div class="title">So what?</div>
     
-<p>Hopefully, we have convinced you that histograms are quite sensitive to parameter choices. It's never a good idea to accept the default bins provided to you by some visualization tool, and if you see a histogram in the wild you should be interested in how the bins were chosen. Sometimes, authors "cherry-pick" parameter values to show a story that isn't really there in the data.</p>
+<p>Hopefully, we have convinced you that histograms are quite sensitive to parameter choices. It's never a good idea to accept the default bins provided to you by a visualization tool, and if you see a histogram in the wild you should be interested in how the bins were chosen. Sometimes, authors "cherry-pick" parameter values to show a story that isn't really there in the data.</p>
 
 <p>In our ideal world, people making histograms would understand how parameter choices affect what they create, and people reading histograms would have the opportunity to play with the parameters to convince themselves that the story they are seeing is robust.</p>
 
@@ -286,7 +286,7 @@ function getVis() { return window.scrollyVis }
 
   <p>The first is "<span class="VisControlLink" onclick="getVis().switchDataset('diamonds')">Diamonds</span>", a dataset that comes with the <a href="https://www.r-project.org/">R</a> package <a href="http://ggplot2.tidyverse.org/">ggplot2</a>. The full dataset includes information on 50,000 diamonds, but we have taken a subset of 1,000 less-expensive diamonds. Explore how the choice of bin width and bin offset change the shape, center, and spread of this distribution. (Can you find where the author of the package forgot a page of data?)</p>
 
-  <p>The second larger dataset is "<span class="VisControlLink" onclick="getVis().switchDataset('marathons')">Marathons</span>", a reference to the histogram of marathon finishing times we showed in the introduction. The <a href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=1">histogram</a> from the New York Times visualizes data on the finishing times of almost 10 million marathon finishers. Once again, we did not use the entire dataset, but rather sampled from <a href="http://faculty.chicagobooth.edu/george.wu/research/marathon/data.htm">the data</a> to take 3,000 finishers from the 2013 New York City marathon. With wide bins, the data looks roughly symmetric, and centered around four-and-a-half hours. But, as you decrease the bin size the pattern described by Wolfers in the NYT article becomes apparent&mdash;people running marathons aim for round numbers. Try hovering over some of the bins to get a sense for where those spikes occur.</p>
+  <p>The second larger dataset is "<span class="VisControlLink" onclick="getVis().switchDataset('marathons')">Marathons</span>", a reference to the histogram of marathon finishing times we showed in the introduction. The <a href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=1">histogram</a> from the New York Times visualizes data on the finishing times of almost 10 million marathon finishers. Once again, we did not use the entire dataset, but rather sampled from <a href="http://faculty.chicagobooth.edu/george.wu/research/marathon/data.htm">the data</a> to take 3,000 finishers from the 2013 New York City marathon. With wide bins, the data looks roughly symmetric, and centered around four-and-a-half hours. But, as you decrease the bin size, the pattern described by Wolfers in the NYT article becomes apparent&mdash;people running marathons aim for round numbers. Try hovering over some of the bins to get a sense for where those spikes occur.</p>
 
 <p>We believe it should be possible to play with histograms like this whenever you see them.</p>
 
@@ -313,7 +313,7 @@ function getVis() { return window.scrollyVis }
 		<p>A variation on histograms that we did not discuss involves using unequal bin sizes. This can be an appropriate choice if your data is much sparser in some areas than others&mdash;you can use a wide bin to capture a large area with few points, and narrower bins for denser areas, or vice versa. In order to use unequal bin widths you must use a density histogram (rather than a count histogram) in order to avoid over-representing low counts. Density histograms use area as the visual encoding, rather than height. </p>
 		<p>As an example of what this might look like, see the <a href="https://www.nytimes.com/interactive/2015/02/17/upshot/what-do-people-actually-order-at-chipotle.html?_r=0">equal bin width histogram</a> of Chipotle calorie counts that the Times published, and compare with this <a href="https://twitter.com/KevinQ/status/570677530870603776">unequal-bin-width histogram</a> from one of the visualization's authors. 
 		<h3>Where can I learn more about histograms and smoothing?</h3>
-		<p>It depends on how much detail you are looking for! Nathan Yau of flowingdata has an <a href="https://flowingdata.com/2014/02/27/how-to-read-histograms-and-use-them-in-r/">introductory post</a>, which includes histograms with unequally-sized bins. A great text at the advanced undergraduate or introductory graduate level is <a href="https://www.amazon.com/Smoothing-Methods-Statistics-Springer/dp/0387947167">Smoothing Methods in Statistics</a> by <a href="http://people.stern.nyu.edu/jsimonof/">Jeffrey S. Simonoff</a>.</p>
+		<p>It depends on how much detail you are looking for! Nathan Yau of flowingdata has a post about <a href="https://flowingdata.com/2017/06/07/how-histograms-work/">how histograms work</a>, as well as one on <a href="https://flowingdata.com/2014/02/27/how-to-read-histograms-and-use-them-in-r/">reading and using histograms in R</a>, which includes histograms with unequally-sized bins. A great text at the advanced undergraduate or introductory graduate level is <a href="https://www.amazon.com/Smoothing-Methods-Statistics-Springer/dp/0387947167">Smoothing Methods in Statistics</a> by <a href="http://people.stern.nyu.edu/jsimonof/">Jeffrey S. Simonoff</a>.</p>
     <h3>What tools allow for this type of functionality?</h3>
     <p>"Stretchy histograms" (those allowing users to adjust the binwidth dynamically) are available in a variety of commercially-available systems. In his 1997 paper, <a href="https://iase-web.org/documents/intstatreview/97.Biehler.pdf">Software for Learning and Doing Statistics</a>, Rolf Biehler talks about this feature in his software Statistics Workshop. Similar abilities were included in <a href="https://datadesk.com/">DataDesk</a>, <a href="http://fathom.concord.org/">Fathom</a>, and <a href="https://www.tinkerplots.com/">TinkerPlots</a>. However, many professional tools eschewed stretchy histograms (or even left histograms out altogether!). Excel <a href="https://support.office.com/en-us/article/Create-a-histogram-b6814e9e-5860-4113-ba51-e3a1b9ee1bbe">can be extended</a> to create histograms by the installation of a third-party add-on, but does not support stretchy histograms. Expert <a href="https://www.r-project.org/">R</a> users can create stretchy histograms using <a href="http://shiny.rstudio.com/">Shiny</a> or <a href="https://cran.r-project.org/web/packages/manipulate/manipulate.pdf">manipulate</a>, but even these do not offer direct manipulation, instead waiting for the user to drop a slider before updating the view. Similarly, <a href="">Tableau</a> makes it possible to generate a slider to update histogram parameters, but it is not simple.</p>
 
