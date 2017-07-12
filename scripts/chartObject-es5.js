@@ -2186,7 +2186,7 @@ function createChartObject() {
 
         var dataName = this.dataName,
             readableName = readable(dataName);
-        var descTexts = chartGroup.selectAll("text.datadesc").data([{ x: labelX - 5, anchor: "end", colour: "black", text: "dataset" }, { x: labelX, anchor: "start", colour: this.dataLabelColour, text: readableName + ": " + this.datasetShortDescriptions[readableName].replace(/\<br\/\>/m, " ") }]);
+        var descTexts = chartGroup.selectAll("text.datadesc").data([{ x: labelX - 5, anchor: "end", colour: "black", text: "dataset:" }, { x: labelX, anchor: "start", colour: this.dataLabelColour, text: readableName + "—" + this.datasetShortDescriptions[readableName].replace(/\<br\/\>/m, " ") }]);
         descTexts.enter().append("text").attr("class", "datadesc").attr("y", buttonMidY + buttonHeight / 2 + 10).attr("dy", chart.textOffsets.hanging).style("font-size", fontSize + "px").style("pointer-events", "none").style('-webkit-user-select', 'none').merge(descTexts).attr("x", function (def) {
             return def.x;
         }).style("text-anchor", function (def) {
@@ -2554,10 +2554,6 @@ function createChartObject() {
 
         var stage = options && options.stage; // iff undefined, start timed flight
 
-        var maxStringLength = d3.max(this.data.values, function (v) {
-            return String(v).length;
-        });
-
         // list and pool locations are (now) relative to plotOrigin, not canvas absolute
         var plotOrigin = this.plotOrigin;
         var listHeight = this.valueListHeight,
@@ -2565,7 +2561,7 @@ function createChartObject() {
             valueListTop = plotOrigin.y + this.valueListOrigin.y,
             listEntryHeight = this.valueListEntryHeight,
             focusEntryHeight = listEntryHeight;
-        var listWidth = maxStringLength * 10 + 10,
+        var listWidth = 40,
             fontSize = this.valueListFontSize;
         var focusAreaTop = valueListTop,
             focusAreaLeft = valueListX + listWidth;
@@ -2598,7 +2594,7 @@ function createChartObject() {
                     textAngle = pi * (Math.random() - 0.5),
                     x = poolCentreX + fromCentre * poolRadius * Math.sin(offsetAngle),
                     y = poolCentreY + fromCentre * poolRadius * Math.cos(offsetAngle),
-                    diffX = valueListX - plotOrigin.x + 10 - x,
+                    diffX = valueListX - plotOrigin.x + listWidth / 2 - x,
                     diffY = listScale(i) - plotOrigin.y + fontSize / 2 - 1 - y;
                 valueEntries.push({
                     value: v,
@@ -2655,6 +2651,7 @@ function createChartObject() {
 
                 fixedContext.save();
                 fixedContext.font = fontSize + "px Arial"; // seems to be necessary
+                fixedContext.textAlign = "center";
                 fixedContext.translate(x, y);
                 fixedContext.rotate(angle);
                 fixedContext.fillText(valueObj.text, 0, 0);
@@ -2692,7 +2689,7 @@ function createChartObject() {
                         lastInFocus = indexRange[indexRange.length - 1];
                     if (gatherRepeats) {
                         var addItem = function addItem(value, count) {
-                            var str = String(value);
+                            var str = value.toFixed(chart.dataDecimals);
                             items.push({ value: value, text: str, multiplier: count === 1 ? null : " x " + count });
                         };
 
@@ -2710,7 +2707,7 @@ function createChartObject() {
                         addItem(lastValue, valCount);
                     } else {
                         items = indexRange.map(function (vi) {
-                            return { value: values[vi], text: String(values[vi]) };
+                            return { value: values[vi], text: values[vi].toFixed(chart.dataDecimals) };
                         });
                     }
                     var numItems = items.length;
@@ -2720,7 +2717,7 @@ function createChartObject() {
                 }
                 var focusTexts = focusGroup.selectAll("text.focusItem").data(items);
                 focusTexts.exit().remove();
-                focusTexts.enter().append("text").attr("class", "focusItem").attr("x", 0).attr("y", function (d, i) {
+                focusTexts.enter().append("text").attr("class", "focusItem").attr("x", 4).attr("y", function (d, i) {
                     return focusListTop + focusEntryHeight * i;
                 }).attr("dy", chart.textOffsets.central)
                 //.style("dominant-baseline", "central") // numbers are tall, so not "middle"
@@ -2752,7 +2749,7 @@ function createChartObject() {
 
                 var focusLines = focusGroup.selectAll("line.focusItem").data(focusLineYs);
                 focusLines.exit().remove();
-                focusLines.enter().append("line").attr("class", "focusItem").attr("x1", -listWidth).attr("x2", -10).merge(focusLines).attr("y1", function (d) {
+                focusLines.enter().append("line").attr("class", "focusItem").attr("x1", -listWidth).attr("x2", 0).merge(focusLines).attr("y1", function (d) {
                     return d;
                 }).attr("y2", function (d) {
                     return d;

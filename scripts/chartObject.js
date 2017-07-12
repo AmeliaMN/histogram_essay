@@ -2405,8 +2405,8 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
     
     var dataName = this.dataName, readableName = readable(dataName);
     var descTexts = chartGroup.selectAll("text.datadesc").data([
-        { x: labelX-5, anchor: "end", colour: "black", text: "dataset" },
-        { x: labelX, anchor: "start", colour: this.dataLabelColour, text: readableName+": "+(this.datasetShortDescriptions[readableName].replace(/\<br\/\>/m," ")) }
+        { x: labelX-5, anchor: "end", colour: "black", text: "dataset:" },
+        { x: labelX, anchor: "start", colour: this.dataLabelColour, text: readableName+"—"+(this.datasetShortDescriptions[readableName].replace(/\<br\/\>/m," ")) }
         ]);
     descTexts.enter().append("text")
         .attr("class", "datadesc")
@@ -2864,12 +2864,10 @@ chartObject.drawValueList=function drawValueList(options) {
 
     var stage = options && options.stage; // iff undefined, start timed flight
 
-    var maxStringLength = d3.max(this.data.values, v=>String(v).length);
-
     // list and pool locations are (now) relative to plotOrigin, not canvas absolute
     var plotOrigin = this.plotOrigin;
     var listHeight = this.valueListHeight, valueListX = plotOrigin.x+this.valueListOrigin.x, valueListTop = plotOrigin.y+this.valueListOrigin.y, listEntryHeight = this.valueListEntryHeight, focusEntryHeight = listEntryHeight;
-    var listWidth = maxStringLength*10+10, fontSize=this.valueListFontSize;
+    var listWidth = 40, fontSize=this.valueListFontSize;
     var focusAreaTop = valueListTop, focusAreaLeft = valueListX+listWidth;
     var listScale = d3.scaleLinear().domain([0, numEntries-1]).range([valueListTop, valueListTop+listHeight]);
     var colourScale = this.colourScale;
@@ -2896,7 +2894,7 @@ chartObject.drawValueList=function drawValueList(options) {
                 textAngle = pi*(Math.random()-0.5),
                 x = poolCentreX+fromCentre*poolRadius*Math.sin(offsetAngle),
                 y = poolCentreY+fromCentre*poolRadius*Math.cos(offsetAngle),
-                diffX = valueListX-plotOrigin.x+10-x,
+                diffX = valueListX-plotOrigin.x+listWidth/2-x,
                 diffY = listScale(i)-plotOrigin.y+fontSize/2-1-y;
             valueEntries.push({
                 value: v,
@@ -2949,6 +2947,7 @@ chartObject.drawValueList=function drawValueList(options) {
             
             fixedContext.save();
             fixedContext.font = fontSize+"px Arial";  // seems to be necessary
+            fixedContext.textAlign = "center";
             fixedContext.translate(x, y);
             fixedContext.rotate(angle);
             fixedContext.fillText(valueObj.text, 0, 0);
@@ -2995,7 +2994,7 @@ chartObject.drawValueList=function drawValueList(options) {
                 if (gatherRepeats) {
                     var lastValue = values[indexRange[0]], valCount = 0;
                     function addItem(value, count) {
-                        var str = String(value);
+                        var str = value.toFixed(chart.dataDecimals);
                         items.push({ value: value, text: str, multiplier: count===1 ? null : " x "+count })
                         }
                     indexRange.forEach(vi=>{
@@ -3009,7 +3008,7 @@ chartObject.drawValueList=function drawValueList(options) {
                         });
                     addItem(lastValue, valCount);
                 } else {
-                    items = indexRange.map(vi=>({ value: values[vi], text: String(values[vi]) }));
+                    items = indexRange.map(vi=>({ value: values[vi], text: values[vi].toFixed(chart.dataDecimals) }));
                 }
                 var numItems = items.length;
                 var focusListHeight = (numItems-1)*focusEntryHeight,
@@ -3020,7 +3019,7 @@ chartObject.drawValueList=function drawValueList(options) {
             focusTexts.exit().remove();
             focusTexts.enter().append("text")
                 .attr("class", "focusItem")
-                .attr("x", 0)
+                .attr("x", 4)
                 .attr("y", (d, i)=>focusListTop+focusEntryHeight*i)
         		.attr("dy", chart.textOffsets.central)
                 //.style("dominant-baseline", "central") // numbers are tall, so not "middle"
@@ -3053,7 +3052,7 @@ chartObject.drawValueList=function drawValueList(options) {
             focusLines.exit().remove();
             focusLines.enter().append("line")
                 .attr("class", "focusItem")
-                .attr("x1", -listWidth).attr("x2", -10)
+                .attr("x1", -listWidth).attr("x2", 0)
               .merge(focusLines)
                 .attr("y1", d=>d).attr("y2", d=>d)
                 .style("stroke-width", 1)
