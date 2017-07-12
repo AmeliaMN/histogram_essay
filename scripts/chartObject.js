@@ -2867,7 +2867,7 @@ chartObject.drawValueList=function drawValueList(options) {
     // list and pool locations are (now) relative to plotOrigin, not canvas absolute
     var plotOrigin = this.plotOrigin;
     var listHeight = this.valueListHeight, valueListX = plotOrigin.x+this.valueListOrigin.x, valueListTop = plotOrigin.y+this.valueListOrigin.y, listEntryHeight = this.valueListEntryHeight, focusEntryHeight = listEntryHeight;
-    var listWidth = 40, fontSize=this.valueListFontSize;
+    var listWidth = this.valueListWidth, fontSize=this.valueListFontSize;
     var focusAreaTop = valueListTop, focusAreaLeft = valueListX+listWidth;
     var listScale = d3.scaleLinear().domain([0, numEntries-1]).range([valueListTop, valueListTop+listHeight]);
     var colourScale = this.colourScale;
@@ -3567,14 +3567,14 @@ chartObject.flyBalls=function flyBalls(options) {
                     .attr("class", "valueLabel")
             		.attr("dy", chart.textOffsets.central)
                     .style("font-size", fontSize+"px")
-                    //.style("dominant-baseline", "central")
-                    .attr("x", originX+10)
+                    .style("text-anchor", "middle")
+                    .attr("x", originX+chart.valueListWidth/2)
             }
             
             textSeln
                 .interrupt()
                 .datum(def)
-                .text(String(val))
+                .text(val.toFixed(chart.dataDecimals))
                 .style("fill", def=>def.colour)
                 .style("opacity", 1)
                 .attr("y", originYScale(firstIndex+Math.floor((count-1)/2)))
@@ -4159,6 +4159,7 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     // definition of valueListOrigin is relative to plotOrigin
     var valueListHeight = this.valueListHeight = 310, valueListBottomGap = 60;
     this.valueListOrigin = lively.pt(620, -valueListHeight-valueListBottomGap-this.fallAfterFlight);
+    this.valueListWidth = 40;
     this.valueListFontSize = 12;
     this.valueListEntryHeight = 15;
     

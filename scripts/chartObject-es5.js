@@ -2561,7 +2561,7 @@ function createChartObject() {
             valueListTop = plotOrigin.y + this.valueListOrigin.y,
             listEntryHeight = this.valueListEntryHeight,
             focusEntryHeight = listEntryHeight;
-        var listWidth = 40,
+        var listWidth = this.valueListWidth,
             fontSize = this.valueListFontSize;
         var focusAreaTop = valueListTop,
             focusAreaLeft = valueListX + listWidth;
@@ -3255,12 +3255,10 @@ function createChartObject() {
             if (!instant) {
                 var textSeln = chart.chartGroup.select("text.valueLabel");
                 if (textSeln.empty()) {
-                    textSeln = chart.chartGroup.append("text").attr("class", "valueLabel").attr("dy", chart.textOffsets.central).style("font-size", fontSize + "px")
-                    //.style("dominant-baseline", "central")
-                    .attr("x", originX + 10);
+                    textSeln = chart.chartGroup.append("text").attr("class", "valueLabel").attr("dy", chart.textOffsets.central).style("font-size", fontSize + "px").style("text-anchor", "middle").attr("x", originX + chart.valueListWidth / 2);
                 }
 
-                textSeln.interrupt().datum(def).text(String(val)).style("fill", function (def) {
+                textSeln.interrupt().datum(def).text(val.toFixed(chart.dataDecimals)).style("fill", function (def) {
                     return def.colour;
                 }).style("opacity", 1).attr("y", originYScale(firstIndex + Math.floor((count - 1) / 2))).transition().delay(500).duration(1000).style("opacity", 1e-6).remove();
             }
@@ -3838,6 +3836,7 @@ function createChartObject() {
         var valueListHeight = this.valueListHeight = 310,
             valueListBottomGap = 60;
         this.valueListOrigin = lively.pt(620, -valueListHeight - valueListBottomGap - this.fallAfterFlight);
+        this.valueListWidth = 40;
         this.valueListFontSize = 12;
         this.valueListEntryHeight = 15;
 
