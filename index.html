@@ -97,16 +97,19 @@ function getVis() { return window.scrollyVis }
 
 <div id="intro">
 		<h1 id="top">What's so hard about histograms?</h1>	
-		<p class="lead">Histograms are a way to summarize a numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices!</p>
+		<p class="lead">Histograms are a way to summarize a numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices! We're going to take you step by step through the considerations with lots of data visualizations. If there's anything you do not understand after reading the essay, you can contact us; our contact information is at the very end. Comments and suggestions are welcomed!</p>
         
         <div id="browserwarning"></div>
       
 
-	<h2>Visualizing distributions</h2>
+	<h2>Visualizing data</h2>
 	<div>	
-		<p>When thinking about data, it is often useful to produce a plot of a variable to better understand the <b>distribution</b> of that variable. The way you visualize a distribution depends on whether the variable of interest is categorical or numeric.</p>
+		<p>When thinking about data, it is often useful to produce visualizations to better understand distributions and relationships between variables. Since visualizations rely on humans to make and interpret them, they can be fraught with possibilities for misrepresentation, including<a href="https://www.youtube.com/watch?v=s0J6EDvlN30">perceptual issues</a> and <a href="https://qz.com/580859/the-most-misleading-charts-of-2015-fixed/">problems with axes</a>.</p> 
 
-		<h3>Distributions of categorical variables</h3>
+
+    <p>In this essay, we are focusing on <b>distributions</b> of a single variable. The way you visualize a distribution depends on whether the variable of interest is categorical or numeric.</p>
+
+		<h3>Categorical variables and their distributions</h3>
   <a class="thumbnail" style="float: right; margin: 0px 0px 15px 15px;" href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/"><img width="300px" src="img/hickey-ross-tags-1.png" class="img-responsive" alt="Bob Ross paintings containing the named elements"/></a>
 
 
@@ -123,19 +126,19 @@ function getVis() { return window.scrollyVis }
     <p>-<a href="https://hbr.org/2013/03/power-of-visualizations-aha-moment">Amanda Cox</a>, The Upshot. </p>
     </blockquote>
 
-  <h3>Distributions of numeric variables</h3>
+  <h3>Numeric variables and their distributions</h3>
   
 
-  <p><b>Numeric</b> variables are measured as numbers. Height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables can only take on certain integer values (1, 2, 3, etc). Continuous variables can take on any value along the number line (1.7, 14.06, etc).</p>
+  <p><b>Numeric</b> variables are measured as numbers. Height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables only take on integer values (1, 2, 3, etc). Continuous variables take on any value along the number line (1.7, 14.06, etc).</p>
 
       <a class="thumbnail" style="clear: both; float: right; margin: 0px 0px 15px 15px;" href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=0"><img width="300px" src="img/0422-ups-marathon-945-1.png" class="img-responsive" alt="Marathon finishing times"/></a>
 
-    <p>When a variable is numeric, there are <a class="tiponly" href="#" data-toggle="tooltip" title="including boxplots, stem and leaf plots, and density plots">a variety of ways</a> to visualize the distribution, but the most common method is probably the histogram.</p>
+    <p>When a variable is numeric, its distribution can be represented in a <a class="tiponly" href="#" data-toggle="tooltip" title="including boxplots, stem and leaf plots, and density plots">variety of ways</a>; probably the most common method is the histogram.</p>
 
 
     <p>Justin Wolfers of <a href="https://www.nytimes.com/section/upshot">The Upshot</a> produced the histogram at right to <a href="https://www.nytimes.com/2014/04/23/upshot/what-good-marathons-and-bad-investments-have-in-common.html?rref=upshot&_r=1">visualize the finishing times of 10 million marathon runners</a>.</p>
 
-    <p>At first glance, creating a histogram looks simple enough&mdash;we break data into a set of discrete bins, then count how many values fall into each of the bins. But, as we look closer there are actually many choices that must be made in order to create a histogram. And, the choices have big consequences on how the distribution will appear!</p>
+    <p>At first glance, creating a histogram looks simple enough&mdash;we break data into a set of discrete bins, then count how many values fall into each of the bins. But, as we look more closely, we see that there actually are many choices that must be made to create a histogram that faithfully represents the form of the distribution.</p>
 
 </div>
 <br style="clear:both" />
@@ -150,30 +153,30 @@ function getVis() { return window.scrollyVis }
 
   <section class="step">
     <div class="title">Gather your data</div>
-    <p>A histogram is based on a collection of data about a numeric variable. Our first step is to gather some values for that variable. The initial dataset we will consider consists of fuel consumption (in miles per gallon) from a sample of car models available in 1974 (yes, rather out of date). We can visualize the dataset as a pool of items, each identified by its value&mdash;which in theory lets us "see" all the items, but makes it hard to get the gestalt of the variable. What are some common values? Is there a lot of variation?</p>
+    <p>A histogram is based on a collection of data about a numeric variable. Our first step is to gather some values for that variable. The initial dataset we will consider consists of fuel consumption (in miles per gallon) from a sample of car models available in 1974 (yes, rather out of date). We can visualize the dataset as a pool of items, with each item identified by its value&mdash;which in theory lets us "see" all the items, but makes it hard to get the gestalt of the variable. What are some common values? Is there a lot of variation?</p>
   </section>
   <section class="step">
     <div class="title">Sort into an ordered list</div>
-    <p>A useful first step towards describing the variable's distribution is to sort the items into a list. Now we can see the maximum value and the minimum value. Beyond that, it is hard to say much about the center, shape, and spread of the distribution. Part of the problem is that the list is completely filled; the space between any two items is the same, no matter how far apart their values may be. We need a way to arrange the values that lets us see how sparse or clumpy they are.</p>
+    <p>A useful first step towards describing the variable's distribution is to sort the items into a list. Now we can see the maximum value and the minimum value. Beyond that, it is hard to say much about the center, shape, and spread of the distribution. Part of the problem is that the list is completely filled; the space between any two items is the same, no matter how far apart their values may be. We need a way to arrange the values that lets us see how the number of data points at each value or nearby values exist in relation to the others. Is there one lonely data point, far removed from any others? Or are there quite a few such data points clumped together with very similar values?</p>
   </section>
   <section class="step">
     <div class="title">Draw the number line</div>
-    <p>A common convention is to use a number line, where higher values are displayed to the right and smaller (or negative) values to the left. We can draw a line representing all possible numbers between the minimum and maximum data values.</p>
+    <p>A common convention is to use a number line, on which higher values are displayed to the right and smaller (or negative) values to the left. We can draw a line representing all possible numbers between the minimum and maximum data values.</p>
   </section>
   <section class="step">
     <div class="title">Add data to the number line</div>
     <p>Now, we map each item to a dot at the appropriate point along the number line.  Here we're also drawing the path followed by each item on its way from the list to the line, helping to reveal how adjacent list items end up close or far apart on the number line depending on their values.</p>
     
-    <p>In the first sample dataset ("MPG"), there are&mdash;by chance&mdash;no two items with exactly the same value. We have some other datasets available.</p>
+    <p>In the first sample dataset ("MPG"), there are&mdash;by chance&mdash;no two items with exactly the same value. To broaden your understanding, we have included two other datasets in this animation.</p>
 
-    <p>As you scroll, you will find a dataset at an opposite extreme&mdash;"<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>", a dataset listing the ages of some National Basketball Association athletes. The ages are rounded to whole years, so there are multiple items (i.e., multiple athletes) with the same age value. We show repeated values by <b>stacking</b> them on top of each other.<p>
+    <p>As you scroll, next ou will see a a dataset of an opposite extreme type, in which there are many data points at each value&mdash;"<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>", a dataset that lists the ages of some National Basketball Association athletes. The ages are rounded to whole years, so there are multiple items (i.e., multiple athletes) with the same age value. We show repeated values by <b>stacking</b> them on top of one another.<p>
     
-    <p>Scrolling further, a third sample dataset is "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">Geyser</span>", a collection of timings, in seconds, between eruptions of the Old Faithful geyser in Yellowstone National Park.  This dataset, too, has values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are rounded to integers.  If the timings were measured to multiple decimal places, there would almost certainly be no duplicates.<p>
+    <p>Scrolling further, you will see a a third sample dataset, "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">Geyser</span>", a collection of timings, in seconds, between eruptions of the Old Faithful geyser in Yellowstone National Park.  This dataset, too, has values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are rounded to integers.  If the timings were measured to multiple decimal places, there almost certainly would be no duplicates.<p>
 
 
-    <p>In these small datasets, the stacks of dots (often called a <b>dotplot</b>) may give you a good sense of the distribution of the data. However, many real-world datasets have values which are repeated many hundreds or thousands of times, so it becomes very hard to plot all the dots. Conversely, a dataset could have no duplicates at all, so even a dense region of items would appear as an unremarkable smear along the number line. Histograms provide a way to visualize data by aggregating it into bins, and can be used with data of any size.</p>
+    <p>In these small datasets, the stacks of dots (often called a <b>dotplot</b>) may give you a good sense of the distribution of the data. However, many real-world datasets have values which are repeated many hundreds or thousands of times. From a practical standpoint, it becomes very hard to plot all the dots. Conversely, a dataset could have no duplicates at all, so even a dense region of items would appear as an unremarkable smear along the number line. Histograms provide a way to visualize data by aggregating it into bins, and can be used with data of any size.</p>
     
-    <p>The buttons at the bottom of the visualization allow you to switch between the sample datasets at any time.<p>
+    <p>Notice the buttons at the bottom of the visualization? These allow you to switch between the sample datasets at any time.<p>
   </section>
   <section class="step">
     <div class="title">Portioning items into bins&mdash;the essence of a histogram</div>
@@ -182,7 +185,7 @@ function getVis() { return window.scrollyVis }
 
     <p>Gathering the items into bins helps us to answer the question "what is the distribution of this data like?"  Imagine trying to describe some dataset over the phone: rather than mechanically reading out the entire list of values, it would be more useful to provide a summary, such as by saying whether the variable's distribution is symmetric, where it is centered, and whether it has extreme values.  A histogram is another kind of summary, in which you communicate the overall properties in terms of portions (i.e., bins) of the data.</p>
 
-    <p>For example, the "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">Geyser</span>" data can be described as being bimodal (because its histogram has two 'peaks'), while "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" is more unimodal, and perhaps right-skewed (because the bin heights decrease towards the right).</p>
+    <p>For example, the "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">Geyser</span>" data can be described as being bimodal (because its histogram has two 'peaks'), while "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" is more unimodal, and perhaps <a href="https://en.wikipedia.org/wiki/Skewness">right-skewed</a> (because the bin heights decrease towards the right).</p>
     
     <p>Maybe because histograms are visually similar to bar charts, it's easy to think that they are also similarly objective. But, unlike bar charts, histograms are governed by many <a href="https://en.wikipedia.org/wiki/Parameter" data-toggle="tooltip" title="Things that can be changed">parameters</a>. Before describing a dataset to someone based on what you see in its histogram, you need to know whether different parameter values might have led you to different descriptions.</p>
 
@@ -331,7 +334,7 @@ function getVis() { return window.scrollyVis }
     <p>The icons on the dataset-selection buttons are all from <a href="https://thenounproject.com/">the Noun Project</a>: "Car" by Jens Tärning; "Basketball" by Andrey Vasiliev; an adaptation of "Fountain" by Anton Gajdosik; "Diamond" by O&nbsp;s&nbsp;t&nbsp;r&nbsp;e&nbsp;a; an adaptation of "run" by Hopkins.
     </p>
 
-    <p>We also gratefully acknowledge the support of our many colleagues and collaborators, in particular within the <a href="http://harc.ycr.org">Human Advancement Research Community</a>. Special thanks go to Marko Röder, Saketh Kasibatla, Yoshiki Ohshima, Chris Walker, Steve Draper, Jim McElwaine, and Chris Baker.</p>
+    <p>We also gratefully acknowledge the support of our many colleagues and collaborators, in particular within the <a href="http://harc.ycr.org">Human Advancement Research Community</a>. Special thanks go to Marko Röder, Saketh Kasibatla, Yoshiki Ohshima, Chris Walker, Steve Draper, Jim McElwaine, Kathy Ahlers, and Chris Baker.</p>
 
   <!-- when ready...
    <p>gather explicit links to all the datasets?<p>
