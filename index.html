@@ -74,21 +74,10 @@ function getVis() { return window.scrollyVis }
   <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
-<!--           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button> -->
           <a class="navbar-brand" href="#">Exploring Histograms, an essay by Aran Lunzer and Amelia McNamara</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
-<!--           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#contact">Contact</a></li>
-          </ul> -->
-        </div><!--/.nav-collapse -->
+        </div>
       </div>
     </nav>
 
@@ -187,7 +176,7 @@ function getVis() { return window.scrollyVis }
     
     <p>Maybe because histograms are visually similar to bar charts, it's easy to think that they are also similarly objective. But, unlike bar charts, histograms are governed by many <a href="https://en.wikipedia.org/wiki/Parameter" data-toggle="tooltip" title="things that can be changed">parameters</a>. Before describing a dataset to someone based on what you see in its histogram, you need to know whether different parameter values might have led you to different descriptions.</p>
 
-<!--     <p>The <span style="font-family:monospace">hist()</span> function in R will create a histogram for any dataset that you give it, using&mdash;unless you specify otherwise&mdash;default settings for the number and placement of the bins.  Here we show the default histogram that R would draw for this dataset.</p> -->
+
   </section>
   <section class="step">
     <div class="title">Bin-breaks: Why these bins?</div>
@@ -219,7 +208,7 @@ function getVis() { return window.scrollyVis }
     
     <p>Some widths can be argued as being more valid than others. For example, setting a width of 1.4 years for the "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" dataset, where item values are always integers, is asking for trouble: some bins will inevitably span two values, while others only include one. More generally, bin width should be an integer multiple of the precision that was used in measuring the data. Our "<span class="VisControlLink" onclick="getVis().switchDataset('mpg')">MPG</span>" values were all measured to the nearest 0.1, so for that dataset a bin width of 1.4 (mpg) would be fine.</p>
 
-    <!--More generally, if the precision used in measuring item values is <i>x</i>, it only makes sense to use a bin width that is some integer multiple of <i>x</i>.-->
+
   </section>
   
   <section class="step">
@@ -299,21 +288,19 @@ function getVis() { return window.scrollyVis }
 
 		<h3>Why not just use a kernel density?</h3>
 		<p>This essay focused on histograms, which are a way of visualizing a distribution of one variable. Another popular method of visualizing one numeric variable is a <a href="https://en.wikipedia.org/wiki/Kernel_density_estimation">kernel density</a>. Kernel densities also show a distribution, but they are more abstract. Rather than counting the number of items in a set of bins, a kernel density provides a smoothed line to approximate the distribution. </p>
-		<p>Because they are more abstract, they can feel "truer" than histograms, but kernel densities are <em>also</em> parameterized. This <a href="http://45.55.32.181/shiny/kerneldensity/">R Shiny app</a> (warning, much uglier than the essay!) shows how kernel densities can differ for the same data.</p>
+		<p>Because they are more abstract, they can feel "truer" than histograms, but kernel densities are <em>also</em> parameterized. This quick-and-dirty <a href="http://45.55.32.181/shiny/kerneldensity/">R Shiny app</a> that we made shows how kernel densities can differ for the same data.</p>
 		<h3>What about unequal bin sizes?</h3>
-		<p>A variation on histograms that we did not discuss involves using unequal bin sizes. This can be an appropriate choice if your data is much sparser in some areas than others&mdash;you can use a wide bin to capture a large area with few points, and narrower bins for denser areas, or vice versa. In order to use unequal bin widths you must use a density histogram (rather than a count histogram) in order to avoid over-representing low counts. Density histograms use area as the visual encoding, rather than height. </p>
+		<p>A variation on histograms that we did not discuss involves using unequal bin sizes. This can be an appropriate choice if your data is much sparser in some areas than others&mdash;you can use a wide bin to capture a large area with few points, and narrower bins for denser areas, or vice versa. In order to use unequal bin widths you must use a density histogram (rather than a count histogram) to avoid over-representing low counts. Density histograms use area as the visual encoding, rather than height. </p>
 		<p>As an example of what this might look like, see the <a href="https://www.nytimes.com/interactive/2015/02/17/upshot/what-do-people-actually-order-at-chipotle.html?_r=0">equal bin width histogram</a> of Chipotle calorie counts that the Times published, and compare with this <a href="https://twitter.com/KevinQ/status/570677530870603776">unequal-bin-width histogram</a> from one of the authors of that visualization.
 		<h3>Where can I learn more about histograms and smoothing?</h3>
-		<p>It depends on how much detail you are looking for! Nathan Yau of <a href="http://flowingdata.com/">flowingdata</a> has a post about <a href="https://flowingdata.com/2017/06/07/how-histograms-work/">how histograms work</a>, as well as one on <a href="https://flowingdata.com/2014/02/27/how-to-read-histograms-and-use-them-in-r/">reading and using histograms in R</a>, which includes histograms with unequally-sized bins. A great text at the advanced undergraduate or introductory graduate level is <a href="https://www.amazon.com/Smoothing-Methods-Statistics-Springer/dp/0387947167">Smoothing Methods in Statistics</a> by <a href="http://people.stern.nyu.edu/jsimonof/">Jeffrey S. Simonoff</a>.</p>
+		<p>It depends on how much detail you are looking for! Nathan Yau of <a href="http://flowingdata.com/">FlowingData</a> has a post about <a href="https://flowingdata.com/2017/06/07/how-histograms-work/">how histograms work</a>, as well as one on <a href="https://flowingdata.com/2014/02/27/how-to-read-histograms-and-use-them-in-r/">reading and using histograms in R</a>, which includes histograms with unequally-sized bins. A great text at the advanced undergraduate or introductory graduate level is <a href="https://www.amazon.com/Smoothing-Methods-Statistics-Springer/dp/0387947167">Smoothing Methods in Statistics</a> by <a href="http://people.stern.nyu.edu/jsimonof/">Jeffrey S. Simonoff</a>.</p>
     <h3>What tools allow for this type of functionality?</h3>
-    <p>"Stretchy histograms" (those allowing users to adjust the binwidth dynamically) are available in a variety of commercially-available systems. In his 1997 paper, <a href="https://iase-web.org/documents/intstatreview/97.Biehler.pdf">Software for Learning and Doing Statistics</a>, Rolf Biehler talks about this feature in his software Statistics Workshop. Similar abilities were included in <a href="https://datadesk.com/">DataDesk</a>, <a href="http://fathom.concord.org/">Fathom</a>, and <a href="https://www.tinkerplots.com/">TinkerPlots</a>. However, many professional tools eschewed stretchy histograms (or even left histograms out altogether!). Excel <a href="https://support.office.com/en-us/article/Create-a-histogram-b6814e9e-5860-4113-ba51-e3a1b9ee1bbe">can be extended</a> to create histograms by the installation of a third-party add-on, but does not support stretchy histograms. Expert <a href="https://www.r-project.org/">R</a> users can create stretchy histograms using <a href="http://shiny.rstudio.com/">Shiny</a> or <a href="https://cran.r-project.org/web/packages/manipulate/manipulate.pdf">manipulate</a>, but even these do not offer instantaneous feedback during manipulation, instead waiting for the user to release a slider before updating the view. Similarly, <a href="https://www.tableau.com">Tableau</a> makes it possible to generate a slider to update histogram parameters, but it is not simple.</p>
+    <p>"Stretchy histograms" (those allowing users to adjust the bin width dynamically) are available in a variety of commercially-available systems. In his 1997 paper, <a href="https://iase-web.org/documents/intstatreview/97.Biehler.pdf">Software for Learning and Doing Statistics</a>, Rolf Biehler talks about this feature in his software Statistics Workshop. Similar abilities were included in <a href="https://datadesk.com/">DataDesk</a>, <a href="http://fathom.concord.org/">Fathom</a>, and <a href="https://www.tinkerplots.com/">TinkerPlots</a>. However, many professional tools eschewed stretchy histograms (or even left histograms out altogether!). Excel <a href="https://support.office.com/en-us/article/Create-a-histogram-b6814e9e-5860-4113-ba51-e3a1b9ee1bbe">can be extended</a> to create histograms by the installation of a third-party add-on, but does not support stretchy histograms. Expert <a href="https://www.r-project.org/">R</a> users can create stretchy histograms using <a href="http://shiny.rstudio.com/">Shiny</a> or <a href="https://cran.r-project.org/web/packages/manipulate/manipulate.pdf">manipulate</a>, but even these do not offer instantaneous feedback during manipulation, instead waiting for the user to release a slider before updating the view. Similarly, <a href="https://www.tableau.com">Tableau</a> makes it possible to generate a slider to update histogram parameters, but it is not simple.</p>
 
-
-<!-- <br/><br/><br/> -->
 
     <h2>Who we are</h2>
     
-    <p>Both of us (<a href="http://www.vpri.org/html/team_bios/aran_lunzer.htm">Aran Lunzer</a> and <a href="http://www.science.smith.edu/~amcnamara/">Amelia McNamara</a>) are interested in making it easier to see these types of choices. Lunzer's work focuses on "subjunctive interfaces"; interfaces that help users to understand whether a small change in what they've requested (e.g., small modifications to parameter values, or subtly different terms in a query) would lead to dramatically different results. McNamara is interested in the effects of parameter choices on statistical visualizations.</p>
+    <p>Both of us (<a href="http://www.vpri.org/html/team_bios/aran_lunzer.htm">Aran Lunzer</a> and <a href="http://www.science.smith.edu/~amcnamara/">Amelia McNamara</a>) are passionate about empowering people to explore. Lunzer's work focuses on "subjunctive interfaces": interfaces that help users to understand whether a small change in what they've requested (e.g., small modifications to parameter values, or subtly different terms in a query) would lead to dramatically different results. McNamara is interested in the effects of parameter choices on statistical visualizations.</p>
 
     <p>If you have seen awesome histograms in the wild, have comments about this essay, or just want to say Hello, you can tweet at Amelia, <a href="https://twitter.com/AmeliaMN">@AmeliaMN</a>, or email Aran, <tt>aran at acm dot org</tt>. </p>
 
@@ -326,10 +313,6 @@ function getVis() { return window.scrollyVis }
     </p>
 
     <p>We also gratefully acknowledge the support of our many colleagues and collaborators, in particular within the <a href="http://harc.ycr.org">Human Advancement Research Community</a>. Special thanks go to Marko Röder, Saketh Kasibatla, Yoshiki Ohshima, Chris Walker, Steve Draper, Jim McElwaine, Kathy Ahlers, and Chris Baker.</p>
-
-  <!-- when ready...
-   <p>gather explicit links to all the datasets?<p>
-  -->
   
 </div> <!-- end of #epilogue -->
 

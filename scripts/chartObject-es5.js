@@ -3262,7 +3262,7 @@ function createChartObject() {
                     return def.colour;
                 }).style("opacity", 1).attr("y", originYScale(firstIndex + Math.floor((count - 1) / 2))).transition().delay(500).duration(1000).style("opacity", 1e-6).remove();
             }
-
+            
             ctx.strokeStyle = colourScale(val, 1);
             ctx.lineWidth = 0.5;
             for (var i = 0; i < count; i++) {
