@@ -1,11 +1,10 @@
-
 /*!
 
 chartObject.js for essay http://tinlizzie.org/histograms/ is released under the
- 
+
 MIT License
 
-Copyright (c) 2016-2017 Aran Lunzer and Amelia McNamara
+Copyright (c) 2016-2020 Aran Lunzer and Amelia McNamara
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +25,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
- 
-function createChartObject() {
+
+window.createChartObject = function createChartObject() {
 var chartObject = {};
 
 chartObject.bifocalScale=function bifocalScale(availableWidth, totalWidth, focalFactor, itemWidth) {
@@ -43,7 +42,7 @@ chartObject.bifocalScale=function bifocalScale(availableWidth, totalWidth, focal
       while (++i < n) target[method = arguments[i]] = d3_rebind_inner(target, source, source[method]);
       return target;
     };
-    
+
     // Method is assumed to be a standard D3 getter-setter:
     // If passed with no arguments, gets the value.
     // If passed with arguments, sets the value and returns the target.
@@ -85,7 +84,7 @@ chartObject.bifocalScale=function bifocalScale(availableWidth, totalWidth, focal
         rescale.pivots.push({ x: total, y: available });
 //if (totalWidth>400 && !focusInOutput) console.log(f, focusMin, focusMax, rescale.pivots);
     }
-    
+
     rescale.findItem = function(y) {
         /* approximate method (twitchy because we estimate based on focussing at the arbitrary mouse point, whereas we then update the display by focussing at the middle of the nearest item).
             i suspect there's no analytical way to do this properly.
@@ -96,9 +95,9 @@ chartObject.bifocalScale=function bifocalScale(availableWidth, totalWidth, focal
 //console.log(Math.round(y)+"=>"+Math.round(x)+"=>"+Math.round(rescale(x)));
 //console.log(Math.round(y)+"=>"+Math.round(x)+"=>"+(x/itemWidth).toFixed(1));
         // x is a value in the scale's totalWidth space, which runs from half-way through the first item to half-way through the last.
-        return Math.floor(x/itemWidth+0.5);            
+        return Math.floor(x/itemWidth+0.5);
     }
-    
+
     rescale.invert = function(y) {
         var pivots = rescale.pivots;
         var x;
@@ -118,9 +117,9 @@ chartObject.bifocalScale=function bifocalScale(availableWidth, totalWidth, focal
     rescale.nice = scale.nice;
     rescale.ticks = scale.ticks;
     rescale.tickFormat = scale.tickFormat;
-    
+
     rescale.setup(0);
-    
+
     return d3_rebind(rescale, scale, "domain", "range");
 
 };
@@ -139,7 +138,7 @@ chartObject.binData=function binData(data, ranges) {
 };
 
 chartObject.buildTable=function buildTable(definitions, tableOptions) {
-//console.log("buildtable", definitions)    
+//console.log("buildtable", definitions)
     var chart = this;
     var data = this.data, dataMin = this.dataMin, dataMax = this.dataMax, dataRange = this.dataRange, dataQuantum = this.dataQuantum;
 
@@ -339,7 +338,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         }
         return null; // no change
     }
-    
+
     var fixups = [];
     function defer(sel, func) {
         fixups.push(lively.lang.fun.curry(function(s, trans) {
@@ -376,7 +375,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
             .duration(1000)
             .style("fill", d => d.fill || "black")
     }
-    
+
     function stringyValue(val, varName) {
         if (val===null) return "";
 
@@ -395,11 +394,11 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
     /*
     timing:
         to reduce flickering as the user probes the interface, we allow interactions to set up delayed effects (e.g., removing a highlight) that can be cancelled if another event is triggered before the delay expires.  events are given a type: scheduling an event of type foo will cancel any previously queued foo event.  when the last specified delay expires (which could be immediately), the entire queue - which might contain non-foo events - will all be executed.
-        
+
         scheduleEvent(type, delay, f)
         flushEventQueue(type)
     */
-    
+
     var eventQueue = [];  // a list of { type, fn } objects
     var eventTimeout;
 
@@ -411,17 +410,17 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
         if (delay) eventTimeout = setTimeout(runEvents, delay);
         else runEvents();
     }
-    
+
     function flushEventQueue(type) {
         eventQueue = eventQueue.filter(evt=>evt.type!==type);
     }
-    
+
     function runEvents() {
 //console.log((Date.now())+" run "+(eventQueue.length));
         eventQueue.forEach(evt=>evt.fn());
         eventQueue = [];
     }
-    
+
     function objectsEqual(a, b) {
         var aKeys = Object.keys(a), bKeys = Object.keys(b);
         if (aKeys.length !== bKeys.length) return false;
@@ -446,7 +445,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
     function refreshTable(options, duration) {   // options is an object { force, focusVar, focusIndex, dataFocusIndex }
         options.isDragging = chart.isDragging;
         options.useDensity = chart.useDensity;
-        // when we have a binwidth-control widget,  
+        // when we have a binwidth-control widget,
         if (tableOptions.widthControl) {
             if (!chart.estimatedBinMax) {
                 chart.estimatedBinMax = chart.estimateMaxBinSize(varDefs.width.main/chart.dataRange*100);
@@ -465,7 +464,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
 
             chart.recordBinState("primary"); // for later highlight
         }
-        
+
         function deriveBins(result, scenario) {
             var drawableBins = [];
 
@@ -520,7 +519,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                 if (highlighting) rangeSets.context = contextBins[highlightIndex];
                 chart.drawRanges(rangeSets);
             }
-            
+
             function padIfNeeded(data) {
                 if (lively.lang.obj.isArray(data) && data.length < maxDataColumns) {
                     return data.concat(lively.lang.arr.withN(maxDataColumns-data.length, null))
@@ -528,7 +527,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                 return data;
             }
             var primaryIndex = contextVar ? varDefs[contextVar].extra.indexOf(varDefs[contextVar].main) : null; // slightly hacky assumption
-    
+
             var dataRows = [];
             var affectedByExtra = [];
             var rowsAdded = 0;
@@ -539,7 +538,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                     var mainExpr = varDef.main;
                     if (typeof mainExpr==="function") mainExpr = mainExpr(chosen);
                     var isInChoice = !!varDef.choiceGroup, isChosen = isInChoice && choiceGroups[varDef.choiceGroup].chosen===vn, isLastChoice = isInChoice && lively.lang.arr.last(choiceGroups[varDef.choiceGroup].choices)===vn;
-                    
+
                     // new apr 2017 (expt24): include any extraDefs in the var's main row
                     var extrasHere = varDef.extra; // may be undefined
                     if (extrasHere && !(isInChoice && !isChosen)) {
@@ -548,7 +547,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                     } else {
                         dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded++, reason: "main", expr: isInChoice && !isChosen ? "-" : mainExpr, styledExpr: varDef.styled, data: padIfNeeded(mainResult[vn]) });
                     }
-    
+
                     // and then any row needed for an extension coming from another var
                     if (contextVar && (contextVar!==vn)) {
                         /* each item in a context array is the value for a named variable in the context-defining execution.  the items may be arrays, and may have different sizes.  for example, for the variable "left" the context array could be:
@@ -563,22 +562,22 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                         var tokens = mainExpr.split(/\W/);
                         if (affectedByExtra.some(evn => tokens.indexOf(evn)>=0)) {
                             affectedByExtra.push(vn);
-    
+
                             var extraData = extraResults.map(res=>res[vn]);
                             extraData.isContextArray = true;
-            
+
                             dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded, reason: "extraShadow", expr: "", data: [] });
                             dataRows.push({ varName: vn, baseRow: varIndex, rowInDisplay: rowsAdded, reason: contextVar+"extra", expr: "", data: [], context: extraData });
                             rowsAdded++;
                         }
                     }
-                    
+
                     if (!(isInChoice && !isLastChoice)) dataRows.push({ varName: vn, reason: "rule", rowInDisplay: rowsAdded });
                 }
                 });
     //console.log(dataRows);
             var rows = tableGroup.selectAll(".row").data(dataRows, keyString);
-    
+
             rows.exit()
                 .attr("class", "defunctRow")
                 .call(defer, function(s) {
@@ -586,7 +585,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                         .style("opacity", 1e-6)
                         .remove();
                     });
-    
+
             // each rowItem has { varName, baseRow, rowIndisplay, reason, expr, data, context }
             rows.enter().append("g")
                 .attr("class", "row")
@@ -613,7 +612,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                             .attr("width", lively.lang.arr.last(edges))
                             .attr("height", rowHeight-2)
                             .style("opacity", 1);
-                            
+
                         if (rowItem.hasExtras) {
                             seln.append("rect")
                                 .attr("class", "extraToggle")
@@ -630,7 +629,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                 .style("cursor", "pointer")
                                 .on("click", ()=>toggleContextSpec(rowItem.varName))
                         }
-    
+
                         if (rowItem.reason==="main" && varDefs[rowItem.varName].choiceGroup) {
                             seln.append("circle")
                                 .attr("class", "choiceToggle")
@@ -650,38 +649,38 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                         }
                     }
                     });
-    
+
             tableGroup.selectAll(".row").each(function(rowItem) {
                 var rowSeln = d3.select(this); // the g element for the row
                 var isHighlightContext = highlighting && rowItem.reason===contextVar+"extra";
                 var rowVar = rowItem.varName;
                 var isContextDef = !!rowItem.hasExtras, isActiveContextDef = isContextDef && rowVar===contextVar;
-    
+
                 // set up the row background
                 rowSeln.select("rect.rowBackground").style("fill", (rowItem.reason==="extraShadow" || isActiveContextDef) ? spreadBackground : (rowItem.reason==="main" ? "white" : "none"));
-                
+
                 defer(rowSeln, function(s) {
                     s
                         .attr("transform", transformString(xInset, yInset+rowHeight*rowItem.rowInDisplay))
                         .style("opacity", 1)
                     });
-    
+
                 if (rowItem.reason==="rule") return;
-    
+
                 var isInChoice = !!varDefs[rowVar].choiceGroup, isChosen = isInChoice && choiceGroups[varDefs[rowVar].choiceGroup].chosen===rowVar;
-    
+
                 // set appearance of the "extra values" toggle, if there is one
                 rowSeln.select("rect.extraToggle").style("fill-opacity", isActiveContextDef ? 1 : 0);
-                
+
                 // and the choices switch, if any
                 if (isInChoice) rowSeln.select("circle.choiceToggle").style("fill-opacity", isChosen ? 1 : 0);
-    
+
                 // the data item associated with each cellItem within a row has { rowSpec, x, width, text, anchor } and optionally { indexInGroup, dataIndex, mouseover, mouseout, click }.  and maybe some other gunk.
                 var rowCellGroups = [];
-                
+
                 // label column
                 if (rowItem.reason==="main") rowCellGroups.push({ category: "label", xOffset: edges[0], cells: [{ rowSpec: rowItem, text: rowVar, x: isInChoice ? boxGap : 0 }] });
-                
+
                 // expression columns
                 if (rowItem.expr !== "") {
                     var cellGroup = [], groupObject = { category: "expr", cells: cellGroup, xOffset: edges[1] };
@@ -692,7 +691,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                     } else {
                         if (rowItem.hasExtras) {
                             groupObject.id = rowItem.varName+"-extraGroup";
-                            
+
                             if (options.focusVar===rowVar) groupObject.focusIndex = groupObject.indexToHighlight = options.focusIndex;
                             else {
                                 var varDef = varDefs[rowVar];
@@ -736,7 +735,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                     }
                     if (cellGroup.length) rowCellGroups.push(groupObject);
                 }
-    
+
                 // data columns
                 var entryWidth = 44;
                 if (lively.lang.obj.isArray(rowItem.data)) {
@@ -761,11 +760,11 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                             ? "{"+(e.length)+"}"
                             : stringyValue(e, rowVar);
                         var cellSpec = {
-                            rowSpec: rowItem, 
-                            text: text, 
-                            x: i*entryWidth, 
-                            width: entryWidth, 
-                            anchor: "middle", 
+                            rowSpec: rowItem,
+                            text: text,
+                            x: i*entryWidth,
+                            width: entryWidth,
+                            anchor: "middle",
                             dataIndex: i,
                             indexInGroup: i,
                             isContext: isHighlightContext
@@ -791,7 +790,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                     var val = stringyValue(rowItem.data, rowVar);
                     rowCellGroups.push({ category: "data", xOffset: edges[2]+startOffset, cells: [{ rowSpec: rowItem, text: val, anchor: "middle", weight: "bold", x: 0, isContext: isHighlightContext }] });
                 }
-    
+
                 var cellGroups = rowSeln.selectAll(".cellGroup").data(rowCellGroups, rcg=>rcg.category);
                 cellGroups.exit().remove(); // if we ever count on this (rather than just destroying the entire row), it might need a bit of finesse
                 cellGroups.enter().append("g")
@@ -802,9 +801,9 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                         var groupSeln = d3.select(this);
                         var cellClass = groupObject.isFishy ? "fishItem" : "cellItem";
                         if (groupObject.id) groupSeln.attr("id", groupObject.id);
-                        
+
                         var cells = groupSeln.selectAll("."+cellClass).data(groupObject.cells, cellItem=>cellItem.indexInGroup);
-                        
+
                         cells.exit()
                             .attr("class", "defunctCell")
                             .interrupt()
@@ -818,7 +817,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                         .remove();
                                     });
                                 });
-                                
+
                         cells.enter().append("g")
                             .attr("class", cellClass)
                             .each(function(cellItem) {
@@ -849,17 +848,17 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                     .style("pointer-events", "none")
                                     .style("-webkit-user-select","none");
                                 });
-    
+
                         if (groupObject.isFishy) chart.spaceBifocally(groupSeln, groupObject);
-    
+
                         d3.select(this).selectAll("."+cellClass)
                             .each(function(cellItem) { // @@ probably some efficiency improvements to be made here
                                 var seln = d3.select(this);
                                 if (!groupObject.isFishy) seln.attr("transform", transformString(cellItem.x, 0));
-                                
+
                                 var textSeln = seln.select("text");
                                 textSeln.attr("y", isHighlightContext ? 0 : 4); // now redundant?
-                                
+
                                 if (cellItem.styledText) {
                                     textSeln.attr("dy", chart.textOffsets.hanging)
                                     var spans = textSeln.selectAll("tspan").data(cellItem.styledText);
@@ -873,22 +872,22 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                 } else {
                                     var oldText = textSeln.text();
                                     if (oldText !== cellItem.text) textSeln.call(showChange);
-                                    
+
                                     textSeln.text(cellItem.text);
                                 }
-                                
+
                                 if (groupObject.isFishy) {
                                     var trapSeln = seln.select("rect");
                                     trapSeln
                                         .style("fill", isActiveContextDef ? spreadBackground : "white");
-                                
+
                                     // highlight (if groupObject wants it) by showing a border
                                     if (groupObject.indexToHighlight === cellItem.indexInGroup) {
                                         trapSeln
                                             .style("stroke", isActiveContextDef ? "black" : "blue")
                                             .style("stroke-opacity", 1);
                                     } else trapSeln.style("stroke-opacity", 0);
-                                    
+
                                     //var adjustedWidth = trapSeln.attr("width");
                                     var lineLocs = cellItem.text==="" ? [true] : [];
                                     var lines = seln.selectAll("line").data(lineLocs);
@@ -904,7 +903,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                 }
                                 });
                         });
-    
+
                 // @@ maybe want to merge this group into the general handling above
                 var maxRange = 0, probeFill = "#d8d8d8";
                 var pictureCellGroups = [];
@@ -961,7 +960,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                         fishItemWidth: entryWidth,
                         focusIndex: (options.dataFocusIndex) || 0,
                         };
-                        
+
                     if (rowItem.varName===options.calloutVar) {
                         var calloutIndex = options.calloutIndex;
                         groupObj.calloutItem = {
@@ -973,9 +972,9 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                             values: unpacked[calloutIndex]
                         };
                     }
-                        
+
                     pictureCellGroups.push(groupObj);
-                } 
+                }
                 var pcGroups = rowSeln.selectAll(".pictureCellGroup").data(pictureCellGroups);
                 pcGroups.exit().remove();
                 pcGroups.enter().append("g")
@@ -985,15 +984,15 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                     .each(function(groupObject) {
                         var groupSeln = d3.select(this);
                         var cellClass = "fishItem";
-    
+
                         var callouts = [];
                         if (groupObject.calloutItem) callouts.push(groupObject.calloutItem);
-                        
+
                         var pictureCells = groupSeln.selectAll("."+cellClass+",.callout").data(groupObject.cells.concat(callouts), cellItem=>cellItem.isCallout ? "callout" : cellItem.indexInGroup);
-    
+
                         // now that fishiness is the norm, disappearing cells shouldn't clutter up the fish zone by taking time to fade out
                         pictureCells.exit().remove();  // just go
-    
+
                         pictureCells.enter().append("g")
                             .attr("class", cellItem=>cellItem.isCallout ? "callout" : cellClass)
                             .style("opacity", cellItem=>cellItem.isCallout ? 1 : 0) // will be brought up by spaceBifocally
@@ -1007,9 +1006,9 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                 .style("fill", cellItem=>cellItem.isCallout ? probeFill : "none")
                                 .style("cursor", "crosshair") //cellItem=>cellItem.isCallout ? "ew-resize": "crosshair")
                                 .style("pointer-events", "all");
-                                
+
                         chart.spaceBifocally(groupSeln, groupObject);
-                        
+
                         // the spaceBifocally call will have set all fishItems' widths instantly; the positions of their enclosing g elements might be changing in a timed transition
                         var trans = d3.transition().duration(300).ease(d3.easeLinear);
                         var immediate = d3.transition().duration(0);
@@ -1028,7 +1027,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                     rightMargin = isCallout ? 16 : 5,
                                     innerWidth = Math.max(1, width-leftMargin-rightMargin),
                                     midX = (leftMargin-rightMargin)/2;
-    
+
                                 // a callout "cell" takes care of its own positioning, and has special mousemove behaviour
                                 if (isCallout) {
                                     var baseCellX = 0;
@@ -1049,7 +1048,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                             })
                                         .on("mousemove", function(cellItem) {
                                             if (!contextVar) return; // e.g., when context has been cancelled, and row is fading away
-                                            var x = d3.mouse(this)[0];            
+                                            var x = d3.mouse(this)[0];
                                             scheduleEvent("probe", 0, function() {
                                                 var index = xStep === 0 ? 0 : Math.round((x-xStart)/xStep);
                                                 index = Math.max(0, Math.min(index, numVerts-1));
@@ -1071,7 +1070,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                             }
                                             })
                                 }
-    
+
                                 var vals = cellItem.values;
                                 if (vals.length===0) {
                                     seln.selectAll("*").remove();
@@ -1125,7 +1124,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                             });
                                     }
                                     var numVerts = vertices.length, xStep = numVerts <= 1 ? 0 : Math.min(innerWidth/(numVerts-1), 6*sizeFactor);
-                                    var xStart = midX - (numVerts-1)*0.5*xStep; 
+                                    var xStart = midX - (numVerts-1)*0.5*xStep;
                                     vertices.forEach(function(vert, i) {
                                         vert.x = xStart + i*xStep;
                                         });
@@ -1144,13 +1143,13 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                             .transition(animate ? trans : immediate)
                                             .attr("d", d3.line().x(p=>p.x).y(p=>p.y));
                                     } else seln.selectAll("path").remove();
-                                    
+
                                     var dots = isNumeric ? [] : vertices.map(vert=>({ point: vert, reason: "base" }));
                                     var highlightVertex = highlighting && vertices.find(vert=>vert.contextIndex===highlightIndex);;
                                     if (highlightVertex) dots.push({point: highlightVertex, reason: "highlight"});
                                     var primaryVertex = vertices.find(vert=>vert.contextIndex===primaryIndex);
                                     if (primaryVertex) dots.push({point: primaryVertex, reason: "primary"});
-                                    
+
                                     var readouts = (isCallout && options.hasOwnProperty("focusIndex")) ? [stringyValue(vals[options.focusIndex], rowVar)] : [];
                                     var texts = seln.selectAll("text.readout").data(readouts);
                                     texts.exit().remove();
@@ -1168,7 +1167,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                         .style("pointer-events", "none")
                                         .style('-webkit-user-select','none')
                                         .text(String);
-    
+
                                     var texts = seln.selectAll("text.sparkLabel").data(labels);
                                     texts.exit().remove();
                                     texts.enter().append("text")
@@ -1182,7 +1181,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                         .style("pointer-events", "none")
                                         .style('-webkit-user-select','none')
                                         .text(label=>label.text);
-    
+
                                     var circles = seln.selectAll("circle").data(dots);
                                     circles.exit().remove();
                                     circles.enter().append("circle")
@@ -1197,11 +1196,11 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
                                         .transition(animate ? trans : immediate)
                                         .attr("cx", dotItem=>dotItem.point.x)
                                         .attr("cy", dotItem=>dotItem.point.y);
-    
+
                                 }
                                 });
                     });
-    
+
                 });
 
             // somewhat-hack: if there's a cell callout, bring its parent row to the top of all row groups
@@ -1220,7 +1219,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
             if (options.binHighlight===null) chart.resetBinHighlight();
             else chart.highlightBinNumber(options.binHighlight);
         }
-        
+
         runDeferred(duration || 0);
     }
     this.refreshTable = refreshTable;
@@ -1236,7 +1235,7 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
     	group.selectAll("rect.primary").style("opacity", chart.primaryOpacity);
     	group.selectAll("rect.context").style("opacity", chart.contextOpacity);
     }
-    
+
     if (tableOptions.noFader!==true) {
         this.drawFaderControl(lively.pt(260, tableOptions.noVisibleTable ? 70 : 45), lively.lang.fun.throttle(opacityHandler, 100));
         group.select("g.fader").style("opacity", 0);
@@ -1254,8 +1253,8 @@ chartObject.buildTable=function buildTable(definitions, tableOptions) {
     if (tableOptions.sweepControl) {
         this.drawSweepControl(lively.pt(0, 55), ()=>toggleContextSpec("offset"));
     }
-    
-    
+
+
     refreshTable({ force: true, binHighlight: null }, 0);  // force refresh
 };
 
@@ -1296,7 +1295,7 @@ chartObject.computeG=function computeG(nBins) {
       if (j>=finalBinStart) {
         scores[t] += wCount*wCount;
       }
-    } 
+    }
     if (++t === anchorPositions) t=0;
   }
   var sortedScores = scores.slice();
@@ -1328,7 +1327,7 @@ chartObject.drawBalls=function drawBalls(data) {
         });
 	var xScale = this.xScale;
 	var group = this.dataGroup;
-	
+
 	var balls = group.selectAll("circle.ball").data(staggeredData);
 	balls.enter()
 	    .each(function(d,i) {
@@ -1351,7 +1350,7 @@ chartObject.drawBalls=function drawBalls(data) {
 		.style("stroke-width", 0.5)
 		.style("stroke", "black")
 		.attr("clip-path", (d, i)=>d.clipLimit ? "url(#ballClipper"+i+")" : "none")
-		
+
 		.on("mouseover", function(d) {
 		    })
 
@@ -1386,7 +1385,7 @@ chartObject.drawBalls=function drawBalls(data) {
 chartObject.drawBinAnnotations=function drawBinAnnotations(group, axisOrigin, axisHeight, tickDefs, labelDefs, instant) {
     var chart=this;
     var axisX = axisOrigin.x, axisBase = axisOrigin.y;
-    
+
     var labels = group.selectAll("text.histLabel").data(labelDefs, def=>def.labelType+def.text);
 	labels.exit().remove();
 	labels.enter().append("text")
@@ -1419,7 +1418,7 @@ chartObject.drawBinAnnotations=function drawBinAnnotations(group, axisOrigin, ax
         	    .style("text-anchor", d=>d.anchor || "start");
             if (def.suffix) {
                 // mildly hacky.  we want to add a suffix (typically a units string) but have the first tspan be anchored as if it were on its own.  so we figure out where the anchoring tspan has been put, then fix it to a "start" anchor and explicit offset before appending a further tspan for the suffix.
-                
+
             	// var mainLeft = mainSpan.node().getBBox().x; doesn't work on IE
             	var mainLeft = this.getBBox().x;
             	mainSpan
@@ -1436,7 +1435,7 @@ chartObject.drawBinAnnotations=function drawBinAnnotations(group, axisOrigin, ax
                     .style("fill", "grey")
             }
             });
-    
+
 	var ticks = group.selectAll("line.tick").data(tickDefs);
 	ticks.exit().remove();
 	ticks.enter().append("line")
@@ -1464,9 +1463,9 @@ chartObject.drawBinAnnotations=function drawBinAnnotations(group, axisOrigin, ax
 
 chartObject.drawBins=function drawBins(primaryBins, contextBins, options) {
     // options: useDensity, binMax, scaleToFitAxis, highlight, extraAxisAnnotations
- 
+
     // bins go into g.binGroup, a child of histGroup; scale goes directly into histGroup
-    
+
     // primaryBins is a collection of objects { min, max, values }
     // contextBins is a collection of bin collections, where each bin also has a "scenario" property (numbered from 0)
     // highlight is an optional scenario index used to put the highlight onto a context scenario, rather than on the primary
@@ -1487,7 +1486,7 @@ chartObject.drawBins=function drawBins(primaryBins, contextBins, options) {
     var heightScale = extraAxisAnnotations ? function(val) { return val/rangeMax*maxBinHeight } : function(val) { return val===0 ? 0.01 : val/rangeMax*maxBinHeight };
 	var histGroup = this.histGroup, binGroup = histGroup.select(".binGroup");
     var transformString = this.transformString;
-    
+
 	function showBins(binData, binClass, fillColour) {
 	    // binClass is "primary", "context", or "contextOutline"
 	    // binData can be empty!
@@ -1563,7 +1562,7 @@ chartObject.drawBins=function drawBins(primaryBins, contextBins, options) {
     showBins(primaryBins, "primary", allContext.length ? "none" : this.restingBinFill);
     showBins(outlineContext, "contextOutline", "none");
 
-	var extraLabelSpacing = 9; 
+	var extraLabelSpacing = 9;
 	var legendX = xScale(this.dataMax)+40, lineLegendY = 12;
 	var labelDefs = [
         { labelType: "title", x: legendX, anchor: "start", y: -heightScale(lastValue)-15, text: useDensity ? "density" : "count" }
@@ -1617,7 +1616,7 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
         .style("fill", "none")
         .style("pointer-events", "none")
         .attr("stroke-dasharray", "2 4");
-        
+
     var switchReadout = switchGroup
 	    .append("text")
 		.attr("class", "readout")
@@ -1643,7 +1642,7 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
 		.style("pointer-events", "none")
         .style("-webkit-user-select","none")
         .style("fill", readoutColour);
-        
+
     function updateReadout() {
         switchReadout
             .interrupt()
@@ -1672,7 +1671,7 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
             // low-rent drag capability, as shown in https://bl.ocks.org/mbostock/4198499
             var startPt = d3.mouse(this), startIndex = valueIndex, dragOffset = { x: startPt[0]-dragRegionOffset.x, y: startPt[1]-dragRegionOffset.y };
               //.classed("active", true);
-            
+
             var w = d3.select(window)
                 .on("mousemove", ()=>{
                     var pt = d3.mouse(switchRect.node());
@@ -1680,9 +1679,9 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
                     throttledMove(pt);  // in a controlled manner
                     })
                 .on("mouseup", mouseup);
-            
+
             d3.event.preventDefault(); // maybe not needed.  whatevs.
-            
+
             function mousemove(pt) {
                 var xDelta = pt[0]-startPt[0];
                 var newIndex = Math.max(0, Math.min(valueArray.length-1, startIndex + Math.floor(xDelta/stepSize)));
@@ -1697,9 +1696,9 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
             function mouseup() {
                 w.on("mousemove", null).on("mouseup", null);
                 dragRect.attr("x", dragRegionOffset.x).attr("y", dragRegionOffset.y);
-            }   
+            }
             });
-            
+
 	switchGroup
 	    .append("text")
 		.attr("class", "switchLabel")
@@ -1711,7 +1710,7 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
 		.style("pointer-events", "none")
         .style("-webkit-user-select","none")
         .style("fill", switchColour)
-        .text("bin width")        
+        .text("bin width")
 
 	switchGroup
 	    .append("text")
@@ -1730,7 +1729,7 @@ chartObject.drawBinWidthControl=function drawBinWidthControl(offset, valueArray,
 
 chartObject.drawBreakValues=function drawBreakValues(options) {
     var chart=this;
-    
+
     var instant = !!(options && options.instant);
 
     var stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance;
@@ -1773,16 +1772,16 @@ chartObject.drawBreakValues=function drawBreakValues(options) {
                         .style("fill", "red")
                         .on("end", throb);
                 }
-                
+
                 throb();
             }
             });
-        
+
     function clearBreakValues() {
         chart.demoGroup.selectAll("text.binbreak").remove();
     }
     chart.clearBreakValues = clearBreakValues;
-    
+
     chart.setTimerInfo({
         cleanup: ()=> {
             chart.demoGroup.selectAll("text.binbreak")
@@ -1790,7 +1789,7 @@ chartObject.drawBreakValues=function drawBreakValues(options) {
                 .style("fill", "gray")
             }
         });
-    
+
 };
 
 chartObject.drawCommandList=function drawCommandList(current, thenDo) {
@@ -1798,7 +1797,7 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
 
     var listOrigin = this.commandListOrigin, fontSize = 13, itemHeight = 20, buttonSize = 16, itemColour = "rgb(0, 100, 0)", buttonGap = 6;
     var transformString = this.transformString;
-    
+
     var commandsToDraw = chart.commandList.slice(0, Math.max(current, chart.maximumScrolledIndex)+1);
     var commandDefs = commandsToDraw.map((def, i)=>({ command: def.command, replayable: def.replayable, index: i }));
     if (commandsToDraw.length < chart.commandList.length) {
@@ -1825,8 +1824,8 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
                 .style("pointer-events", "none")
                 .style('-webkit-user-select','none')
                 .text(def.command);
-            
-            // space out the "normal"-weight text to match the length it'll have when bold  
+
+            // space out the "normal"-weight text to match the length it'll have when bold
             var boldWidth = text.node().getBBox().width;
             text.style("font-weight", "normal");
             text.node().nonBoldSpacing = (boldWidth - text.node().getBBox().width)/def.command.length;
@@ -1869,15 +1868,15 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
             }
         });
 
-    function decorateList() {        
+    function decorateList() {
         chart.commandGroup.selectAll("g.command")
             .each(function(def,i) {
                 var isCurrent = i===current, isFuture = i > current;
-    
+
                 var buttonSeln = d3.select(this).select(".replay");
                 //buttonSeln.style("fill", isCurrent ? "black" : (isFuture ? "green" : "white"));
                 buttonSeln.style("fill", isCurrent ? "green" : "white"); // simpler policy
-    
+
                 var textSeln = d3.select(this).select("text");
                 textSeln
                     .text(def=>def.command)
@@ -1903,7 +1902,7 @@ chartObject.drawCommandList=function drawCommandList(current, thenDo) {
     this.drawHandPointer({ x: listOrigin.x - 4, y: listOrigin.y + (handIndex+0.5)*itemHeight+2 }
     //,decorateList
         );
-        
+
 
 
 };
@@ -1912,7 +1911,7 @@ chartObject.drawColouredNumberLine=function drawColouredNumberLine(options) {
     var chart=this;
 
     var instant = !!(options && options.instant);
-    
+
     var dataMin = this.dataMin, dataMax = this.dataMax, dataRange = dataMax-dataMin;
     var xScale = this.xScale, colourScale = this.colourScale;
     var bandLeft = this.plotOrigin.x, bandTop = this.plotOrigin.y -this.fallAfterFlight + 5, bandHeight = 10;
@@ -1980,11 +1979,11 @@ chartObject.drawColouredNumberLine=function drawColouredNumberLine(options) {
 
 chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
     // not a pretty piece of code.
-    
+
     // cycling won't be launched unless the user pauses scrolling at this step.
     // if user doesn't interact with the control strip, the animation will step automatically at a rate defined by pauseTime and changeTime.
     // if user mouses over the strip, the selected scenario will be drawn instantly.  once the mouse leaves the strip, automatic stepping will resume from the selected scenario (and in the direction of the last automatic step).
-    
+
     var chart=this;
 
     var scenarioClasses = "rect.demobin,line.binbreak,text.binbreak";
@@ -1992,7 +1991,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
 
     var switchSize = 16, autoStepping = true, abandoned = false, displayStep, cycleDirection;
     var movingGroupSeln = null;
-    
+
     // NB: going into demoGroup, so coords are relative to plotOrigin
     var controlStripWidth = 150, controlStripHeight = 20, controlStripOrigin = { x: this.commandListOrigin.x-this.plotOrigin.x, y: this.buttonRowOrigin.y-this.plotOrigin.y }, labelOrigin = { x: controlStripOrigin.x, y: controlStripOrigin.y+controlStripHeight+10 };
 
@@ -2028,18 +2027,18 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             autoStepping = true;
             stepAfterDelay(0);
             });
-    
+
     var delayedStep = null;
     function stepAfterDelay(delay) {
         if (delayedStep) clearTimeout(delayedStep);
         delayedStep = null;
-        
+
         if (delay) {
             delayedStep = setTimeout(doStep, delay);
         } else {
             doStep();
         }
-        
+
         function doStep() {
             if (abandoned || !autoStepping) return;  // either user has taken control by mousing over control strip, or we've left this stage of the essay
 
@@ -2050,7 +2049,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             transitionToScenario(displayStep+cycleDirection, false); // not instant
         }
     }
-    
+
     function updateTitleText(val) {
         var labelText = controlGroup.selectAll("text.scenarioTitle").data([0]);
         labelText.enter().append("text")
@@ -2098,7 +2097,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             //.style("font-weight", n=>n===current+1 ? "bold" : "normal")
             //.style("opacity", n=>n===current+1 ? 1 : 0.7)
             .text(n=>n===current+1 ? "●" : "○")
-            
+
         var highlight = controlGroup.selectAll("rect.scenarioHighlight").data([current]);
         highlight.enter().append("rect")
             .attr("class", "scenarioHighlight")
@@ -2110,7 +2109,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .attr("x", c=>controlStripOrigin.x+c*controlStripWidth/numScenarios+1)
             .lower();
     }
-    
+
     function transitionToScenario(scenario, instant) {
         var nextGroupSeln = d3.select(chart.scenarioRecords[scenario].bins);
 
@@ -2145,7 +2144,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
 
         var preMoveRects = movingGroupSeln.selectAll("rect.movingclone"), preMoveFirstRect = d3.select(preMoveRects.nodes()[0]), preMoveLastRect = d3.select(preMoveRects.nodes()[preMoveRects.size()-1]), preMoveFirstX = +preMoveFirstRect.attr("x"), preMoveWidth = +preMoveFirstRect.attr("width"), preMoveLastX = +preMoveLastRect.attr("x")+Number(preMoveLastRect.attr("width"));
         var postMoveFirstX = +rectDefs[0].x, postMoveWidth = +rectDefs[0].width, postMoveLastX = postMoveFirstX + postMoveWidth*rectDefs.length;
-        
+
         // @@ the following is utterly ridonculous
         var rects = movingGroupSeln.selectAll("rect.movingclone").data(rectDefs, def=>def.binNum);
 
@@ -2176,7 +2175,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .attr("y", def=>def.y+def.height)
             .attr("width", def=>def.width)
             .attr("height", 0);
-            
+
         movingGroupSeln.selectAll("rect.movingclone")
             .each(function(def) {
                 var seln = d3.select(this);
@@ -2223,7 +2222,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .style("opacity", 1e-6)
             .attr("x", def=>preMoveFirstX + def.index*preMoveWidth)
             .text("-");
-            
+
         movingGroupSeln.selectAll("text.movingclone")
             .transition(trans)
             .attr("x", def=>def.x)
@@ -2257,7 +2256,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .attr("x1", def=>def.x)
             .attr("x2", def=>def.x)
             .style("opacity", 1);
-            
+
         var baseLine = movingGroupSeln.selectAll("line.base").data([0]);
         baseLine.enter().append("line")
             .attr("class", "base")
@@ -2271,7 +2270,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             .transition(trans)
             .attr("x1", postMoveFirstX)
             .attr("x2", postMoveLastX);
-            
+
         trans
             .on("end", function() {
 //console.log("end");
@@ -2308,7 +2307,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
         .style("opacity", 1);
     movingGroupSeln.selectAll("rect")
         .style("fill", "lightgray")
-        .style("fill-opacity", 0.25)
+        .style("fill-opacity", 0.5)
         .style("stroke-opacity", 1);
 
     // hide and de-sensitise the main-scenario elements
@@ -2317,7 +2316,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
         .style("cursor", "default")
         .on("mouseover", null)
         .on("mouseout", null);
-        
+
     // add a mousetrap for highlighting the (changing) bin membership
     var widthExcess = 100;
     var binProbeX = null;
@@ -2341,7 +2340,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             chart.highlightPathIndices([]);
             chart.highlightValueIndices([]);
             });
-        
+
     function checkForBinHighlight() {
         if (binProbeX!==null) {
             var indexRange = [];
@@ -2353,7 +2352,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
 
             chart.highlightPathIndices(indexRange);
             chart.highlightValueIndices(indexRange, true); // gather repeats
-        }            
+        }
     }
 
     displayStep = 0;
@@ -2370,7 +2369,7 @@ chartObject.drawCyclingScenarios=function drawCyclingScenarios(labelFn) {
             chart.demoGroup.selectAll("g.scenariocontrol,rect.demoBinMousetrap,g.groupclone").remove();
             chart.scenarioRecords = [];
             movingGroupSeln.remove();
-            
+
             // unhide main elements (but no need to restore event handlers)
             chart.demoGroup.selectAll(scenarioClasses).style("opacity", 1);
             }
@@ -2402,7 +2401,7 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
 
     // short descriptions are stored under mixed-case keys, to be used as their human-readable names
     function readable(dn) { return Object.keys(chart.datasetShortDescriptions).find(k=>k.toLowerCase()===dn) };
-    
+
     var dataName = this.dataName, readableName = readable(dataName);
     var descTexts = chartGroup.selectAll("text.datadesc").data([
         { x: labelX-5, anchor: "end", colour: "black", text: "dataset:" },
@@ -2464,25 +2463,25 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
 
             });
 
-    // tooltip code adapted from  http://bl.ocks.org/d3noob/a22c42db65eb00d4e369 
+    // tooltip code adapted from  http://bl.ocks.org/d3noob/a22c42db65eb00d4e369
     function showTip(elem, text) {
         var box = elem.getBoundingClientRect();
         var tip = d3.select("div.vistooltip"), padding = 8; // NB: tied to scrolly.css
         tip.html(text);
         var tipWidth = Number.parseInt(tip.style("width"))+padding*2, tipHeight = Number.parseInt(tip.style("height"))+padding*2;
         // NB: tooltip position style is "fixed", in case user scrolls
-        tip        
+        tip
             .style("left", box.left + box.width/2 - tipWidth/2 + "px")
             .style("top", box.top - tipHeight - 1 + "px");
         tip.transition()
-            .duration(200)		
-            .style("opacity", 1);		
+            .duration(200)
+            .style("opacity", 1);
     }
     function hideTip() {
         d3.select("div.vistooltip")
-            .transition()		
-            .duration(500)		
-            .style("opacity", 0);	
+            .transition()
+            .duration(500)
+            .style("opacity", 0);
     };
 
     function decorateSwitches() {
@@ -2506,7 +2505,7 @@ chartObject.drawDataSelector=function drawDataSelector(options) {
             this.replaySteps();
             });
     }
-    
+
 };
 
 chartObject.drawDataUnits=function drawDataUnits() {
@@ -2541,7 +2540,7 @@ chartObject.drawDensityControl=function drawDensityControl(offset, handler) {
     var chart=this;
 
     var histGroupOrigin = this.histOrigin;
-    
+
     var switchSize = 12, switchColour = "#444";  // dark grey
 
     this.histGroup
@@ -2562,7 +2561,7 @@ chartObject.drawDensityControl=function drawDensityControl(offset, handler) {
             showState(this);
             handler();
         });
-    
+
     function showState(node) {
         d3.select(node).style("fill-opacity", chart.useDensity ? 1 : 0)
     }
@@ -2577,7 +2576,7 @@ chartObject.drawDensityControl=function drawDensityControl(offset, handler) {
 		//.style("dominant-baseline", "middle")
         .style("-webkit-user-select","none")
         .style("fill", switchColour)
-        .text("plot as densities")        
+        .text("plot as densities")
 };
 
 chartObject.drawFaderControl=function drawFaderControl(offset, handler) {
@@ -2590,7 +2589,7 @@ chartObject.drawFaderControl=function drawFaderControl(offset, handler) {
     var offsetX = offset.x, offsetY = offset.y-radius; // of bottom-left corner rel to bottom-left of histogram area
 
     var faderGroup = this.histGroup.append("g").attr("class", "fader");
-    
+
     faderGroup
         .append('path')
         .attr('d', "M0 "+(radius)+" A"+radius+" "+radius+" 0, 0, 1, 0 "+(-radius)+" L"+baseLength+" "+(-radius)+" A"+radius+" "+radius+" 0, 0, 1, "+baseLength+" "+radius+" Z")
@@ -2631,23 +2630,23 @@ chartObject.drawFaderControl=function drawFaderControl(offset, handler) {
     		.style('opacity', 0.6)
     		.style("pointer-events", "none")
     }
-    
+
     drawKnob(initX);
 
     function dragstarted(d) {
         d3.select(this).raise().classed("active", true);  // won't do nuthin', though
     }
-    
+
     function dragged(d) {
         var x = d3.event.x-offsetX; // requested; may be outside the control
         if (x < 0) x = 0;
         else if (x > baseLength) x = baseLength;
-        
+
         var xPercent = Math.round(x/baseLength*100), yPercent = 100-xPercent;
         drawKnob(xPercent);
         handler(xPercent, yPercent);
     }
-    
+
     function dragended(d) {
         d3.select(this).classed("active", false);
     }
@@ -2683,7 +2682,7 @@ chartObject.drawHandPointer=function drawHandPointer(location, thenDo) {
                 .on("end", allDone);
         }
     }
-    
+
     function allDone() { if (thenDo) thenDo() }
 };
 
@@ -2705,12 +2704,12 @@ chartObject.drawRanges=function drawRanges(rangeSets) {
     // rangeSets is an object with elements { primary, context } - each being a (possibly empty) bin set.
     // the range markers are text items that go into rangeGroup
     var chart=this;
-    
+
     // bins should be objects { min, max, minOpen, maxOpen }
     var xScale = this.xScale, group = this.rangeGroup;
-    
+
     var openMin = { char: "(", offset: -2 }, openMax = { char: ")", offset: -6.5 }, closedMin = { char: "[", offset: -3.5 }, closedMax = { char: "]", offset: -4.5 };
-    
+
     ["primary", "context"].forEach(category=>{
         var ranges = rangeSets[category], ends = [];
         for (var ri=0; ri<ranges.length; ri++) {
@@ -2718,7 +2717,7 @@ chartObject.drawRanges=function drawRanges(rangeSets) {
             ends.push(lively.lang.obj.merge({ value: range.min, index: ri }, range.minOpen ? openMin : closedMin) );
             ends.push(lively.lang.obj.merge({ value: range.max, index: ri }, range.maxOpen ? openMax : closedMax) );
         }
-        
+
         var colour = category==="primary" ? "blue" : "grey", endClass = "end"+category, opacity = category==="primary" && rangeSets.context.length ? 0.2 : 1;
 
     	var ends = group.selectAll("text."+endClass).data(ends, (d,i)=>i);
@@ -2760,7 +2759,7 @@ chartObject.drawRDefaultBinning=function drawRDefaultBinning(options) {
     var chart = this;
 
     var shiftProportion = options && options.shiftProportion, widthProportion = options && options.widthProportion;
-    
+
     function Sturges(data) { return Math.ceil(Math.log(data.length)/Math.log(2))+1 }
 
     var dataValues = this.data.values, dataMin = this.dataMin, dataMax = this.dataMax, dataBinQuantum = this.dataBinQuantum;
@@ -2790,11 +2789,11 @@ chartObject.drawRDefaultBinning=function drawRDefaultBinning(options) {
         breaks = newBreaks;
     }
 
-//console.log(dataMin, dataMax, breaks);    
+//console.log(dataMin, dataMax, breaks);
     function filterValues(binNum) {
         var filterFn = binNum === 0
             ? (v=>v>=breaks[0] && v<=breaks[1])
-            : (v=>v>breaks[binNum] && v<=breaks[binNum+1]); 
+            : (v=>v>breaks[binNum] && v<=breaks[binNum+1]);
         return dataValues.filter(filterFn);
     }
 
@@ -2811,7 +2810,7 @@ chartObject.drawSweepControl=function drawSweepControl(offset, handler) {
     var chart=this;
 
     var histGroupOrigin = this.histOrigin;
-    
+
     var switchSize = 12, switchColour = "#444";  // dark grey
 
     var sweepActive = false;
@@ -2834,7 +2833,7 @@ chartObject.drawSweepControl=function drawSweepControl(offset, handler) {
             showState(this);
             handler(sweepActive);
         });
-    
+
     function showState(node) {
         d3.select(node).style("fill-opacity", sweepActive ? 1 : 0)
     }
@@ -2850,7 +2849,7 @@ chartObject.drawSweepControl=function drawSweepControl(offset, handler) {
 		.style("pointer-events", "none")
         .style("-webkit-user-select","none")
         .style("fill", switchColour)
-        .text("sweep bin offsets")        
+        .text("sweep bin offsets")
 };
 
 chartObject.drawValueList=function drawValueList(options) {
@@ -2899,7 +2898,7 @@ chartObject.drawValueList=function drawValueList(options) {
             valueEntries.push({
                 value: v,
                 text: v.toFixed(chart.dataDecimals),
-                x: x, y: y, 
+                x: x, y: y,
                 diffX: diffX, diffY: diffY,
                 angle: textAngle
                 });
@@ -2913,7 +2912,7 @@ chartObject.drawValueList=function drawValueList(options) {
 
     var transformString = this.transformString;
 
-    var totalTime = moveTime+timeSpread;    
+    var totalTime = moveTime+timeSpread;
     if (stage !== undefined) {
         flyAll(stage*totalTime);
         if (stage===1) createListMousetrap();
@@ -2944,7 +2943,7 @@ chartObject.drawValueList=function drawValueList(options) {
 
             var x = plotOrigin.x+valueObj.x+flightStage*valueObj.diffX, y = plotOrigin.y+valueObj.y+flightStage*valueObj.diffY, angle = valueObj.angle*(1-flightStage);
             fixedContext.fillStyle = colourScale(valueObj.value, flightStage > 0 ? 1-flightStage*(1-baseOpacity) : 0.7);
-            
+
             fixedContext.save();
             fixedContext.font = fontSize+"px Arial";  // seems to be necessary
             fixedContext.textAlign = "center";
@@ -2959,7 +2958,7 @@ chartObject.drawValueList=function drawValueList(options) {
         var focusGroup = chartGroup.append("g")
             .attr("class", "focusGroup")
             .attr("transform", transformString(focusAreaLeft, focusAreaTop));
-    
+
         chartGroup.append("rect")
             .attr("class", "listMousetrap")
             .attr("x", valueListX)
@@ -2971,14 +2970,14 @@ chartObject.drawValueList=function drawValueList(options) {
             .style("fill", "none")
             .style("pointer-events", "all")
             .style("cursor", "crosshair")
-    
+
             .on("mousemove", function() {
                 // focus list is also measured from middle of first item to middle of last
                 var positionFromTop = d3.mouse(this.parentNode)[1]-valueListTop;
                 var numToShow = 10;
                 var firstInFocus = Math.max(0, Math.min(numEntries-numToShow, Math.round(listScale.invert(positionFromTop+valueListTop))-Math.floor(numToShow/2))), lastInFocus = Math.min(numEntries-1, firstInFocus+numToShow-1);
                 var indexRange = lively.lang.arr.range(firstInFocus, lastInFocus);
-                
+
                 if (chart.highlightPathIndices) chart.highlightPathIndices(indexRange);
                 chart.highlightValueIndices(indexRange);
                 })
@@ -3047,7 +3046,7 @@ chartObject.drawValueList=function drawValueList(options) {
                             .text(d=>d.text);
                     }
                 });
-    
+
             var focusLines = focusGroup.selectAll("line.focusItem").data(focusLineYs);
             focusLines.exit().remove();
             focusLines.enter().append("line")
@@ -3084,17 +3083,17 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
     var xScale = this.xScale, plotOrigin = this.plotOrigin, stackBase = 0, dropDistance = this.fallIntoBins, binBase = stackBase+dropDistance, maxBinHeight = dropDistance-20;
     var colourScale = this.colourScale;
 
-    // shuffle from stackoverflow (!): http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array 
+    // shuffle from stackoverflow (!): http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
     function shuffle(array) {
       var currentIndex = array.length, temporaryValue, randomIndex;
-    
+
       // While there remain elements to shuffle...
       while (0 !== currentIndex) {
-    
+
         // Pick a remaining element...
         randomIndex = Math.floor(Math.random() * currentIndex);
         currentIndex -= 1;
-    
+
         // And swap it with the current element.
         temporaryValue = array[currentIndex];
         array[currentIndex] = array[randomIndex];
@@ -3194,7 +3193,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
     counters = counters.merge(countersE);
     counters
         .attr("x", def=>xScale((def.left+def.right)/2));
-    
+
     chart.setTimerInfo({
         cleanup: ()=>{
             interrupted=true;
@@ -3244,7 +3243,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
             });
             binDropDelay += def.valueSet.length*delayBetweenPiles + delayBetweenBins;
         });
-    
+
     function showBallAsOutline(seln) {
         // use fill of "none", rather than fillOpacity, so we can always highlight by setting fill colour
         seln
@@ -3255,21 +3254,21 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
             .style("stroke-opacity", 1);
     }
 
-    function finishBins() {    
+    function finishBins() {
         bins.each(function(def) {
             var seln = d3.select(this);
             if (interrupted) seln.interrupt();
-            
+
             var indices = [];
             def.balls.each(d=>indices.push(d.valueIndex));
             indices.sort(d3.ascending);
             def.indices = indices;
-            
+
             seln
                 .attr("y", binBase-heightScale(indices.length))
                 .attr("height", heightScale(indices.length))
                 .style("fill", "lightgray")
-                .style("fill-opacity", 0.25)
+                .style("fill-opacity", 0.5)
                 .style("stroke-opacity", 1);
             });
         allDone();
@@ -3283,7 +3282,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         binSeln
             .attr("y", def=>binBase-heightScale(def.indices.length))
             .attr("height", def=>heightScale(def.indices.length));
-            
+
         var counterNode = counters.nodes()[binIndex], counterSeln = d3.select(counterNode);
         counterSeln
             .style("opacity", 1)
@@ -3298,23 +3297,23 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
                 .transition()
                 .duration(finishDuration)
                 .style("fill", "lightgray")
-                .style("fill-opacity", 0.25)
+                .style("fill-opacity", 0.5)
                 .style("stroke-opacity", 1);
-                
+
             counterSeln
                 .transition()
                 .duration(finishDuration)
                 .style("opacity", 1e-6)
                 .remove();
-                
+
             if (--binsToFill===0) allDone();
         }
     }
-    
+
     function addAxisAnnotations(count) {
         if (!showScale) return;
         if (count <= countPlottedSoFar) return;
-        
+
         var numOfScaleValues = d3.bisect(scaleValues, count);
 
     	var legendX = xScale(chart.dataMax)+85;  // try to steer clear of moving bins
@@ -3332,7 +3331,7 @@ chartObject.dropBallsIntoBins=function dropBallsIntoBins(valueSetDefs, options) 
         chart.drawBinAnnotations(annotationGroup, { x: legendX, y: binBase }, heightScale(count), tickDefs, labelDefs, instant);
         countPlottedSoFar = count;
     }
-    
+
     function allDone() {
         addAxisAnnotations(Math.max(lastValue, maxBinCount));
 
@@ -3353,7 +3352,7 @@ chartObject.duplicateBins=function duplicateBins() {
     var chart=this;
 
     var scenarioClasses = "rect.demobin,line.binbreak,text.binbreak";
-    
+
     var presentGroupNode = this.demoGroup.node();
     var groupNodeClone = this.duplicateObjects(presentGroupNode, scenarioClasses);
     d3.select(groupNodeClone).style("opacity", 1e-6)
@@ -3375,14 +3374,14 @@ chartObject.duplicateObjects=function duplicateObjects(oldGroupNode, classes) {
         });
 
     return newGroupNode;
-        
+
 /* TEST
-        
+
     function transformString(x, y) { return "translate("+x+", "+y+")" }
 
     // extracting (in this case) the x and y translations from the transform http://stackoverflow.com/questions/38224875/replacing-d3-transform-in-d3-v4
     var matrix = oldGroupNode.transform.baseVal[0].matrix, oldGroupX = matrix.e, oldGroupY = matrix.f;
-    var oldTrans = transformString(oldGroupX, oldGroupY), newTrans = transformString(oldGroupX+100, oldGroupY-200);    
+    var oldTrans = transformString(oldGroupX, oldGroupY), newTrans = transformString(oldGroupX+100, oldGroupY-200);
     d3.select(newGroupNode)
         .transition()
         .duration(5000)
@@ -3439,7 +3438,7 @@ chartObject.flyBalls=function flyBalls(options) {
     var values = [];
     chart.data.forEach(v=>values.push(v)); // all values, including repeats
     var numValues = values.length;
-    
+
     // tFlight is the time of flight of the first instance of the first value.  other values are offset, so their first dots land together
     var maxDelay = 2000, tFlight = 4000, tFall = 1000, spreadDelay = tFlight/Math.max(40, maxCount), maxSpread = maxCount*spreadDelay;
     var canvas = this.chartCanvas.node(), context = canvas.getContext("2d");
@@ -3534,7 +3533,7 @@ chartObject.flyBalls=function flyBalls(options) {
         var theta = Math.acos(1 - queryDiff/pathYDiff);
         return originX + pathXDiff * Math.sin(theta) < point.x;
     }
-    
+
     function highlightPathIndices(indexList) {
         chart.clearEphemeralCanvas();
         context.lineWidth = 1;
@@ -3570,7 +3569,7 @@ chartObject.flyBalls=function flyBalls(options) {
                     .style("text-anchor", "middle")
                     .attr("x", originX+chart.valueListWidth/2)
             }
-            
+
             textSeln
                 .interrupt()
                 .datum(def)
@@ -3584,7 +3583,7 @@ chartObject.flyBalls=function flyBalls(options) {
                 .style("opacity", 1e-6)
                 .remove();
         }
-        
+
         ctx.strokeStyle = colourScale(val, 1);
         ctx.lineWidth = 0.5;
         for (var i=0; i<count; i++) {
@@ -3620,7 +3619,7 @@ chartObject.flyBalls=function flyBalls(options) {
     // precompute tables of sines and cosines
     var sines = [], cosines = [], piBy2000 = Math.PI/2000;
     for (var i=0; i<1000; i++) { sines.push(Math.sin(i*piBy2000)); cosines.push(Math.cos(i*piBy2000)) }
-    
+
     var plottableValues = [];
     var valIndex = 0;
     chart.data.valuesAndCountsDo((val, count)=>{
@@ -3664,12 +3663,12 @@ chartObject.flyBalls=function flyBalls(options) {
                 var sinceFirstTakeoff = elapsed-valObj.valueDelay; // launch of first for this value
                 if (sinceFirstTakeoff > 0) {
                     var val = valObj.value, count = valObj.count, valueTFlight = valObj.valueTFlight, xDiff = valObj.xDiff, useCircles = count < 20, valIndex = valObj.cumulativeIndex, firstY = valObj.firstY, fallX = valObj.xTarget;
-                    
+
                     if (lastPathDrawn < val) {
                         drawPaths(val);
                         lastPathDrawn = val;
                     }
-                    
+
                     // launched is the index of the last instance to have taken off.  it maxes out at count-1
                     var launched = (sinceFirstTakeoff/spreadDelay) | 0;
                     if (launched > count-1) launched = count-1;
@@ -3681,19 +3680,19 @@ chartObject.flyBalls=function flyBalls(options) {
                     var firstStillFalling = ((sinceFirstTakeoff - valueTFlight - tFall) / spreadDelay) | 0;
                     if (firstStillFalling < 0) firstStillFalling = 0;
                     else if (firstStillFalling > count) firstStillFalling = count;
-                    
+
                     var sinceTakeoff = sinceFirstTakeoff - spreadDelay*firstStillFlying;
                     for (var i=firstStillFlying; i<=launched; i++) {
                         var originY = firstY+originYIncrement*i, yDiff = flightTargetY-originY;
-    
+
                         var flightPoint = (1000*/*eezer*/(sinceTakeoff / valueTFlight)) | 0;
                         var centreX = originX+xDiff*sines[flightPoint], centreY = flightTargetY-yDiff*cosines[flightPoint];
-    
+
                         context.beginPath();
                         if (useCircles) context.arc(centreX, centreY, 2, 0, twoPi);
                         else context.rect(centreX-2, centreY-2, 4, 4);
                         context.fill();
-        
+
                         sinceTakeoff -= spreadDelay;
                     }
 
@@ -3768,7 +3767,7 @@ chartObject.flyBalls=function flyBalls(options) {
             chart.highlightPathIndices([]);
             chart.highlightValueIndices([]);
             });
-        
+
 
 };
 
@@ -3878,10 +3877,10 @@ chartObject.initBinBehaviour=function initBinBehaviour() {
 //console.log(d.min, d.max, value)
             return (scenarioOrNull===null || scenarioOrNull===binItem.scenario) && binItem.dataIndex===binNum;
             });
-            
+
         applyBinHighlights(binNode, binClass);
     }
-    
+
     function findBinAround(value, scenarioOrNull) {
         if (scenarioOrNull===undefined) scenarioOrNull = null;
         if (value === null) return null;
@@ -3893,7 +3892,7 @@ chartObject.initBinBehaviour=function initBinBehaviour() {
             });
         return binNode ? binNode.__data__.dataIndex : null;
     }
-    
+
     // return the first bin node object for which the bound data object satisfies the supplied dataTest
     function findBin(binClass, dataTest) {
         var found = null;
@@ -3902,7 +3901,7 @@ chartObject.initBinBehaviour=function initBinBehaviour() {
             });
         return found;
     }
-    
+
     var contextBaseColour = this.contextBinFill, contextBaseOpacity = 0.15;
     var primaryHighlightColour = d3.hcl(274,100,75), contextHighlightColour = d3.hcl(73,100,75), primaryTextColour = primaryHighlightColour.darker(), contextTextColour = contextHighlightColour; /*.darker(0.25);*/
 
@@ -3932,7 +3931,7 @@ chartObject.initBinBehaviour=function initBinBehaviour() {
                     .raise()
                     .style("fill", highlightColour)
                     .style("stroke", highlightColour); // @@ now that we're not using striping
-                
+
             }
             });
         highlightColour = isContext ? contextTextColour : primaryTextColour;
@@ -3940,7 +3939,7 @@ chartObject.initBinBehaviour=function initBinBehaviour() {
             //d3.select(this).style("fill", (cellItem.isContext===isContext && cellItem.dataIndex === highlightIndex) ? highlightColour : "black");
             if (cellItem.isContext===isContext && cellItem.dataIndex === highlightIndex) d3.select(this).interrupt().style("fill", highlightColour);
             });
-            
+
         var descFontSize = 12;
         chart.histGroup.selectAll("g.binDescriptor").remove();
         var descGroup = chart.histGroup.append("g")
@@ -4049,7 +4048,7 @@ chartObject.initBinBehaviour=function initBinBehaviour() {
             // if the index being dragged has changed, the stripes need to be re-aligned
             if (oldBinIndex!==dragBinIndex) chart.stripeOffset = 1-chart.stripeOffset;
         }
-        
+
         chart.refreshTable({ dataFocusIndex: dragBinIndex, force: newOffset!==null, binHighlight: null }, 0);  // null highlight to force re-highlighting, maybe after a shift
         //resetBinHighlight();
         highlightBinNumber(dragBinIndex);
@@ -4067,7 +4066,7 @@ chartObject.initBinBehaviour=function initBinBehaviour() {
             //resetBinHighlight();
         }
     }
-    
+
     var recordedBinState;
     chart.recordBinState = recordBinState;
     function recordBinState(binClass) {
@@ -4132,11 +4131,11 @@ chartObject.initBinBehaviour=function initBinBehaviour() {
                 .style("fill-opacity", 1e-6) // attempting to reduce flicker, as per bost.ocks.org/mike/transition/
                 .remove();
         }
-        
+
         recordedBinState=null;
-        
+
     }
-    
+
 };
 
 chartObject.initChartSubgroups=function initChartSubgroups() {
@@ -4150,7 +4149,7 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     this.buttonRowOrigin = lively.pt(290, this.visMaxExtent.y - 70);
 
     var plotOrigin = this.plotOrigin = lively.pt(185, this.visMaxExtent.y - 210);
-    
+
     // during "demo" phase
     this.numberLineWidth = 550;  // between dataMin and dataMax
     this.fallAfterFlight = 115;  // bottom of flight arcs to number line
@@ -4162,7 +4161,7 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     this.valueListWidth = 40;
     this.valueListFontSize = 12;
     this.valueListEntryHeight = 15;
-    
+
     // once we've presented the code table
     var dataOrigin = this.dataOrigin = lively.pt(270, 110);
     var histOrigin = this.histOrigin = lively.pt(270, 265);
@@ -4173,7 +4172,7 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
     binFill.opacity = 0.8;
     this.restingBinFill = binFill.toString();
     this.contextBinFill = d3.color("darkgreen");
-    
+
     // final stages - no table
     this.nakedHistOrigin = lively.pt(200, 400);
 
@@ -4188,7 +4187,7 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
 
 	this.histGroup = this.chartGroup.append('g')
 		.attr("transform", transformString(histOrigin.x, histOrigin.y));
-	
+
 	// data balls along number line.  starts at plotOrigin; later gets shifted to dataOrigin
 	this.dataGroup = this.chartGroup.append('g')
 		.attr("transform", transformString(plotOrigin.x, plotOrigin.y));
@@ -4199,10 +4198,10 @@ chartObject.initChartSubgroups=function initChartSubgroups() {
 
     this.tableGroup = this.chartGroup.append('g')
 		.attr("transform", transformString(tableOrigin.x, tableOrigin.y));
-		
+
 	this.clearFixedCanvas();
 	this.clearEphemeralCanvas();
-		
+
 };
 
 chartObject.initChartSubstrates=function initChartSubstrates(divSeln, extent) {
@@ -4231,7 +4230,7 @@ chartObject.initChartSubstrates=function initChartSubstrates(divSeln, extent) {
 
     this.chartFixedCanvas = divSeln.append("canvas");
     var context = this.chartFixedCanvas.node().getContext("2d");
-    
+
     this.chartFixedCanvas
         .attr("class", "fixed")
         .attr("width", width)
@@ -4269,8 +4268,8 @@ chartObject.initChartSubstrates=function initChartSubstrates(divSeln, extent) {
 
     // Define a div to act as a tooltip within the visualisation
     d3.selectAll("div.vistooltip").remove();
-    d3.select("body").append("div")	
-        .attr("class", "vistooltip")				
+    d3.select("body").append("div")
+        .attr("class", "vistooltip")
         .style("opacity", 0);
 
 };
@@ -4308,7 +4307,7 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
     this.drawBalls(this.data);
     var newBalls = dataGroup.selectAll("circle.ball");
     newBalls.style("opacity", 1e-6);
-    
+
     var oldBalls = dataGroup.selectAll("circle.settled,circle.dropped");
     oldBalls.style("fill", def=>colourScale(def.value, 1));
 
@@ -4341,7 +4340,7 @@ chartObject.initHistogramArea=function initHistogramArea(options) {
             oldBalls.style("opacity", 1-fadeRatio);
         }
     }
-    
+
     this.initBinBehaviour();
 };
 
@@ -4385,7 +4384,7 @@ chartObject.initNakedHistogram=function initNakedHistogram(options) {
         var moveRatio = Math.min(1, elapsed/moveTime);
         histGroup.attr("transform", easedTransform(moveRatio));
     }
-    
+
     this.primaryOpacity = 0.5;
     this.initBinBehaviour();
 };
@@ -4401,7 +4400,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
         // this code adapted from scroller() function by Jim Vallandingham:
         // https://github.com/vlandham/scroll_demo/blob/gh-pages/js/scroller.js
         // (as found in http://vallandingham.me/scroll_demo/ on 19 March 2017)
-        
+
         /**
         * scroller - handles the details
         * of figuring out which section
@@ -4409,16 +4408,16 @@ chartObject.initScrolliness=function initScrolliness(options) {
         * to.
         *
         */
-        
+
         var container = d3.select('body'); // until told otherwise
         // event dispatcher
         var dispatch = d3.dispatch('active', 'progress', 'size'); // ael added size
-        
+
         // d3 selection of all the
         // text sections that will
         // be scrolled through
         var sections = null;
-        
+
         // array that will hold the
         // y coordinate of each section
         // that is scrolled through
@@ -4426,7 +4425,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
         var currentIndex = -1;  // somewhat redundantly tracked both here and by the stepController
         // the following are used to switch on and off the inline scrolling of the viz.
         var containerTop, containerMaxScroll, visScrollState = null;
-        
+
         var navHeight = d3.select("nav").node().getBoundingClientRect().height;
         var heightMargin = navHeight+50;
         var switchPos = 200+navHeight;  // how far from the top we switch in a new section
@@ -4436,7 +4435,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
         var visSeln = null;
         // ael - permissible vis and text extents
         var visMinExtent, visMaxExtent, textMinWidth, textMaxWidth;
-        
+
         /**
         * scroll - constructor function.
         * Sets up scroller to monitor
@@ -4449,7 +4448,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
         function scroll(stepElems, visElem) {
             sections = stepElems;
             visSeln = visElem;
-            
+
             stepElems.style('opacity', (d,i)=>i===0? 1 : 0.1);  // first section shown fully, rest faded out
 
             // when window is scrolled call
@@ -4458,7 +4457,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             d3.select(window)
               .on('scroll.scroller', throttledPosition)
               .on('resize.scroller', debouncedResize);
-            
+
             // hack to get resize (and hence position)
             // to be called once for
             // the scroll position on
@@ -4468,7 +4467,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
                 timer.stop();
                 });
         }
-        
+
         /**
         * resize - called on load, and
         * also when page is resized.
@@ -4486,12 +4485,12 @@ chartObject.initScrolliness=function initScrolliness(options) {
             // i.e., subject to the min vis extent, we want the vis to be the smaller of:
             //    leaving width of at least textMinWidth (which includes a narrow gutter, specified as #sections.margin-right)
             //    fitting into the window height.
-            
+
             var divWidth = d3.select("#scrolly").node().getBoundingClientRect().width;
             d3.select("#sections").style("padding-left", "0px");
             var visRatio = visMaxExtent.x / visMaxExtent.y;
             var visMinWidth = Math.max(visMinExtent.x, visRatio*visMinExtent.y);
-            
+
             var textLimitedMaxWidth = divWidth - textMinWidth;
             var heightLimitedMaxWidth = visRatio * (window.innerHeight - heightMargin);
             var visWidth = Math.max(visMinWidth, Math.min(visMaxExtent.x, Math.min(textLimitedMaxWidth, heightLimitedMaxWidth)));
@@ -4507,12 +4506,12 @@ chartObject.initScrolliness=function initScrolliness(options) {
             var marginNeeded = Math.max(0, Math.floor((divWidth - visWidth - textWidth)/2));
             d3.select("#sections").style("padding-left", marginNeeded+"px");
             visSeln.style("padding-right", marginNeeded+"px");
-            
+
             dispatch.call('size', this, { x: visWidth, y: visHeight });
 
             var lastSection = sections.nodes()[sections.size()-1];
             d3.select(lastSection).style("padding-bottom", "0px").style("margin-bottom", "50px");
-            
+
             // give the page some time to reflow before we measure section positions
             setTimeout(function() {
                 // sectionPositions will be each section's
@@ -4525,14 +4524,14 @@ chartObject.initScrolliness=function initScrolliness(options) {
                   if (i === 0) startPos = top;
                   sectionPositions.push(top - startPos);
                 });
-                
+
                 // for the scrolly container, record its top (in page coords) and the max scroll distance during the interactive phase
                 var containerRect = container.node().getBoundingClientRect();
                 containerTop = containerRect.top + window.pageYOffset; // px from top of page
                 containerMaxScroll = containerRect.height - visHeight;
 
                 visScrollState = null;  // force re-layout
-                
+
                 position();
                 }, 250);
         }
@@ -4544,18 +4543,18 @@ chartObject.initScrolliness=function initScrolliness(options) {
         * dispatch active event with new section
         * index.
         *
-        * ael: original logic wasn't coping with sections of 
+        * ael: original logic wasn't coping with sections of
         * different lengths.  we now switch to a section when
-        * its start comes within a specified distance (switchPos) 
+        * its start comes within a specified distance (switchPos)
         * of the viewport top.
-        * 
+        *
         */
         function position() {
             // reject any position() prior to a resize(), which takes crucial measurements.
             if (!containerTop) return;
 
             var pos = window.pageYOffset - containerTop; // pos of top of visible region relative to start of scrolly
-            
+
             var unstickPoint = containerMaxScroll-stickPoint;
             var newState = pos < -stickPoint ? "before" : (pos > unstickPoint ? "after" : "during");
             var isDuring = newState==="during";
@@ -4579,7 +4578,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             var belowSectionTop = pos + switchPos - sectionTop;
             if (belowSectionTop > 0) dispatch.call('progress', this, currentIndex, belowSectionTop/sectionLength);
         }
-        
+
         // augmented version of lively.lang.fun.throttle, for coping if the browser is too busy to service its setTimeout queue.  the events from a scroll gesture on a MacBook trackpad seem to induce such issues, at least in Chrome.
         // the standard throttle uses debounce to clear the throttling flag when the incoming events idle - at which point we're presumably safe in assuming that the setTimeout will be scheduled as it should.
         function highRateThrottle (func, wait) {
@@ -4606,7 +4605,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
                       clearTimeout(timeout);
                       later();
                     }
-                    
+
                 } else {
                     result = func.apply(context, args);
                 }
@@ -4632,25 +4631,25 @@ chartObject.initScrolliness=function initScrolliness(options) {
             container = value;
             return scroll;
         };
-        
+
         // @v4 There is now no d3.rebind, so this implements
         // a .on method to pass in a callback to the dispatcher.
         scroll.on = function (action, callback) {
             dispatch.on(action, callback);
         };
 
-        // ael added        
+        // ael added
         scroll.setVisExtents = function(options) {
             visMinExtent = options.visMinExtent;
             visMaxExtent = options.visExtent;
             textMinWidth = options.textMinWidth;
             textMaxWidth = options.textMaxWidth;
-            
+
             return scroll;
         }
 
         scroll.resetLastIndex = function() { currentIndex = -1 }
-        
+
         scroll.sectionTop = function(sectionIndex) {
             return window.scrollY + sections.nodes()[0].getBoundingClientRect().top + sectionPositions[sectionIndex] - stickPoint;
         }
@@ -4665,23 +4664,23 @@ chartObject.initScrolliness=function initScrolliness(options) {
      * all the code for the visualization
      * using reusable charts pattern:
      * http://bost.ocks.org/mike/chart/
-     * 
+     *
      * ael: augmented...
      */
     var scrollVis = function (stepDefs, initFnName, refreshFnName) {
         // When scrolling to a new section
         // the activationFunction for that
         // section is called.
-        
+
         // If a section has an updateFunction
         // then it is called while scrolling
         // through the section with the current
         // progress through the section.
-        
+
         // When the section to be activated is earlier than the current section,
         // the refreshFunction is invoked, then activation proceeds forwards from
         // the most recent step with the tag replayPoint.
-        
+
         // ael; margin disabled, for now
         //var margin = { top: 0, left: 20, bottom: 40, right: 10 };
 
@@ -4695,7 +4694,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
         // activate functions that the scroll passes.
         var lastIndex = -1;
         var activeIndex = 0;
-        
+
         var chartObj;
         function refreshChart() { chartObj[refreshFnName].call(chartObj) }
 
@@ -4713,7 +4712,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             divSeln.style("width", extent.x+"px").style("height", extent.y+"px");
             chartObj[initFnName].call(chartObj, divSeln, extent);
         };
-    
+
         // find the most recent index - at or before "start" - that has the replayPoint tag
         function restartIndex(start) {
             var index = start;
@@ -4722,17 +4721,17 @@ chartObject.initScrolliness=function initScrolliness(options) {
         }
 
         /**
-        * activate - [reworked by ael] 
+        * activate - [reworked by ael]
         *
         * @param index - index of the activated section
         * @param options - (ael added)
-        *                   replay: force replay (even if index is same as before), from 
+        *                   replay: force replay (even if index is same as before), from
         *                       most recent replayPoint
         */
         stepController.activate = function (index, options) {
             var replay = options && options.replay;
             if (index===lastIndex && !replay) return;  // nothing to do
-            
+
             var originIndex = lastIndex;
             var startIndex = originIndex; // unless there's a restart point along the way
             if (index <= lastIndex || lastIndex===-1) {  // jump backwards, replay, or page load
@@ -4748,7 +4747,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
                 2a/b. fast visit on the way to somewhere ahead, either starting (a) here or (b) earlier
                 3. forwards jump ending here
                 4a/b. replay (or jump backwards) ending here, starting (a) here or (b) earlier
-            
+
             if we provide just arguments previousRenderedIndex, targetIndex (and thisIndex), the conditions are:
                 1 = n-1, n
                 2a = null, n+m
@@ -4756,11 +4755,11 @@ chartObject.initScrolliness=function initScrolliness(options) {
                 3 = n-1, n
                 4a = null, n
                 4b = n-1, n
-                
+
             1, 3 and 4b are indistinguishable, so all treated as smooth transitions from previous step.  not ideal.
             so add one more argument: originIndex (the last fully displayed index, or -1 if this is a page reload).
             */
-            
+
             var scrolledSections;
             if (startIndex===index) scrolledSections = [index];
             else scrolledSections = d3.range(startIndex + 1, index + 1); // non-inclusive end
@@ -4778,7 +4777,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
 
             lastIndex = activeIndex = index;
         };
-        
+
         /**
         * update
         *
@@ -4789,7 +4788,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             var f = updateFunctions[index];
             if (f) f(chart, progress);
         };
-        
+
         stepController.activeIndex = function() { return activeIndex }
 
         stepController.resetLastIndex = function() { lastIndex = -1 }
@@ -4815,7 +4814,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
     var scroll = scroller()
         .container(d3.select('#scrolly'))
         .setVisExtents(options);
-    
+
     chart.maximumScrolledIndex = -1; // ael - HACK
 
     // jumping to an index (not through scrolling)
@@ -4824,7 +4823,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
         stepController.activate(index, { replay: true });
         chart.drawCommandList(index);
         }
-    
+
     chart.jumpToStep = function(index) {
         var oldIndex = stepController.activeIndex();
         var sectionTop = scroll.sectionTop(index);
@@ -4835,7 +4834,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
             chart.drawCommandList(index);
         }
     }
-    
+
     // replaying to current position from nearest step tagged "replayPoint" (or 0 if none)
     chart.replaySteps = function() {
         var index = stepController.activeIndex();
@@ -4843,7 +4842,7 @@ chartObject.initScrolliness=function initScrolliness(options) {
         chart.drawCommandList(index)
         }
 
-    // ael added    
+    // ael added
     scroll.on('size', function(extent) {
         chart.stopTimer();  // abandon anything that was running
         chart.resizeChartSubstrates(visSeln, extent);
@@ -4864,14 +4863,14 @@ chartObject.initScrolliness=function initScrolliness(options) {
         stepController.activate(index);
         chart.drawCommandList(index);
         });
-    
+
     scroll.on('progress', function (index, progress) {
         stepController.update(index, progress);
         });
-    
+
     // pass in .step selection as the steps.  triggers the first position and resize calls, based on loaded page state.
     scroll(d3.selectAll('.step'), visSeln);
-    
+
     chart.loadData(options.dataset);
 };
 
@@ -4949,7 +4948,7 @@ chartObject.loadData=function loadData(dataset, thenDo) {
         data.forEach = function(f) { this.allData.forEach(f) };
 
         chart.data = data;
-        
+
         var valueScale = d3.scaleLinear().domain([chart.dataMin, chart.dataMax]);
         var colourInterpolator = d3.interpolateHcl("#5086FE", "#FD2EA7");
         chart.colourScale = function(val, opacity) { var c = d3.color(colourInterpolator(valueScale(val))); c.opacity = opacity; return c.toString() };
@@ -4990,24 +4989,24 @@ chartObject.loadData=function loadData(dataset, thenDo) {
             binQuantum = 0.1;
             units = "years";
             break;
-          
+
         case "geyser":
             // eruption times from R sample dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/faithful.html (ne60, adjusted and rounded as described on that page)
             rawData = [216, 108, 200, 137, 272, 173, 282, 216, 117, 261, 110, 235, 252, 105, 282, 130, 105, 288, 96, 255, 108, 105, 207, 184, 272, 216, 118, 245, 231, 266, 258, 268, 202, 242, 230, 121, 112, 290, 110, 287, 261, 113, 274, 105, 272, 199, 230, 126, 278, 120, 288, 283, 110, 290, 104, 293, 223, 100, 274, 259, 134, 270, 105, 288, 109, 264, 250, 282, 124, 282, 242, 118, 270, 240, 119, 304, 121, 274, 233, 216, 248, 260, 246, 158, 244, 296, 237, 271, 130, 240, 132, 260, 112, 289, 110, 258, 280, 225, 112, 294, 149, 262, 126, 270, 243, 112, 282, 107, 291, 221, 284, 138, 294, 265, 102, 278, 139, 276, 109, 265, 157, 244, 255, 118, 276, 226, 115, 270, 136, 279, 112, 250, 168, 260, 110, 263, 113, 296, 122, 224, 254, 134, 272, 289, 260, 119, 278, 121, 306, 108, 302, 240, 144, 276, 214, 240, 270, 245, 108, 238, 132, 249, 120, 230, 210, 275, 142, 300, 116, 277, 115, 125, 275, 200, 250, 260, 270, 145, 240, 250, 113, 275, 255, 226, 122, 266, 245, 110, 265, 131, 288, 110, 288, 246, 238, 254, 210, 262, 135, 280, 126, 261, 248, 112, 276, 107, 262, 231, 116, 270, 143, 282, 112, 230, 205, 254, 144, 288, 120, 249, 112, 256, 105, 269, 240, 247, 245, 256, 235, 273, 245, 145, 251, 133, 267, 113, 111, 257, 237, 140, 249, 141, 296, 174, 275, 230, 125, 262, 128, 261, 132, 267, 214, 270, 249, 229, 235, 267, 120, 257, 286, 272, 111, 255, 119, 135, 285, 247, 129, 265, 109, 268];
             quantum = 1;
             units = "seconds";
             break;
-        
+
         default:
         case "mpg":
             // mpg entries from the R mtcars dataset https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html
-            // FUDGED to remove the identical values (see raw-mpg below for original set) 
+            // FUDGED to remove the identical values (see raw-mpg below for original set)
             rawData = [21.0, 21.1, 22.8, 21.4, 18.7, 18.1, 14.3, 24.4, 22.9, 19.2, 17.8, 16.4, 17.3, 15.3, 10.4, 10.5, 14.7, 32.4, 30.4, 33.9, 21.5, 15.5, 15.2, 13.3, 19.3, 27.3, 26.0, 30.5, 15.8, 19.7, 15.0, 21.3];
             quantum = 0.1;
             units = "mpg";
 
     }
-      
+
     recordData();
 };
 
@@ -5084,7 +5083,7 @@ chartObject.resizeChartSubstrates=function resizeChartSubstrates(divSeln, newExt
     canvas.height = newExtent.y;
     context.scale(1,1);
     context.scale(ratio, ratio);
-    
+
     canvas = this.chartFixedCanvas.node(), context = canvas.getContext("2d");
     canvas.width = newExtent.x;
     canvas.height = newExtent.y;
@@ -5122,7 +5121,7 @@ chartObject.rPretty=function rPretty(range, n, internal_only) {
   if ((Math.log(d) / Math.LN10) < -2){
     c = (Math.max(Math.abs(d)) * shrink_sml) / min_n;
   }
-  
+
   var base = Math.pow(10, Math.floor(Math.log(c)/Math.LN10));
   var base_toFixed = 0;
   if (base < 1){
@@ -5139,7 +5138,7 @@ chartObject.rPretty=function rPretty(range, n, internal_only) {
       }
     }
   }
-  
+
   var ticks = [];
   if (range[0] <= unit){
     var i = 0;
@@ -5160,7 +5159,7 @@ chartObject.rPretty=function rPretty(range, n, internal_only) {
     if (ticks[0] < range[0]){ ticks = ticks.slice(1); }
     if (ticks[ticks.length-1] > range[1]){ ticks.pop(); }
   }
-  
+
   return ticks;
 };
 
@@ -5191,9 +5190,9 @@ chartObject.spaceBifocally=function spaceBifocally(groupSelection, groupObject) 
                     .style("opacity", focusIndex===undefined ? 1 : Math.max(0.15, 1-(0.3*Math.abs(cellItem.indexInGroup-focusIndex))))
                     .style("font-weight", cellItem.indexInGroup===focusIndex ? 600 : "normal")
                     .attr("letter-spacing", "normal");
-                
+
                 if (cellItem.indexInGroup===focusIndex) seln.raise();
-                
+
                 var rectSeln = seln.select("rect");
                 if (cellItem.mouseover) rectSeln.on("mouseover", function(cellItem) { cellItem.mouseover.call(this, cellItem) });
                 if (cellItem.mouseout) rectSeln.on("mouseout", function(cellItem) { cellItem.mouseout.call(this, cellItem) });
@@ -5208,7 +5207,7 @@ chartObject.spaceBifocally=function spaceBifocally(groupSelection, groupObject) 
 
     var xFish = this.bifocalScale(fieldWidth, totalWidth, 3, itemWidth);
     xFish.focus(itemWidth*focusIndex, false);
-    
+
     var offset = 0;
     if (focusItemOffset !== undefined) {
         // set the offset such that the focus item ends up at that offset relative to the internal field (from middle of first item to middle of last)
@@ -5229,7 +5228,7 @@ chartObject.spaceBifocally=function spaceBifocally(groupSelection, groupObject) 
             rectSeln
                 .attr("x", -effectiveWidth/2)
                 .attr("width", effectiveWidth)
-//.style("fill", d.indexInGroup===focusIndex ? "#ddd" : "#eee") 
+//.style("fill", d.indexInGroup===focusIndex ? "#ddd" : "#eee")
                 // each mousable rectangle in the fishy zone reports mousemove to the zone as a whole, which calculates which rectangle (perhaps the same one) would have received the event in a non-compressed rendering.
                 // each item responds to mouseout as it would without the fishiness.
                 .on("mouseover", null)
@@ -5253,7 +5252,7 @@ chartObject.spaceBifocally=function spaceBifocally(groupSelection, groupObject) 
 
 chartObject.setTimerInfo=function setTimerInfo(timerInfo) {
     if (this.timerInfo) this.stopTimer();
-    
+
     this.timerInfo = timerInfo;
 };
 
@@ -5264,7 +5263,7 @@ chartObject.startTimer=function startTimer(timerInfo) {
 
 chartObject.stopTimer=function stopTimer(forceToEnd) {
     if (!this.timerInfo) return;
-    
+
     var spec = this.timerInfo;
     if (spec.timer) spec.timer.stop();
     if (spec.cleanup) spec.cleanup();

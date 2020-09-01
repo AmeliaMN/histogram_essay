@@ -1,0 +1,20 @@
+{
+  "name": "histogram",
+  "version": "1.1.0",
+  "main": "scripts/chartObject.js",
+  "scripts": {
+    "build": "npx parcel build scripts/chartObject.js --public-url . && cp scripts/scrollSteps.js dist/"
+  },
+  "browserslist": [
+    "> 0.25%, not dead"
+  ],
+  "author": "Aran Lunzer and Amelia McNamara",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.11.5",
+    "@babel/core": "^7.11.5",
+    "@babel/preset-env": "^7.11.5",
+    "parcel-bundler": "^1.12.4"
+  },
+  "dependencies": {}
+}

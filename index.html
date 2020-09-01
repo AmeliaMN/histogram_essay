@@ -17,15 +17,12 @@
 
     <style>@import 'https://fonts.googleapis.com/css?family=Raleway:100,300';</style>
 
-    <script type="text/javascript" src="dist/js/jquery-3.2.1.min.js"></script>
-    <script type="text/javascript" src="dist/js/tooltip.js"></script>
-    <script type="text/javascript" src="dist/js/bowser.min.js"></script>
-    
-    <script type="text/javascript" src="dist/js/babel-polyfill/6.23.0/polyfill.min.js"></script>
-    <script type="text/javascript" src="dist/js/lively.lang.min.js"></script>
-    <script type="text/javascript" src="dist/js/d3.v4.js"></script>
-    <script type="text/javascript" src="scripts/chartObject-es5.js"></script>
-    <script type="text/javascript" src="scripts/scrollSteps.js"></script>
+    <script type="text/javascript" src="dist/thirdparty/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="dist/thirdparty/tooltip.js"></script>
+    <script type="text/javascript" src="dist/thirdparty/lively.lang.min.js"></script>
+    <script type="text/javascript" src="dist/thirdparty/d3.v4.js"></script>
+    <script type="text/javascript" src="dist/chartObject.js"></script>
+    <script type="text/javascript" src="dist/scrollSteps.js"></script>
 
 <script>
 window.Global = window;
@@ -36,12 +33,8 @@ $(function () {
 
 lively.pt = function pt(x, y) { return { x:x, y: y } }; // trivial, non-functional version
 
-// the chartDefs function is expected to return one or more functions, each of which accepts a newly created chartObject and initialises it  
+// the chartDefs function is expected to return one or more functions, each of which accepts a newly created chartObject and initialises it
 function startup() {
-    if (!bowser.chrome) {
-        document.getElementById("browserwarning").innerHTML = "<p style='color: red'><i>We notice that you're not using the Google Chrome browser. You're welcome to try continuing&mdash;but if some parts of the essay are rendering or behaving strangely, please try Chrome instead.</i></p>"
-    }
-
     chartDefs().forEach(function(initFn) { initFn(createChartObject()) });
 };
 
@@ -85,14 +78,14 @@ function getVis() { return window.scrollyVis }
 <div class="container"> <!-- holds intro and scrolly parts -->
 
 <div id="intro">
-		<h1 id="top">What's so hard about histograms?</h1>	
+		<h1 id="top">What's so hard about histograms?</h1>
 		<p class="lead">Histograms are a way to summarize a numeric variable. They use counts to aggregate similar values together and show you the overall distribution. However, they can be sensitive to parameter choices! We're going to take you step by step through the considerations with lots of data visualizations. If there's anything you do not understand after reading the essay, you can contact us; our contact information is at the very end. Comments and suggestions are welcomed!</p>
-        
+
         <div id="browserwarning"></div>
-      
+
 
 	<h2>Visualizing data</h2>
-	<div>	
+	<div>
     <p>When thinking about data, it is often useful to produce visualizations to better understand distributions and relationships between variables. Since visualizations rely on humans to make and interpret them, they can be fraught with possibilities for misrepresentation, including <a href="https://www.youtube.com/watch?v=s0J6EDvlN30">perceptual issues</a> and <a href="https://qz.com/580859/the-most-misleading-charts-of-2015-fixed/">problems with axes</a>.</p>
 
 
@@ -106,14 +99,14 @@ function getVis() { return window.scrollyVis }
     <p>To visualize the distribution of one categorical variable, we use what is called a <a href="http://www.bbc.co.uk/skillswise/factsheet/ma37grap-e3-f-reading-bar-charts">bar chart</a> (or bar graph). Bar charts show how many items are counted in each of a set of categories. For example, <a href="https://fivethirtyeight.com/">fivethirtyeight</a> created the bar chart at right to show <a href="https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/">the features of Bob Ross paintings</a>. The categories for painting elements are discrete choices, so Walt Hickey (the author of the chart) counted how many paintings contained each element and displayed the <a class="tiponly" href="#" data-toggle="tooltip" title="(technically, he really showed the percentages)" data-placement="top">counts</a>.</p>
 
     <p>Because of their discrete nature, there's not much to decide when drawing a bar chart. An analyst can choose the ordering of the categories, the color of the bars, and the aspect ratio. As we will see, there are many more choices to make when drawing histograms.</p>
-    
+
     <blockquote>
     <p>There’s a strand of the data viz world that argues that everything could be a bar chart. That’s possibly true but also possibly a world without joy.</p>
     <p>-<a href="https://hbr.org/2013/03/power-of-visualizations-aha-moment">Amanda Cox</a>, The Upshot. </p>
     </blockquote>
 
   <h3>Numeric variables and their distributions</h3>
-  
+
 
   <p><b>Numeric</b> variables are measured as numbers. Height is numeric, often measured in centimeters or inches. Age is numeric, measured in years or days. Numeric variables can be <b>discrete</b> or <b>continuous</b>. Discrete variables only take on integer values (1, 2, 3, etc). Continuous variables take on any value along the number line (1.7, 14.06, etc).</p>
 
@@ -144,7 +137,7 @@ function getVis() { return window.scrollyVis }
   <section class="step">
     <div class="title">Sort into an ordered list</div>
     <p>A useful first step towards describing the variable's distribution is to sort the items into a list. Now we can see the maximum value and the minimum value. Beyond that, it is hard to say much about the center, shape, and spread of the distribution. Part of the problem is that the list is completely filled; the space between any two items is the same, no matter how dissimilar their values may be. We need a way to see how the items relate to each other. Are they clustered around a few specific values? Is there one lonely item, with a value far removed from all the others?</p>
-    
+
   </section>
   <section class="step">
     <div class="title">Draw the number line</div>
@@ -153,42 +146,42 @@ function getVis() { return window.scrollyVis }
   <section class="step">
     <div class="title">Add data to the number line</div>
     <p>Now, we map each item to a dot at the appropriate point along the number line.  In our visualization we draw the path followed by each item on its way from the list to the line, helping to reveal how adjacent list items end up close or far apart on the number line depending on their values.</p>
-    
+
     <p>In the first sample dataset ("MPG"), there are&mdash;by chance&mdash;no two items with exactly the same value. To broaden your understanding, we have included two other datasets in this animation.</p>
 
     <p>As you scroll, next you will see a a dataset of an opposite extreme type, in which there are many data points at each value&mdash;"<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>", a dataset that lists the ages of some National Basketball Association athletes. The ages are rounded to whole years, so there are multiple items (i.e., multiple athletes) with the same age value. We show repeated values by <b>stacking</b> them on top of one another.<p>
-    
+
     <p>Scrolling further, you will see a a third sample dataset, "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">Geyser</span>", a collection of timings, in seconds, between eruptions of the Old Faithful geyser in Yellowstone National Park.  This dataset, too, has values for which there are multiple readings&mdash;and again, this multiplicity occurs because the values are rounded to integers.  If the timings were measured to multiple decimal places, there almost certainly would be no duplicates.<p>
 
 
     <p>In these small datasets, the stacks of dots (often called a <b>dotplot</b>) may give you a good sense of the distribution of the data. However, many real-world datasets have values which are repeated many hundreds or thousands of times. From a practical standpoint, it becomes very hard to plot all the dots. Conversely, a dataset could have no duplicates at all, so even a dense region of items would appear as an unremarkable smear along the number line. Histograms provide a way to visualize data by aggregating it into bins, and can be used with data of any size.</p>
-    
+
     <p>Notice the buttons at the bottom of the visualization? These allow you to switch between the sample datasets at any time.<p>
   </section>
   <section class="step">
     <div class="title">Portioning items into bins&mdash;the essence of a histogram</div>
-    
+
     <p>Once items are placed along a number line, drawing a histogram involves sectioning the number line into <b>bins</b> and <b>counting</b> the items that fall into each bin. Notice how the distribution shown in the histogram echoes the distribution from the dot plot.</p>
 
     <p>Gathering the items into bins helps us to answer the question "what is the distribution of this data like?"  Imagine trying to describe some dataset over the phone: rather than mechanically reading out the entire list of values, it would be more useful to provide a summary, such as by saying whether the variable's distribution is symmetric, where it is centered, and whether it has extreme values.  A histogram is another kind of summary, in which you communicate the overall properties in terms of portions (i.e., bins) of the data.</p>
 
     <p>For example, the "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">Geyser</span>" data can be described as being bimodal (because its histogram has two 'peaks'), while "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" is more unimodal, and perhaps <a href="https://en.wikipedia.org/wiki/Skewness">right-skewed</a> (because the bin heights decrease towards the right).</p>
-    
+
     <p>Maybe because histograms are visually similar to bar charts, it's easy to think that they are also similarly objective. But, unlike bar charts, histograms are governed by many <a href="https://en.wikipedia.org/wiki/Parameter" data-toggle="tooltip" title="things that can be changed">parameters</a>. Before describing a dataset to someone based on what you see in its histogram, you need to know whether different parameter values might have led you to different descriptions.</p>
 
 
   </section>
   <section class="step">
     <div class="title">Bin-breaks: Why these bins?</div>
-    
+
     <p>For a start, you probably noticed that the histograms shown for our sample datasets have different numbers of bins. This is because we used <a href="https://en.wikipedia.org/wiki/Histogram#Sturges.27_formula">Sturges' formula</a>, a common method for estimating the number of bins for a histogram, given the size of a dataset.</p>
-    
+
     <p>Given a suggested number of bins, how did we then decide the precise values for the bin boundaries (the so-called "breaks")?  Again we used a common method: look for nearby round numbers. This is why the breaks for "<span class="VisControlLink" onclick="getVis().switchDataset('mpg')">MPG</span>" are all multiples of 5, and those for "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" are multiples of 2.</p>
-    
+
     <p>For those two datasets, the bins turn out to cover the range of the item values rather tidily. But look at the first and last bins for "<span class="VisControlLink" onclick="getVis().switchDataset('geyser')">Geyser</span>". Their placement relative to the value range looks a little arbitrary, right?  That's because it is.</p>
 
     <p>The fact is that there are few hard-and-fast rules for drawing a histogram.  Instead of Sturges' formula, we could have chosen the number of bins using <a href="https://en.wikipedia.org/wiki/Histogram#Scott.27s_normal_reference_rule">Scott's choice</a> or the <a href="https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule">Freedman-Diaconis choice</a>, among many other methods.  And there's certainly no rule saying that bin-break values have to be rounded to the nearest multiple of 2 or 5.</p>
-    
+
     <p>What's important is whether a given histogram is a <b>representative summary</b> of its underlying dataset. One way to judge this is to try varying the positions of the breaks, and see what impact that has on the summary that the histogram conveys.</p>
 
   </section>
@@ -196,49 +189,49 @@ function getVis() { return window.scrollyVis }
     <div class="title">Varying the bin offset</div>
 
     <p>First, let's try shifting the bins left and right along the number line, based on an <a class="tiponly" href="#" data-toggle="tooltip" title="Offset could be defined in many ways; here we use the difference between the left-most bin break and the dataset's minimum value." data-placement="bottom">"offset"</a> setting.</p>
-    
+
     <p>Watch what happens to the relative bin heights as the offset changes. Items are being moved from one bin to another, changing the aggregation, and therefore, the height of the bins. Typically the various histograms' shapes look quite alike, but occasionally a strangely different picture will pop out.</p>
-    
+
     <p>Mouse over the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#scenarioSwitcher')" onmouseout="getVis().hoverOut()">scenario switcher</span> to take control of the animation. Also, try switching between the available datasets.</p>
   </section>
-  
+
   <section class="step">
     <div class="title">Varying the bin width</div>
     <p>We now fix the left-most bin break to the minimum data value, and instead vary bin width.  The width values we try here are defined in terms of the default width that was used in the earlier stages.</p>
-    
+
     <p>Some widths can be argued as being more valid than others. For example, setting a width of 1.4 years for the "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" dataset, where item values are always integers, is asking for trouble: some bins will inevitably span two values, while others only include one. More generally, bin width should be an integer multiple of the precision that was used in measuring the data. Our "<span class="VisControlLink" onclick="getVis().switchDataset('mpg')">MPG</span>" values were all measured to the nearest 0.1, so for that dataset a bin width of 1.4 (mpg) would be fine.</p>
 
 
   </section>
-  
+
   <section class="step">
     <div class="title">Unmasking the magic</div>
     <p>Maybe our talk of formulas and rules and variations has made you feel that histograms are complicated things, calling for complicated tools.  In the next few sections we aim to show that this is not the case.  Summarizing a dataset into bins, and even experimenting with the binning parameters, can be achieved with rather simple code.</p>
-    
+
     <p>Our code is a series of <a class="tiponly" href="#" data-toggle="tooltip" title="We show the derivations as plain English, for ease of understanding. Under the covers we're using simple programming-language equivalents.">formula-like derivations</a>. For adjustable parameters we offer candidate values for you to select; try hovering the mouse pointer over the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#width-extraGroup')" onmouseout="getVis().hoverOut()">values in the <b>width</b> row</span> to see histograms with different bin widths. You can fix on a value by clicking it.</p>
-    
+
     <p>Clicking the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#width-extraToggle')" onmouseout="getVis().hoverOut()">green square</span> at the left side of the row will turn on a "sweep" of width values, creating a cloud of semi-transparent histograms with different bin widths. Creating a sweep adds annotation to each row of the table that the sweep affects. Try creating a sweep, then mousing over the columns on the right to see how the various widths affect the derived bins.</p>
 
     <p>Because broader bins tend to capture more items, and narrower bins fewer, it can be hard to compare histograms that have different bin widths; the narrow bins appear unfairly short. A solution is to plot the histograms as <b>densities</b>&mdash;in effect, counts per unit width. Use the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#densitySwitch')" onmouseout="getVis().hoverOut()">density checkbox</span> to toggle this option. Switching to density preserves the overall shape of each histogram but boosts the height of narrow bins (and conversely tames the broad ones), making comparisons across bin widths easier.</p>
 
     <p>Play with the sample datasets and see if you can find histograms where changing the bin width changes the visual "center" of the distribution.
   </section>
-  
+
   <section class="step">
     <div class="title">More adjustments</div>
-    
+
     <p>Now we've added a row that lets you vary the offset (note how this is taken into account in the <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#breaks-expression')" onmouseout="getVis().hoverOut()">modified derivation of <b>breaks</b></span>).</p>
 
     <p>Try setting up a <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#width-extraToggle')" onmouseout="getVis().hoverOut()">sweep on <b>width</b></span>, then mousing over different values for <b>offset</b>. Again, you may want to switch on <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#densitySwitch')" onmouseout="getVis().hoverOut()">density plotting</span> for easier comparison.</p>
 
     <p>As you explore these parameters, you may come across a parameter combination that leads to a vastly different shape for the distribution. This is often the result of a mismatch between the scale of the data and the scale of the bins. Several "stacks" of dots get caught into a single bin in a way that feels unexpected.</p>
 
-    
+
   </section>
   <section class="step">
     <div class="title">One more thing: Bin openness</div>
     <p>We've been focusing on the effects of the bin offset and bin width, but there is at least one more parameter that is important: the "openness" of the bins.</p>
-    
+
       <p>Openness is about how to deal with items that fall exactly on a bin boundary. Do they get counted as belonging to the lower bin, or to the higher bin?  Or to both?</p>
 
     <p>It's not both&mdash;because that would mean that the boundary items were being counted twice. In a histogram, each data item must be assigned to exactly one bin.</p>
@@ -250,12 +243,12 @@ function getVis() { return window.scrollyVis }
     <p>How much of a difference does the choice between left-open and right-open make? That largely depends on the dataset&mdash;in particular, on the occurrence of data values that are highly "stacked" (i.e., have multiple items), and of course whether a bin boundary happens to fall exactly on such a stack. Among our sample datasets, predictably, "<span class="VisControlLink" onclick="getVis().switchDataset('nba')">NBA</span>" has the greatest propensity for dramatic variation.</p>
 
     <p>Try <span class="VisHighlightLink" onmouseover="getVis().hoverOver('#open-extraGroup')" onmouseout="getVis().hoverOut()">switching <b>open</b></span> between L and R.  Notice how any data points exactly on a bin boundary "jump" as they are moved between neighboring bins.</p>
-    
+
   </section>
 
   <section class="step">
     <div class="title">So what?</div>
-    
+
 <p>Hopefully, we have convinced you that histograms are quite sensitive to parameter choices. It's never a good idea to accept the default bins provided to you by a visualization tool, and if you see a histogram in the wild you should be interested in how the bins were chosen. Sometimes, authors "cherry-pick" parameter values to show a story that isn't really there in the data.</p>
 
 <p>In our ideal world, people making histograms would understand how parameter choices affect what they create, and people reading histograms would have the opportunity to play with the parameters to convince themselves that the story they are seeing is robust.</p>
@@ -299,28 +292,28 @@ function getVis() { return window.scrollyVis }
 
 
     <h2>Who we are</h2>
-    
-    <p>Both of us (<a href="http://www.vpri.org/html/team_bios/aran_lunzer.htm">Aran Lunzer</a> and <a href="http://www.science.smith.edu/~amcnamara/">Amelia McNamara</a>) are passionate about empowering people to explore. Lunzer's work focuses on "subjunctive interfaces": interfaces that help users to understand whether a small change in what they've requested (e.g., small modifications to parameter values, or subtly different terms in a query) would lead to dramatically different results. McNamara is interested in the effects of parameter choices on statistical visualizations.</p>
+
+    <p>Both of us (<a href="http://bit.ly/aranlunzer">Aran Lunzer</a> and <a href="https://www.amelia.mn">Amelia McNamara</a>) are passionate about empowering people to explore. Lunzer's work focuses on "subjunctive interfaces": interfaces that help users to understand whether a small change in what they've requested (e.g., small modifications to parameter values, or subtly different terms in a query) would lead to dramatically different results. McNamara is interested in the effects of parameter choices on statistical visualizations.</p>
 
     <p>If you have seen awesome histograms in the wild, have comments about this essay, or just want to say Hello, you can tweet at Amelia, <a href="https://twitter.com/AmeliaMN">@AmeliaMN</a>, or email Aran, <tt>aran at acm dot org</tt>. </p>
 
 
     <h2>Acknowledgements</h2>
-    
+
     <p>This essay is built using styling and tooltip behavior from <a href="http://getbootstrap.com/">Bootstrap</a>, with scrolly responsiveness derived from Jim Vallandingham's <a href="http://vallandingham.me/scroller.html">So You Want to Build A Scroller</a>.  The interactive visualizations make extensive use of <a href="https://d3js.org/">D3.js</a>, and utility functions from <a href="https://github.com/LivelyKernel/lively.lang/">lively.lang</a>. While the code was primarily generated to power this essay, it is <a href="https://github.com/AmeliaMN/histogram_essay">available on GitHub</a> if you want to play with it yourself (and aren't scared of JavaScript hairballs).</p>
 
     <p>The icons on the dataset-selection buttons are all from <a href="https://thenounproject.com/">the Noun Project</a>: "Car" by Jens Tärning; "Basketball" by Andrey Vasiliev; an adaptation of "Fountain" by Anton Gajdosik; "Diamond" by O&nbsp;s&nbsp;t&nbsp;r&nbsp;e&nbsp;a; an adaptation of "run" by Hopkins.
     </p>
 
-    <p>We also gratefully acknowledge the support of our many colleagues and collaborators, in particular within the <a href="http://harc.ycr.org">Human Advancement Research Community</a>. Special thanks go to Marko Röder, Saketh Kasibatla, Yoshiki Ohshima, Chris Walker, Steve Draper, Jim McElwaine, Kathy Ahlers, and Chris Baker.</p>
-  
+    <p>We also gratefully acknowledge the support of our many colleagues and collaborators, in particular within Y Combinator Research's now-folded Human Advancement Research Community. Special thanks go to Marko Röder, Saketh Kasibatla, Yoshiki Ohshima, Chris Walker, Steve Draper, Jim McElwaine, Kathy Ahlers, and Chris Baker.</p>
+
 </div> <!-- end of #epilogue -->
 
 <div id="extra-space" style="height: 20px"></div>
 
 
 <p>
-    <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work, by <a href="http://www.vpri.org/html/team_bios/aran_lunzer.htm">Aran Lunzer</a> and <a href="http://www.science.smith.edu/~amcnamara/">Amelia McNamara</a>, is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+    <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work, by <a href="http://bit.ly/aranlunzer">Aran Lunzer</a> and <a href="https://www.amelia.mn">Amelia McNamara</a>, is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
 
 <br />
 </p>
